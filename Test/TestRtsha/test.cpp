@@ -54,6 +54,16 @@ TEST(TestCaseName, TestName)
 	rtsha_free(ptr2);
 	rtsha_free(ptr2);
 
+	/*test best fit -identical*/
+	ptr2 = rtsha_malloc(1200);
+	rtsha_free(ptr2);
+
+	/*test create new when no best fit*/
+	ptr2 = rtsha_malloc(1204);
+	rtsha_free(ptr2);
+
+	/**/
+
 	/*test shrink*/
 	
 	rtsha_free(ptr4);

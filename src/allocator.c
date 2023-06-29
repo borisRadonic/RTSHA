@@ -4,7 +4,6 @@
 extern uintptr_t	_heap_start;
 extern RTSHA_Error	_last_heap_error;
 
-
 static inline size_t rtsha_select_size(rtsha_page* page, size_t size)
 {
 	if( (page->flags & RTSHA_PAGE_TYPE_16) == RTSHA_PAGE_TYPE_16 )
@@ -125,16 +124,125 @@ static inline rtsha_page* rtsha_find_page(uintptr_t ptr)
 	return NULL;
 }
 
+static inline void* rtsha_allocate_block_at_current_pos(rtsha_page* page, size_t size )
+{
+	rtsha_block* ptrBlock;
+	bool fit;
+	void* ret = NULL;
+	fit = false;
+	
+	ptrBlock = NULL;
+
+	ptrBlock = (rtsha_block*)((void*)page->position);
+	ptrBlock->size = size;
+	ptrBlock->prev = page->last_block;
+
+	page->last_block = ptrBlock;
+
+	ptrBlock->prev_free = NULL;
+
+	(void*)(page->position + size);
+
+	ptrBlock->next_free = NULL;
+
+	page->position += size;
+	page->free = page->free - size;
+
+	ptrBlock++;
+	ret = (void*)ptrBlock;
+	return ret;
+}
+
+static inline void* rtsha_alloc_big_page_block(rtsha_page* page, size_t size)
+{
+	rtsha_block* ptrBlock;
+	rtsha_block* ptrBlockMinDiff;
+	size_t diff;
+	size_t min_diff;
+	bool fit;
+	void* ret = NULL;
+	ptrBlockMinDiff = NULL;
+	ptrBlock = page->last_free_block;
+	diff = 0U;
+	fit = false;
+	
+	if (sizeof(size_t) == 8U)
+	{
+		min_diff = UINT64_MAX;
+	}
+	else
+	{
+		min_diff = UINT32_MAX;
+	}
+
+	/*try to find perfect-fit method*/
+	while (NULL != ptrBlock)
+	{
+		if (ptrBlock->size == (size + 1U))
+		{
+			page->last_free_block = ptrBlock;
+			if (ptrBlock->prev_free != NULL)
+			{
+				ptrBlock->prev_free->next_free = ptrBlock;
+			}			
+			else
+			{
+				page->last_free_block = ptrBlock->prev_free;
+			}
+			fit = true;
+			break;
+		}
+		else
+		{
+			/*calculate the difference*/
+			if (ptrBlock->size > size)
+			{
+				diff = ptrBlock->size - size;
+				if (diff < size)
+				{
+					min_diff = diff;
+					ptrBlockMinDiff = ptrBlock;
+				}
+			}
+		}
+		ptrBlock = ptrBlock->prev_free;
+	}
+	if (false == fit)
+	{
+		ret = rtsha_allocate_block_at_current_pos(page, size);
+		if (NULL != ret)
+		{
+			return ret;
+		}
+
+		/*no free space! Use best-fit method based on min-diff*/
+		if (NULL == ptrBlockMinDiff)
+		{
+			return NULL;
+		}
+		ptrBlock = ptrBlockMinDiff;		
+	}
+	/*set as used*/
+	if (ptrBlock != NULL)
+	{
+		ptrBlock->size = (ptrBlock->size >> 1U) << 1U;
+		ptrBlock++;
+		ret = (void*)ptrBlock;
+		return ret;
+	}
+	return NULL;
+}
+
 static inline void* rtsha_allocate_page_block(rtsha_page* page, size_t size)
 {
 	rtsha_block* ptrBlock;
 	rtsha_block* last_free_block;
 	size_t min_size;
+	;
 	void* ret = NULL;
 	min_size = 0U;
-	ptrBlock = NULL;
-		
-	if ((0U ==size) || (NULL == page))
+	
+	if ((0U == size) || (NULL == page))
 	{
 		return NULL;
 	}
@@ -147,76 +255,32 @@ static inline void* rtsha_allocate_page_block(rtsha_page* page, size_t size)
 		/*check if big blocks page*/
 		if ((page->flags & RTSHA_PAGE_TYPE_BIG) == RTSHA_PAGE_TYPE_BIG)
 		{
-			/*find apropriate block using first-fit
-			todo:good-fit
-			*/
-			while (NULL != ptrBlock)
-			{
-				if (ptrBlock->size >= min_size)
-				{					
-					if (ptrBlock->prev != NULL)
-					{
-						ptrBlock->prev_free->next_free = ptrBlock;
-					}
-					if (ptrBlock != last_free_block)
-					{
-						page->last_free_block = ptrBlock;
-					}
-					else
-					{
-						page->last_free_block = ptrBlock->prev_free;
-					}					
-					break;
-				}
-				ptrBlock = ptrBlock->prev_free;
-			}
+			return rtsha_alloc_big_page_block(page, min_size);
 		}
 		else
 		{
-			/*use last free block of the same size*/			
+			/*use last free block of the same size*/
 			page->last_free_block = ptrBlock->prev_free;
-		}
-		if (ptrBlock != NULL)
-		{
 			ptrBlock->size = min_size;
+			/*set as used*/
+			ptrBlock->size = (ptrBlock->size >> 1U) << 1U;
 			ptrBlock++;
 			ret = (void*)ptrBlock;
 			return ret;
 		}
-		return NULL;
 	}
-	/*allocate not used block at the current position*/	
-	if (page->free < min_size)
-	{
-		return NULL;
-	}
-
-	ptrBlock = (rtsha_block*)((void*)page->position);
-	ptrBlock->size = min_size;
-	ptrBlock->prev = page->last_block;
-
-	page->last_block = ptrBlock;
-
-	ptrBlock->prev_free = NULL;
-
-	(void*) (page->position + size);
-
-	ptrBlock->next_free = NULL;
-
-	page->position += min_size;
-	page->free = page->free - min_size;
-
-	ptrBlock++;
-	ret = (void*)ptrBlock;
-	return ret;
+	/*allocate not used block at the current position*/
+	return rtsha_allocate_block_at_current_pos(page, min_size);
 }
 
 static inline void rtsha_free_page_block(rtsha_page* page, void* block)
 {
-	bool shrinked;
+	bool shrinked_left;
+	bool shrinked_right;
 	rtsha_block* block_to_free = (rtsha_block*) block;
 	rtsha_block* temp_block = NULL;
-	shrinked = false;
+	shrinked_left = false;
+	shrinked_right = false;
 	
 	page->free = page->free + block_to_free->size;
 	
@@ -224,7 +288,7 @@ static inline void rtsha_free_page_block(rtsha_page* page, void* block)
 	{
 		if (page->free == page->size)
 		{
-			/*all blocks are free -> simple reinitialize page/
+			/*all blocks are free->simple reinitialize page */
 			page->last_free_block = NULL;
 			page->last_block = NULL;
 
@@ -253,42 +317,41 @@ static inline void rtsha_free_page_block(rtsha_page* page, void* block)
 
 						block_to_free->prev->size += block_to_free->size;
 						block_to_free->prev->next_free = block_to_free->next_free;	
-						shrinked = true;
+						shrinked_left = true;
+						block_to_free->size = 0U;
+						block_to_free = block_to_free->prev;
 					}
-				}
+				}	
+				
+				if ( (block_to_free != page->last_block) && (block_to_free->size > 0U))
+				{
+					/*check if not last*/
+					temp_block = (rtsha_block*)((size_t)((void*)block_to_free) + block_to_free->size);
 
-				/*check if not last*/
-				temp_block = (rtsha_block*) ( (size_t) ((void*) block_to_free) + block_to_free->size);
-				if (shrinked)
-				{
-					block_to_free->size = 0U;					
-				}
-				if (is_bit(temp_block->size,0))
-				{
-					if ( (temp_block != NULL) && (block_to_free->prev != NULL) )
-					{
+					if ( (temp_block != NULL)  && is_bit(temp_block->size, 0)  )
+					{			
 						/*right is free -> shrink those two blocks*/
-						block_to_free->prev->size = (block_to_free->prev->size >> 1U) << 1U;
+						block_to_free->size = (block_to_free->size >> 1U) << 1U;
 						temp_block->size = (temp_block->size >> 1U) << 1U;
-						
-						block_to_free->prev->size = block_to_free->prev->size + temp_block->size;
-						block_to_free->prev->next_free = temp_block->next_free;
+
+						block_to_free->size = block_to_free->size + temp_block->size;
+						block_to_free->next_free = temp_block->next_free;
 						/*clear right block header data*/
 						temp_block->size = 0U;
 						temp_block->next_free = NULL;
 
 						if (temp_block == page->last_block)
 						{
-							page->last_block = block_to_free->prev;
+							page->last_block = block_to_free;
 						}
-						shrinked = true;						
+						shrinked_right = true;
 					}
 				}
-				if (shrinked)
+				if (shrinked_left || shrinked_right )
 				{
 					/*set as free*/
-					block_to_free->prev->size = block_to_free->prev->size | 1U;
-					page->last_free_block = block_to_free->prev;
+					block_to_free->size = block_to_free->size | 1U;
+					page->last_free_block = block_to_free;
 					return;
 				}
 			}

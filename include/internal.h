@@ -12,7 +12,6 @@ static inline bool rtsha_is_aligned(void* ptr)
      return ( ((uintptr_t) ptr % RTSHA_ALIGMENT) == 0U );
 }
 
-
 static inline uintptr_t rtsha_align(uintptr_t ptr)
 {
     uintptr_t mask = RTSHA_ALIGMENT - 1U;
@@ -24,7 +23,6 @@ static inline uintptr_t rtsha_align(uintptr_t ptr)
     return (((ptr + mask) / RTSHA_ALIGMENT) * RTSHA_ALIGMENT);
    
 }
-
 
 rtsha_heap_t* rtsha_heap_init(void* start, size_t size);
 
