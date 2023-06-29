@@ -36,7 +36,9 @@ typedef uint16_t RTSHA_PageType;
 
 typedef struct rtsha_block_struct
 {
-	size_t					   size; /*size is alligned, 0 bit contains 1 when free*/
+	size_t					   size; /*size is alligned,last 2 bits are not used
+										0 bit contains 1 when free
+										1 bit contains 1 when last block*/
 	struct rtsha_block_struct* prev;
 	struct rtsha_block_struct* prev_free;
 	struct rtsha_block_struct* next_free;

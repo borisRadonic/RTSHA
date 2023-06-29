@@ -1,6 +1,6 @@
 
 
-# Real Time Safety Heap Allocator (HRT-SHA)
+# Real Time Safety Heap Allocator (RTSHA)
 
 
 Good programming practices for real time emmbedded applications includes the rule that all values must allocated on the stack if possible.
@@ -18,7 +18,7 @@ There are various implementations of heap allocation algorithms used on differen
 
 While each of these memory management implementations has its advantages, they are not specifically designed for use in hard real-time environments, where speed, determinism, elimination of fragmentation, and memory safety are the primary goals.
 
-Hard Real Time Safety Heap Allocator can be sused on bare metal platforms or together with small RT OS for several reasons:
+Real Time Safety Heap Allocator can be sused on bare metal platforms or together with small RT OS for several reasons:
 
   1. Memory Management: Heap algorithms are responsible for managing dynamic memory allocation and deallocation in a system.
      On platforms, where the operating system is absent or minimal, managing memory becomes crucial.
@@ -28,7 +28,7 @@ Hard Real Time Safety Heap Allocator can be sused on bare metal platforms or tog
      HRT-SHA algorithms provide guarantees on the worst-case execution time for memory allocation and deallocation operations.
      This predictability ensures that the system can meet its timing constraints consistently.
 
- 3. Memory Safety: Safety is a critical concern in safety-certified systems. A Hard Real Time Safety Heap Allocator is designed to prevent or mitigate some of memory-related errors,
+ 3. Memory Safety: Safety is a critical concern in safety-certified systems. A Real Time Safety Heap Allocator is designed to prevent or mitigate some of memory-related errors,
     such as buffer overflows, buffer underflows, double frees, and other memory corruption issues.
     By enforcing strict bounds checking and error detection mechanisms, the algorithm helps maintain system integrity and prevent vulnerabilities.
 
@@ -54,7 +54,7 @@ Hard Real Time Safety Heap Allocator can be sused on bare metal platforms or tog
 
 
 
-## About HRT-SHA
+## About RTSHA
 
 Real Time Safety Heap Allocator:
 
@@ -62,28 +62,30 @@ Real Time Safety Heap Allocator:
 - prevents fragmentation of physical memory when memory is allocated and de-allocated dynamically
 - helps to achive deterministic performance and timing constraints
 - possibility to configure for specific platforms and applications
-- enables configuration that uses fixed memory chunk sizes 16, 32, 64, 128 ... bytes
+- enables configuration that uses fixed memory chunk sizes 16, 32, 64, 128, 512 ... bytes and big standard variable chunk sizes
+
 
 
 The main requirements that need to be fulfilled are:
 
 	The worst-case execution time of the malloc and free functions has to be known and not dependable of application data.
-	The algorithm must minimize the likelihood of depleting the memory pool by reducing fragmentation and minimizing wasted memory.
+	The algorithm enables minimizing the likelihood of depleting the memory pool by reducing fragmentation and minimizing wasted memory.
+
 
 The algorithm:
 
- - Immediate coalescing
-- The smallest allocatable block is 16 bytes 
- -   Almost-Best-Fit strategy is employed to minimize fragmentation.  (...an array of free lists holding free blocks)
-    Memory blocks are promptly merged or coalesced upon their release.
-    It try to reuses recently released memory blocks over those that were released further in the past.
-	employs the boundary tag technique proposed by D. Knuth 
+- promptly merges or coalesced the memory blocks after their release. This is a standard part of memory management in which two adjacent free blocks of memory are merged.
+- 
+- expects user memory devided in pages defined by user. The page contains the memory blocks of the same size ( for example 16, 32, 64, 128, 512 bytes and the pages for 'big blocks' )
+  The smallest allocatable memory block is 16 bytes and the biggest allocatable block is user defined.
+- Almost-Best-Fit strategy is employed to minimize fragmentation of big blocks (blocks greater than 512 bytes)
+- reuses recently released memory blocks over those that were released further in the past
 
 
 ## Project Status
 
-* In progress
-* Google tests
+* Work in progress...
+
 
 ## Configuration
 

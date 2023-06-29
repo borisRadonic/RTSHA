@@ -5,7 +5,9 @@
 #define RTSHA_ALIGMENT			4U	/*4U or 8U*/
 #define RTSHA_PADDING_SIZE		4U	/*4U or 8U*/
 
-#define is_bit(val,n) ((val >> n) & 0x01U)
+#define is_bit(val,n) ( (val >> n) & 0x01U )
+
+#define get_block_size(val) ( (val >> 2U) << 2U )
 
 static inline bool rtsha_is_aligned(void* ptr)
 {

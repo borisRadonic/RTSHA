@@ -1,9 +1,17 @@
 #include "pch.h"
 #include "internal.h"
 #include "allocator.h"
+#include <iostream>
+#include <sstream>
+#include <string>
+#include "VisualizePage.h"
+
+using namespace std;
 
 TEST(TestCaseName, TestName)
 {
+	stringstream textStream;
+	
 	rtsha_heap_t* heapPtr;
 	size_t size = 0x1F4000;
 	void* heapMemory = malloc(size); //allocate 2MB for heap
@@ -51,28 +59,52 @@ TEST(TestCaseName, TestName)
 	void* ptr4 = rtsha_malloc(2000);
 	void* ptr5 = rtsha_malloc(1200);
 
+	VisualizePage visPage9(pagePtr9);
+	visPage9.print(textStream);
+	
+	textStream << "F 1200" << std::endl;
 	rtsha_free(ptr2);
+
+	visPage9.print(textStream);
+	
+
 	rtsha_free(ptr2);
 
 	/*test best fit -identical*/
 	ptr2 = rtsha_malloc(1200);
+	textStream << "A 1200" << std::endl;
+	visPage9.print(textStream);
+		
+	textStream << "F 1200" << std::endl;
 	rtsha_free(ptr2);
+	visPage9.print(textStream);
 
 	/*test create new when no best fit*/
 	ptr2 = rtsha_malloc(1204);
+	textStream << "A 1204" << std::endl;
 	rtsha_free(ptr2);
-
-	/**/
-
+	visPage9.print(textStream);
+		
 	/*test shrink*/
-	
+	textStream << "F 2000" << std::endl;
 	rtsha_free(ptr4);
-
+	visPage9.print(textStream);
+		
+	textStream << "F 1300 (should shrink left and right)" << std::endl;
 	rtsha_free(ptr3);
-	rtsha_free(ptr5);
+	visPage9.print(textStream);
 
-	rtsha_free(ptr1);
+	cout << textStream.str();
 	
+	textStream << "F 1200" << std::endl;
+	rtsha_free(ptr5);
+	visPage9.print(textStream);
+
+	textStream << "F 2000" << std::endl;
+	rtsha_free(ptr1);
+	visPage9.print(textStream);
+	
+	cout << textStream.str();
 
   EXPECT_EQ(1, 1);
   EXPECT_TRUE(true);
