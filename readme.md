@@ -1,6 +1,6 @@
 
 
-# Hard Real Time Safety Heap Allocator (HRT-SHA)
+# Real Time Safety Heap Allocator (HRT-SHA)
 
 
 Good programming practices for real time emmbedded applications includes the rule that all values must allocated on the stack if possible.
@@ -51,19 +51,18 @@ Hard Real Time Safety Heap Allocator can be sused on bare metal platforms or tog
 3. [Configuration](#configuration)
 4. [License](#license)
 5. [Documentation](#documentation)
-6. [Donations](#donations)
+
 
 
 ## About HRT-SHA
 
-Hard Real Time Safety Heap Allocator:
-
+Real Time Safety Heap Allocator:
 
 
 - prevents fragmentation of physical memory when memory is allocated and de-allocated dynamically
 - helps to achive deterministic performance and timing constraints
 - possibility to configure for specific platforms and applications
-- when possible uses fixed memory chunk sizes 16, 32, 64, 128 bytes
+- enables configuration that uses fixed memory chunk sizes 16, 32, 64, 128 ... bytes
 
 
 The main requirements that need to be fulfilled are:
@@ -80,25 +79,10 @@ The algorithm:
     It try to reuses recently released memory blocks over those that were released further in the past.
 	employs the boundary tag technique proposed by D. Knuth 
 
-each free block is linked in two different double linked lists:
- 1) the segregated list, holding the blocks belonging to the same size class, and
- 2) a list ordered by physical address
-
-
-Indexed Fit or Sequential Fit or Segregated Free Lists ????
-
-
-blocks a unique identifier (called its block id)
-
-valid blocks are blocks that have aleary been allocatedfree blocks
-
- remaining blocks are waiting to be allocated (called invalid blocks)
-
 
 ## Project Status
 
-* The first 1.0 Version has been released
-* RTOS Example
+* In progress
 * Google tests
 
 ## Configuration
