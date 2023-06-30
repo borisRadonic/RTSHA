@@ -140,9 +140,8 @@ static inline void* rtsha_allocate_block_at_current_pos(rtsha_page* page, size_t
 	ptrBlock->size = size;
 	ptrBlock->prev = page->last_block;
 	
-
 	page->last_block = ptrBlock;
-	ptrBlock->size = ptrBlock->size | 2U;
+	ptrBlock->size = ptrBlock->size;
 
 	ptrBlock->prev_free = NULL;
 
@@ -152,8 +151,6 @@ static inline void* rtsha_allocate_block_at_current_pos(rtsha_page* page, size_t
 
 	page->position += size;
 	page->free = page->free - size;
-
-	ptrBlock->size = ptrBlock->size;
 
 	ptrBlock++;
 	ret = (void*)ptrBlock;
@@ -295,7 +292,11 @@ static inline void* rtsha_allocate_page_block(rtsha_page* page, size_t size)
 static rtsha_block* rtsha_shrink_left(rtsha_page* page, rtsha_block* block)
 {
 	rtsha_block* pBlock = block;
+	rtsha_block* temp_block;
 	rtsha_block* pLastFree = block;
+
+	temp_block = (rtsha_block*)((size_t)((void*)pBlock) + get_block_size(pBlock->size));
+
 	/*merge all free neighbor blocks left together*/
 	while ((pBlock->prev != NULL) && (is_bit(pBlock->prev->size, 0)))
 	{
@@ -313,9 +314,18 @@ static rtsha_block* rtsha_shrink_left(rtsha_page* page, rtsha_block* block)
 				/*set as last block*/
 				pBlock->prev->size = pBlock->size | 2U;
 			}
-
 			pBlock->prev->size = pBlock->prev->size | 1U;
 			pLastFree = pBlock->prev;
+
+			/*update previous of the block on the right side*/
+			if ((temp_block != NULL) && (temp_block->prev != NULL))
+			{
+				temp_block->prev = pBlock->prev;
+			}
+
+
+			pBlock->next_free = NULL;
+			pBlock->prev_free = NULL;
 		}
 		pBlock = pBlock->prev;
 	}
@@ -327,6 +337,7 @@ static rtsha_block* rtsha_shrink_right(rtsha_page* page, rtsha_block* block)
 	rtsha_block* pBlock = block;
 	rtsha_block* pLastFree = block;
 	rtsha_block* temp_block = NULL;
+	rtsha_block* temp_blockR = NULL;
 
 	temp_block = (rtsha_block*)((size_t)((void*)pBlock) + get_block_size(pBlock->size));
 	
@@ -340,7 +351,7 @@ static rtsha_block* rtsha_shrink_right(rtsha_page* page, rtsha_block* block)
 		pBlock->next_free = temp_block->next_free;
 		
 		/*clear right block header data*/
-		temp_block->size = 0U;
+		
 		temp_block->next_free = NULL;
 
 		if (temp_block == page->last_block)
@@ -349,6 +360,16 @@ static rtsha_block* rtsha_shrink_right(rtsha_page* page, rtsha_block* block)
 			/*set as last block*/
 			pBlock->size = pBlock->size | 2U;
 		}
+		else
+		{
+			/*set prev of the next right*/
+			temp_blockR = (rtsha_block*)((size_t)((void*)temp_block) + get_block_size(temp_block->size));
+			if ((temp_blockR != NULL) && (temp_blockR->size > 0U))
+			{
+				temp_blockR->prev = pBlock;
+			}
+		}
+		temp_block->size = 0U;
 
 		/*set as free*/
 		if (pBlock->size > 0U)
@@ -356,7 +377,6 @@ static rtsha_block* rtsha_shrink_right(rtsha_page* page, rtsha_block* block)
 			pBlock->size = pBlock->size | 1U;
 			page->last_free_block = pBlock;
 		}
-
 		if (page->last_block == pBlock)
 		{
 			return pBlock;
@@ -374,18 +394,6 @@ static inline void rtsha_free_page_block(rtsha_page* page, void* block)
 
 	if (page->last_free_block != NULL)
 	{
-		/*
-		if (page->free == page->size)
-		{
-			page->last_free_block = NULL;
-			page->last_block = NULL;
-
-			page->last_block = NULL;
-
-			page->position = page->start_position;
-			return;			
-		}
-		*/
 		if (page->last_free_block != block_to_free)
 		{
 						
@@ -400,8 +408,7 @@ static inline void rtsha_free_page_block(rtsha_page* page, void* block)
 			{
 				block_to_free->size = block_to_free->size | 2U;
 			}
-
-			
+						
 			/*shrink only for big variable size */
 			if ((page->flags & RTSHA_PAGE_TYPE_BIG) == RTSHA_PAGE_TYPE_BIG)
 			{
@@ -410,7 +417,13 @@ static inline void rtsha_free_page_block(rtsha_page* page, void* block)
 				/*check if not last block*/
 				if( !is_bit(block_to_free->size, 1) && (page->last_block != block_to_free) )
 				{
-					block_to_free = rtsha_shrink_right(page, block_to_free);
+					block_to_free = rtsha_shrink_right(page, block_to_free);				
+				}
+
+				/*check if not last block*/
+				//if (!is_bit(block_to_free->size, 1) && (page->last_block != block_to_free))
+				{
+					block_to_free = rtsha_shrink_left(page, block_to_free);
 				}
 
 				page->last_free_block = block_to_free;

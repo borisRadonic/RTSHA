@@ -15,6 +15,10 @@ void VisualizePage::print(std::stringstream& textStream)
 		
 		while ((pBlock != NULL) )
 		{
+			if (pBlock->size == 0U)
+			{
+				break;
+			}
 			if (pBlock->size < 16U)
 			{
 				textStream << "00000" << " ";
@@ -33,7 +37,7 @@ void VisualizePage::print(std::stringstream& textStream)
 			{
 				textStream << "B" << blockDataSize << " ";
 			}			
-			tempPos = tempPos + blockDataSize;
+			tempPos = tempPos + blockDataSize; 
 			if (tempPos >= _page->position)
 			{
 				break;
