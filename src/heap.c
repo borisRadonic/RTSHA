@@ -11,6 +11,8 @@ bool		_heap_init = false;
 
 RTSHA_Error _last_heap_error = RTSHA_OK;
 
+rtsha_heap_t* _heap;
+
 
 rtsha_heap_t* rtsha_heap_init(void* start, size_t size)
 {
@@ -43,7 +45,15 @@ rtsha_heap_t* rtsha_heap_init(void* start, size_t size)
 
 	_heap_current_position += sizeof(rtsha_heap_t);
 
+	size_t* ptrMem;
+	for ( ptrMem = (size_t*)(void*)_heap_current_position; ptrMem < (size_t*)(void*)_heap_top; ptrMem++ )
+	{
+		*ptrMem = 0U;
+	}
 	_last_heap_error = RTSHA_OK;
+
+	_heap = ptrHeap;
+
 	return ptrHeap;
 }
 
@@ -79,8 +89,10 @@ rtsha_page* rtsha_add_page(rtsha_heap_t* heap, RTSHA_PageType page_type, size_t 
 	page->start_position = page->position;
 
 
-	/*skip page data*/
-	_heap_current_position += page->free;
+	/*skip page header + page data*/
+	//_heap_current_position += page->free;
+
+	_heap_current_position += (sizeof(rtsha_page) + page->size);
 	
 	page->next= (rtsha_page*)(void*)_heap_current_position;
 
@@ -99,10 +111,6 @@ size_t rtsha_get_free_space()
 	if (_heap_current_position >= _heap_top)
 	{
 		return 0U;
-	}
-	if ((_heap_top - _heap_current_position) <= 64U)
-	{
-		return 0U;
-	}
+	}	
 	return (_heap_top - _heap_current_position);
 }

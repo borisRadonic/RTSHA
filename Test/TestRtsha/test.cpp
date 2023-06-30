@@ -8,6 +8,88 @@
 
 using namespace std;
 
+
+
+TEST(TestCasePage16, TestName)
+{
+	stringstream textStream;
+
+	rtsha_heap_t* heapPtr;
+	size_t size = 0x1F4000;
+	void* heapMemory = malloc(size); //allocate 2MB for heap
+	EXPECT_TRUE(heapMemory != NULL);
+
+	/*Initialize heap allocator*/
+	heapPtr = rtsha_heap_init(heapMemory, size);
+
+	size_t free_space = rtsha_get_free_space();
+
+	
+	/*Add pages*/
+	rtsha_page* pagePtr0 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_16, RTSHA_PAGE_SIZE_64K);
+	rtsha_page* pagePtr1 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_16, RTSHA_PAGE_SIZE_64K);
+	
+	VisualizePage visPage9(pagePtr0);
+	visPage9.print(textStream);
+	
+	std::vector<void*> ptrMemory;
+
+	uint32_t max = pagePtr0->free / (16U + sizeof(rtsha_block) );
+
+	for (uint32_t i = 0; i < 5000; i++)
+	{
+		void* ptr = rtsha_malloc(16U);
+		if (ptr)
+		{
+			ptrMemory.push_back(ptr);
+		}
+		else
+		{
+			EXPECT_EQ(i, 4094);
+			break;
+		}
+	}
+	
+	/*clear first 100*/
+	for (uint32_t i = 0; i < 100; i++)
+	{
+		rtsha_free(ptrMemory[i]);
+	}
+
+	EXPECT_EQ( 3200U, pagePtr0->free );
+
+	for (uint32_t i = 100; i < 4000; i++)
+	{
+		rtsha_free(ptrMemory[i]);
+	}
+
+	visPage9.print(textStream);
+
+	EXPECT_EQ(pagePtr0->free, 65504U);
+
+	EXPECT_EQ(pagePtr1->free, 62496U);
+
+
+	for (uint32_t i = 0; i < 5000; i++)
+	{
+		void* ptr = rtsha_malloc(16U);
+		if (!ptr)
+		{
+			EXPECT_EQ(i, 4094U);
+			break;
+		}
+	}
+
+	textStream << std::endl;
+	textStream << "Page0 free:" << pagePtr0->free << std::endl;
+	textStream << "Page1 free:" << pagePtr1->free << std::endl;
+
+	visPage9.print(textStream);
+	cout << textStream.str();
+
+}
+
+
 TEST(TestCaseName, TestName)
 {
 	stringstream textStream;
@@ -15,10 +97,8 @@ TEST(TestCaseName, TestName)
 	rtsha_heap_t* heapPtr;
 	size_t size = 0x1F4000;
 	void* heapMemory = malloc(size); //allocate 2MB for heap
-	if (heapMemory != NULL)
-	{
-
-	}
+	EXPECT_TRUE(heapMemory != NULL);
+	
 	/*Initialize heap allocator*/
 	heapPtr = rtsha_heap_init(heapMemory, size);
 

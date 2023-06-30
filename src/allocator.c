@@ -38,8 +38,10 @@ static inline rtsha_page* rtsha_select_page(size_t size)
 	rtsha_heap_t* ptrHeap;
 	rtsha_page* page;
 	RTSHA_PageType page_type = 0U;
-
+	uint32_t num;
+	
 	ptrHeap = (rtsha_heap_t*)_heap_start;
+	num = 0U;
 
 	page = NULL;
 	if (size > 0U)
@@ -74,7 +76,7 @@ static inline rtsha_page* rtsha_select_page(size_t size)
 		}
 	}
 		
-	if( (page_type != NULL) && (ptrHeap != NULL) )
+	if( (page_type != 0U) && (ptrHeap != NULL) )
 	{
 		if ((ptrHeap->number_pages == 0U) || (ptrHeap->pages == NULL))
 		{
@@ -82,15 +84,16 @@ static inline rtsha_page* rtsha_select_page(size_t size)
 			return NULL;
 		}
 		page = ptrHeap->pages;
-		while (page != NULL )
+		while( (num < ptrHeap->number_pages) && (page != NULL) )
 		{
 			if( (page->flags & page_type) == page_type )
 			{
-				if (page->free >= size)
+				if (page->free >= ( size + sizeof(rtsha_block_struct) ) )
 				{
 					return page;
 				}
 			}
+			num++;
 			page = page->next;
 		}
 	}
@@ -136,18 +139,10 @@ static inline void* rtsha_allocate_block_at_current_pos(rtsha_page* page, size_t
 	ptrBlock = (rtsha_block*)((void*)page->position);
 	ptrBlock->size = size;
 	ptrBlock->prev = page->last_block;
-
-	if (page->last_block == NULL)
-	{
-		/*this is first block*/
-	}
-	else
-	{
-		page->last_block->size = page->last_block->size - 2U;
-	}
+	
 
 	page->last_block = ptrBlock;
-	ptrBlock->size = ptrBlock->size + 2U;
+	ptrBlock->size = ptrBlock->size | 2U;
 
 	ptrBlock->prev_free = NULL;
 
@@ -270,6 +265,7 @@ static inline void* rtsha_allocate_page_block(rtsha_page* page, size_t size)
 		return NULL;
 	}
 	min_size = sizeof(rtsha_block) + rtsha_select_size(page, size);
+
 	/*check if any free on the list*/
 	ptrBlock = page->last_free_block;
 	last_free_block = ptrBlock;
@@ -285,8 +281,7 @@ static inline void* rtsha_allocate_page_block(rtsha_page* page, size_t size)
 			/*use last free block of the same size*/
 			page->last_free_block = ptrBlock->prev_free;
 			ptrBlock->size = min_size;
-			/*set as free*/
-			ptrBlock->size = (ptrBlock->size >> 1U) << 1U;
+;
 			ptrBlock++;
 			ret = (void*)ptrBlock;
 			return ret;
@@ -375,8 +370,8 @@ static inline void rtsha_free_page_block(rtsha_page* page, void* block)
 {
 	rtsha_block* block_to_free = (rtsha_block*) block;
 			
-	page->free = page->free + block_to_free->size;
-	
+	page->free = page->free + get_block_size(block_to_free->size);
+
 	if (page->last_free_block != NULL)
 	{
 		/*
@@ -400,6 +395,7 @@ static inline void rtsha_free_page_block(rtsha_page* page, void* block)
 
 			/*set as free*/
 			block_to_free->size = block_to_free->size | 1U;
+
 			if (page->last_block == block_to_free)
 			{
 				block_to_free->size = block_to_free->size | 2U;
@@ -467,6 +463,7 @@ void rtsha_free(void* ptr)
 	if (NULL != page)
 	{
 		/*check if not already free*/
+
 		if (!is_bit(block->size, 0))
 		{
 			rtsha_free_page_block(page, (void*)block);

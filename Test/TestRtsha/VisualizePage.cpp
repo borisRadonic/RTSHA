@@ -13,7 +13,7 @@ void VisualizePage::print(std::stringstream& textStream)
 		size_t tempPos = _page->start_position;
 		rtsha_block_struct* pBlock = (rtsha_block_struct*)tempPos;
 		
-		while (pBlock != NULL)
+		while ((pBlock != NULL) )
 		{
 			if (pBlock->size < 16U)
 			{
@@ -31,12 +31,15 @@ void VisualizePage::print(std::stringstream& textStream)
 			}
 			else
 			{
-
 				textStream << "B" << blockDataSize << " ";
 			}			
 			tempPos = tempPos + blockDataSize;
 			if (tempPos >= _page->position)
 			{
+				break;
+			}
+			if (is_bit(pBlock->size, 1))
+			{				
 				break;
 			}
 			pBlock = (rtsha_block*)((void*)tempPos);
