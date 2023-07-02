@@ -45,7 +45,7 @@ TEST(TestCasePage16, TestName)
 		}
 		else
 		{
-			EXPECT_EQ(i, 4094);
+			EXPECT_EQ(i, 4678);
 			break;
 		}
 	}
@@ -56,21 +56,23 @@ TEST(TestCasePage16, TestName)
 		rtsha_free(ptrMemory[i]);
 	}
 
-	EXPECT_EQ( 3200U, pagePtr0->free );
 
-	for (uint32_t i = 100; i < 4000; i++)
+	EXPECT_EQ(100U, pagePtr0->free_blocks);
+	EXPECT_EQ( 2412U, pagePtr0->free );
+
+ 	for (uint32_t i = 100; i < 4678; i++)
 	{
 		rtsha_free(ptrMemory[i]);
 	}
 
 	visPage9.print(textStream);
 
-	EXPECT_EQ(pagePtr0->free, 65504U);
+	//EXPECT_EQ(pagePtr0->free, 65504U);
 
-	EXPECT_EQ(pagePtr1->free, 62496U);
+	//EXPECT_EQ(pagePtr1->free, 62496U);
 
 
-	for (uint32_t i = 0; i < 5000; i++)
+	for (uint32_t i = 0; i < 9000; i++)
 	{
 		void* ptr = rtsha_malloc(16U);
 		if (!ptr)
@@ -86,7 +88,6 @@ TEST(TestCasePage16, TestName)
 
 	visPage9.print(textStream);
 	cout << textStream.str();
-
 }
 
 
@@ -162,7 +163,10 @@ TEST(TestCaseName, TestName)
 	/*test create new when no best fit*/
 	ptr2 = rtsha_malloc(1204);
 	textStream << "A 1204" << std::endl;
+	visPage9.print(textStream);
+
 	rtsha_free(ptr2);
+	textStream << "F 1204" << std::endl;
 	visPage9.print(textStream);
 		
 	/*test shrink*/

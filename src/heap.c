@@ -77,7 +77,7 @@ rtsha_page* rtsha_add_page(rtsha_heap_t* heap, RTSHA_PageType page_type, size_t 
 
 	//page->free_blocks = NULL;
 
-	page->last_free_block = NULL;
+	page->free_blocks = 0U;
 
 	page->size = page->free;
 
@@ -87,10 +87,6 @@ rtsha_page* rtsha_add_page(rtsha_heap_t* heap, RTSHA_PageType page_type, size_t 
 	page->position = _heap_current_position + sizeof(rtsha_page);
 	
 	page->start_position = page->position;
-
-
-	/*skip page header + page data*/
-	//_heap_current_position += page->free;
 
 	_heap_current_position += (sizeof(rtsha_page) + page->size);
 	
