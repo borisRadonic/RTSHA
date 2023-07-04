@@ -93,7 +93,6 @@ The algorithm:
 
 ## Documentation
 
-## Donations
 
 
 

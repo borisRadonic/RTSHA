@@ -226,7 +226,7 @@ static inline void* rtsha_alloc_big_page_block(rtsha_page* page, size_t size)
 	void* ret = NULL;
 	ptrBlockMinDiff = NULL;
 	count = 0U;
-
+		
 	/*check if any free on the list*/
 	ptrfree = (size_t*)(_heap_top - (page->free_blocks * sizeof(size_t)));
 	ptrBlock = (rtsha_block*)(*ptrfree);
@@ -235,17 +235,10 @@ static inline void* rtsha_alloc_big_page_block(rtsha_page* page, size_t size)
 	fit = false;
 	compare = 0U;
 	
-	if (sizeof(size_t) == 8U)
-	{
-		min_diff = UINT64_MAX;
-	}
-	else
-	{
-		min_diff = UINT32_MAX;
-	}
+	min_diff = SIZE_MAX;
 		
 	/*try to find perfect-fit method (use only free blocks)*/
-	while( (NULL != ptrBlock) && (count < page->free_blocks > 0U) && (ptrBlock->size > 0U) )
+	while( (NULL != ptrBlock) && (count < page->free_blocks) && (ptrBlock->size > 0U) && (page->free_blocks > 0U))
 	{
 		/*only free blocks*/
 		if (is_bit(ptrBlock->size, 0))
@@ -383,9 +376,11 @@ static rtsha_block* rtsha_shrink_left(rtsha_page* page, rtsha_block* block)
 			{
 				page->last_block = pBlock->prev;
 				/*set as last block*/
-				pBlock->prev->size = pBlock->size | 2U;
+				set_block_as_last(pBlock->prev);
 			}
-			pBlock->prev->size = pBlock->prev->size | 1U;
+			
+			set_block_as_free(pBlock->prev);
+
 			pLastFree = pBlock->prev;
 
 			/*update previous of the block on the right side*/
@@ -419,7 +414,7 @@ static rtsha_block* rtsha_shrink_right(rtsha_page* page, rtsha_block* block)
 		{
 			page->last_block = pBlock;
 			/*set as last block*/
-			pBlock->size = pBlock->size | 2U;
+			set_block_as_last(pBlock);
 		}
 		else
 		{
@@ -439,8 +434,7 @@ static rtsha_block* rtsha_shrink_right(rtsha_page* page, rtsha_block* block)
 		/*set as free*/
 		if (pBlock->size > 0U)
 		{
-			pBlock->size = pBlock->size | 1U;
-			
+			set_block_as_free(pBlock);
 		}
 		if (page->last_block == pBlock)
 		{
@@ -463,7 +457,7 @@ static inline void rtsha_free_page_block(rtsha_page* page, void* block)
 	if (page->free_blocks == 0U)
 	{
 		/*set as free*/
-		block_to_free->size = block_to_free->size | 1U;		
+		set_block_as_free(block_to_free);
 		rtsha_free_list_add(page, block_to_free);
 		return;
 	}
@@ -471,11 +465,11 @@ static inline void rtsha_free_page_block(rtsha_page* page, void* block)
 	if ( (page->free_blocks > 0U) && (last_free_block != block_to_free) )
 	{			
 		/*set as free*/
-		block_to_free->size = block_to_free->size | 1U;
+		set_block_as_free(block_to_free);
 
 		if (page->last_block == block_to_free)
 		{
-			block_to_free->size = block_to_free->size | 2U;
+			set_block_as_last(block_to_free);
 		}
 			
 		/*add to free list*/
@@ -487,7 +481,7 @@ static inline void rtsha_free_page_block(rtsha_page* page, void* block)
 			block_to_free = rtsha_shrink_left(page, block_to_free);
 
 			/*check if not last block*/
-			if( !is_bit(block_to_free->size, 1) && (page->last_block != block_to_free) )
+			if( !is_bit(block_to_free->size, 1U) && (page->last_block != block_to_free) )
 			{
 				block_to_free = rtsha_shrink_right(page, block_to_free);				
 			}
@@ -539,12 +533,62 @@ void rtsha_free(void* ptr)
 	}
 }
 
-void* rtsha_calloc(size_t nmemb, size_t size)
+void* rtsha_calloc(size_t nitems, size_t size)
 {
-	return 0;
+	return rtsha_malloc(nitems * size);
 }
 
 void* rtsha_realloc(void* ptr, size_t size)
 {
-	return 0;
+	void* new_memory;
+	size_t* ptr_old;
+	size_t* ptr_new;
+	rtsha_block* block;
+	size_t a_size;
+	size_t count = 0U;
+
+	a_size = rtsha_align(size);
+
+	ptr_old = (size_t*) ptr;
+
+	if (size == 0U)
+	{
+		rtsha_free(ptr);
+		return NULL;
+	}
+
+	block = (rtsha_block*)ptr;
+	block--;
+
+	if (block->size == a_size)
+	{
+		return ptr;
+	}
+
+	/*allocate new memory*/
+	new_memory = rtsha_malloc(size);
+	ptr_new = (size_t*) new_memory;
+	
+	if (NULL != new_memory)
+	{
+		if (block->size > a_size)
+		{
+			for (count = 0U; count < block->size; count++)
+			{
+				*ptr_new = *ptr_old;
+				ptr_old++;
+				ptr_new++;
+			}
+		}
+		else
+		{
+			for (count = 0U; count < a_size; count++)
+			{
+				*ptr_new = *ptr_old;
+				ptr_old++;
+				ptr_new++;
+			}
+		}
+	}
+	return new_memory;
 }
