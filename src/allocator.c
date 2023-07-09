@@ -1,5 +1,6 @@
 #include "allocator.h"
 #include "errors.h"
+#include "brtree.h"
 
 extern uintptr_t	_heap_start;
 extern size_t		_heap_top;

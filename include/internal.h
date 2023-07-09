@@ -18,7 +18,8 @@
 #define set_block_as_free(b)  ( b->size = b->size | 1U )
 #define set_block_as_last(b)  ( b->size = b->size | 2U )
 
-
+#define MAX(a, b) ((a > b) ? a : b);
+#define BALANCE(n) ( n->left->height - n->right->height);
 
 static inline bool rtsha_is_aligned(void* ptr)
 {

@@ -61,7 +61,28 @@ typedef struct rtsha_heap_struct
 	struct rtsha_page_struct*		pages;
 }  rtsha_heap_t;
 
+
+typedef struct BtreeNode
+{
+    uint32_t                key;
+
+	struct BtreeNode*		parent;
+    struct BtreeNode*       left;
+    struct BtreeNode*       right;
+
+    int32_t                 balance;
+} rtsha_btree_node;
+
+
+#define MAX_BTREES          10U
+#define MAX_BTREE_HEIGHT    64U
+
+typedef struct BtreeStruct
+{	
+	rtsha_btree_node*			root;
+	rtsha_btree_node*			ptr_btree_nodes[MAX_BTREE_HEIGHT];
+	size_t						index;
+
+} Btree;
+
 #endif
-
-
-

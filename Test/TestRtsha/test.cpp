@@ -5,10 +5,72 @@
 #include <sstream>
 #include <string>
 #include "VisualizePage.h"
+#include "brtree.h"
+
 
 using namespace std;
 
 
+TEST(TestCaseBtree, TestBtree)
+{
+	void* memory = (void*) malloc(65536);
+
+	size_t address = (size_t)memory;
+	size_t nodee_size = sizeof(rtsha_btree_node);
+
+	HBTREE btree = rtsha_btree_create();
+
+	EXPECT_TRUE(btree != INVALID_BTREE_HANDLE);
+
+	btree_node_insert(btree, address, 1);
+	address += nodee_size;
+
+
+	btree_node_insert(btree, address, 2);
+	address += nodee_size;
+
+	btree_node_insert(btree, address, 3);
+	address += nodee_size;
+
+	btree_node_insert(btree, address, 4);
+	address += nodee_size;
+
+	btree_node_insert(btree, address, 5);
+	address += nodee_size;
+
+	btree_node_insert(btree, address, 6);
+	address += nodee_size;
+
+	btree_node_insert(btree, address, 7);
+	address += nodee_size;
+
+	btree_node_insert(btree, address, 8);
+	address += nodee_size;
+
+	btree_node_insert(btree, address, 9);
+	address += nodee_size;
+
+	btree_node_insert(btree, address, 10);
+	address += nodee_size;
+
+	btree_node_insert(btree, address, 11);
+	address += nodee_size;
+
+	btree_node_insert(btree, address, 12);
+	address += nodee_size;
+
+	btree_node_insert(btree, address, 13);
+	address += nodee_size;
+
+	btree_node_insert(btree, address, 13);
+	address += nodee_size;
+
+	btree_node_insert(btree, address, 13);
+	address += nodee_size;
+
+
+	
+}
 
 TEST(TestCasePage16, TestName)
 {
