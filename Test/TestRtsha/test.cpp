@@ -22,36 +22,48 @@ TEST(TestCaseBtree, TestBtree)
 
 	EXPECT_TRUE(btree != INVALID_BTREE_HANDLE);
 
-	btree_node_insert(btree, address, 1);
+
+	btree_node_insert(btree, address, 13);
+	address += nodee_size;
+	btree_node_insert(btree, address, 11);
+	address += nodee_size;
+	btree_node_insert(btree, address, 12);
 	address += nodee_size;
 
 
-	btree_node_insert(btree, address, 2);
+	btree_node_insert(btree, address, 80 );
 	address += nodee_size;
 
-	btree_node_insert(btree, address, 3);
+
+	btree_node_insert(btree, address, 82);
 	address += nodee_size;
 
-	btree_node_insert(btree, address, 4);
+	btree_node_insert(btree, address, 44);
 	address += nodee_size;
 
-	btree_node_insert(btree, address, 5);
+	btree_node_insert(btree, address, 78);
 	address += nodee_size;
 
-	btree_node_insert(btree, address, 6);
+	btree_node_insert(btree, address, 50);
 	address += nodee_size;
 
-	btree_node_insert(btree, address, 7);
+	btree_node_insert(btree, address, 32);
 	address += nodee_size;
 
-	btree_node_insert(btree, address, 8);
+	btree_node_insert(btree, address, 17);
 	address += nodee_size;
 
-	btree_node_insert(btree, address, 9);
+	btree_node_insert(btree, address, 88);
 	address += nodee_size;
 
-	btree_node_insert(btree, address, 10);
+	btree_node_insert(btree, address, 84);
 	address += nodee_size;
+
+	btree_node_insert(btree, address, 92);
+	address += nodee_size;
+
+	//btree_node_delete(btree, address, 78);
+
 
 	btree_node_insert(btree, address, 11);
 	address += nodee_size;
@@ -67,6 +79,7 @@ TEST(TestCaseBtree, TestBtree)
 
 	btree_node_insert(btree, address, 13);
 	address += nodee_size;
+
 
 
 	
