@@ -27,6 +27,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\allocator.c" />
+    <ClCompile Include="..\..\src\brtree.c" />
     <ClCompile Include="..\..\src\heap.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

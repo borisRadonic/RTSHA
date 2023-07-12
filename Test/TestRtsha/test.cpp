@@ -17,31 +17,55 @@ TEST(TestCaseBtree, TestBtree)
 
 	size_t address = (size_t)memory;
 	size_t nodee_size = sizeof(rtsha_btree_node);
+	
 
 	HBTREE btree = rtsha_btree_create();
 
 	EXPECT_TRUE(btree != INVALID_BTREE_HANDLE);
-
-
-	btree_node_insert(btree, address, 13);
+	
+	btree_node_insert(btree, address, 1);
 	address += nodee_size;
+
+	btree_node_insert(btree, address, 3);
+	address += nodee_size;
+
+	btree_node_insert(btree, address, 5);
+	address += nodee_size;
+
 	btree_node_insert(btree, address, 11);
 	address += nodee_size;
-	btree_node_insert(btree, address, 12);
+	
+	btree_node_insert(btree, address, 19);
 	address += nodee_size;
 
-
+	btree_node_insert(btree, address, 5);
+	address += nodee_size;
+	
+	btree_node_insert(btree, address, 2);
+	address += nodee_size;
+	
+	btree_node_insert(btree, address, 13);
+	size_t address13 = address;
+	address += nodee_size;
+	
+	btree_node_insert(btree, address, 11);
+	address += nodee_size;
+	
+	btree_node_insert(btree, address, 12);
+	address += nodee_size;
+	
 	btree_node_insert(btree, address, 80 );
 	address += nodee_size;
 
-
 	btree_node_insert(btree, address, 82);
+	size_t address82 = address;
 	address += nodee_size;
 
 	btree_node_insert(btree, address, 44);
 	address += nodee_size;
 
 	btree_node_insert(btree, address, 78);
+	size_t address78 = address;
 	address += nodee_size;
 
 	btree_node_insert(btree, address, 50);
@@ -51,36 +75,29 @@ TEST(TestCaseBtree, TestBtree)
 	address += nodee_size;
 
 	btree_node_insert(btree, address, 17);
+	size_t address17 = address;
 	address += nodee_size;
 
 	btree_node_insert(btree, address, 88);
 	address += nodee_size;
 
 	btree_node_insert(btree, address, 84);
+	size_t address84 = address;
 	address += nodee_size;
 
 	btree_node_insert(btree, address, 92);
 	address += nodee_size;
 
-	//btree_node_delete(btree, address, 78);
+/*	btree_node_delete(btree, address13, 13);
+	
+	btree_node_delete(btree, address17, 17);
 
+	btree_node_delete(btree, address84, 84);
 
-	btree_node_insert(btree, address, 11);
-	address += nodee_size;
-
-	btree_node_insert(btree, address, 12);
-	address += nodee_size;
-
-	btree_node_insert(btree, address, 13);
-	address += nodee_size;
-
-	btree_node_insert(btree, address, 13);
-	address += nodee_size;
-
-	btree_node_insert(btree, address, 13);
-	address += nodee_size;
-
-
+	btree_node_delete(btree, address82, 82);
+	
+	btree_node_delete(btree, address78, 78);
+	*/
 
 	
 }

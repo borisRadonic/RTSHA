@@ -80,9 +80,6 @@ typedef struct BtreeNode
 typedef struct BtreeStruct
 {	
 	rtsha_btree_node*			root;
-	rtsha_btree_node*			ptr_btree_nodes[MAX_BTREE_HEIGHT];
-	size_t						index;
-
 } Btree;
 
 #endif
