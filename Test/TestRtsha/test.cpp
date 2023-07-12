@@ -11,6 +11,117 @@
 using namespace std;
 
 
+
+TEST(TestCaseBtree, TestBtreeSLLRotation)
+{
+	void* memory = (void*)malloc(65536);
+
+	size_t address = (size_t)memory;
+	size_t nodee_size = sizeof(rtsha_btree_node);
+
+
+	HBTREE btree = rtsha_btree_create();
+
+	EXPECT_TRUE(btree != INVALID_BTREE_HANDLE);
+
+	/*Single LL(Left Left) Rotation*/
+	btree_node_insert(btree, address, 50);
+	address += nodee_size;
+
+	btree_node_insert(btree, address, 40);
+	address += nodee_size;
+
+	btree_node_insert(btree, address, 30);
+	address += nodee_size;
+
+	free(memory);
+}
+
+
+
+TEST(TestCaseBtree, TestBtreeSRRRotation)
+{
+	void* memory = (void*)malloc(65536);
+
+	size_t address = (size_t)memory;
+	size_t nodee_size = sizeof(rtsha_btree_node);
+
+
+	HBTREE btree = rtsha_btree_create();
+
+	EXPECT_TRUE(btree != INVALID_BTREE_HANDLE);
+
+	/*Single RR(Right Right) Rotation*/
+	btree_node_insert(btree, address, 50);
+	address += nodee_size;
+
+	btree_node_insert(btree, address, 60);
+	address += nodee_size;
+
+	btree_node_insert(btree, address, 70);
+	address += nodee_size;
+
+	free(memory);
+}
+
+
+
+TEST(TestCaseBtree, TestBtreeDLRRotation)
+{
+	void* memory = (void*)malloc(65536);
+
+	size_t address = (size_t)memory;
+	size_t nodee_size = sizeof(rtsha_btree_node);
+
+
+	HBTREE btree = rtsha_btree_create();
+
+	EXPECT_TRUE(btree != INVALID_BTREE_HANDLE);
+
+	/*LR Rotation*/
+	btree_node_insert(btree, address, 50);
+	address += nodee_size;
+
+	btree_node_insert(btree, address, 40);
+	address += nodee_size;
+
+	btree_node_insert(btree, address, 45);
+	address += nodee_size;
+	
+	free(memory);
+}
+
+
+
+TEST(TestCaseBtree, TestBtreeDRLRotation)
+{
+	void* memory = (void*)malloc(65536);
+
+	size_t address = (size_t)memory;
+	size_t nodee_size = sizeof(rtsha_btree_node);
+
+
+	HBTREE btree = rtsha_btree_create();
+
+	EXPECT_TRUE(btree != INVALID_BTREE_HANDLE);
+
+	/*R-L Rotation*/
+
+	btree_node_insert(btree, address, 50);
+	address += nodee_size;
+
+	btree_node_insert(btree, address, 60);
+	address += nodee_size;
+
+	btree_node_insert(btree, address, 55);
+	address += nodee_size;
+	
+
+	free(memory);
+}
+
+
+
 TEST(TestCaseBtree, TestBtree)
 {
 	void* memory = (void*) malloc(65536);
@@ -22,15 +133,7 @@ TEST(TestCaseBtree, TestBtree)
 	HBTREE btree = rtsha_btree_create();
 
 	EXPECT_TRUE(btree != INVALID_BTREE_HANDLE);
-	
-	btree_node_insert(btree, address, 1);
-	address += nodee_size;
-
-	btree_node_insert(btree, address, 3);
-	address += nodee_size;
-
-	btree_node_insert(btree, address, 5);
-	address += nodee_size;
+		
 
 	btree_node_insert(btree, address, 11);
 	address += nodee_size;
