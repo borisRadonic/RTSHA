@@ -142,9 +142,11 @@ TEST(TestCaseBtree, TestBtree)
 	address += nodee_size;
 
 	btree_node_insert(btree, address, 5);
+	size_t address5 = address;
 	address += nodee_size;
 	
 	btree_node_insert(btree, address, 2);
+	size_t address2 = address;
 	address += nodee_size;
 	
 	btree_node_insert(btree, address, 13);
@@ -165,12 +167,13 @@ TEST(TestCaseBtree, TestBtree)
 	address += nodee_size;
 
 	btree_node_insert(btree, address, 44);
+	size_t address44 = address;
 	address += nodee_size;
 
 	btree_node_insert(btree, address, 78);
 	size_t address78 = address;
 	address += nodee_size;
-
+	/*
 	btree_node_insert(btree, address, 50);
 	address += nodee_size;
 
@@ -190,17 +193,19 @@ TEST(TestCaseBtree, TestBtree)
 
 	btree_node_insert(btree, address, 92);
 	address += nodee_size;
-
-/*	btree_node_delete(btree, address13, 13);
+	*/
+	//btree_node_delete(btree, address13, 13);
 	
-	btree_node_delete(btree, address17, 17);
+	//btree_node_delete(btree, address17, 17);
 
-	btree_node_delete(btree, address84, 84);
+	//btree_node_delete(btree, address84, 84);
 
-	btree_node_delete(btree, address82, 82);
+	btree_node_delete(btree, address2, 2);
+
+	btree_node_delete(btree, address5, 5);
 	
 	btree_node_delete(btree, address78, 78);
-	*/
+
 
 	
 }
