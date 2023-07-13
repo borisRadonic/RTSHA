@@ -70,7 +70,8 @@ typedef struct BtreeNode
     struct BtreeNode*       left;
     struct BtreeNode*       right;
 
-    int32_t                 balance;
+    int16_t                 balance;
+	int16_t                 height;
 } rtsha_btree_node;
 
 

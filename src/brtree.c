@@ -25,6 +25,7 @@ static inline rtsha_btree_node* rtsha_btree_node_create(size_t address, uint32_t
     node->right = NULL;
     node->parent = NULL;
     node->balance = 0;
+    node->height = 1;
     return node;
 }
 /*
@@ -35,7 +36,67 @@ int32_t static height(rtsha_btree_node* node)
     return node->height;
 }
 */
-static inline rtsha_btree_node* btree_node_right_rotate(rtsha_btree_node* node, rtsha_btree_node* parent)
+
+static int16_t balance_factor(rtsha_btree_node* root)
+{
+    int16_t lh, rh;
+    if (root == NULL)
+    {
+        return 0;
+    }
+    if (root->left == NULL)
+    {
+        lh = 0;
+    }
+    else
+    {
+        lh = root->left->height;
+    }
+    if (root->right == NULL)
+    {
+        rh = 0;
+    }
+    else
+    {
+        rh = root->right->height;
+    }
+    return lh - rh;
+}
+
+static int16_t balance(rtsha_btree_node* node)
+{
+    int16_t lh, rh;
+    if (node == NULL)
+    {
+        return 0;
+    }
+    if (node->left == NULL)
+    {
+        lh = 0;
+    }
+    else
+    {
+        lh = 1 + node->left->balance;
+    }
+    if (node->right == NULL)
+    {
+        rh = 0;
+    }
+    else
+    {
+        rh = 1 + node->right->balance;
+    }
+
+    if (lh > rh)
+        return (lh);
+    return (rh);
+}
+
+
+
+
+
+static inline rtsha_btree_node* btree_left_left_rotate(rtsha_btree_node* node, rtsha_btree_node* parent)
 {
     rtsha_btree_node* temp;
 
@@ -85,12 +146,15 @@ static inline rtsha_btree_node* btree_node_right_rotate(rtsha_btree_node* node, 
             }
         }
 
+        node->balance = balance(node);
+        temp->balance = balance(temp);
+
         return temp;
     }
     return NULL;
 }
 
-static inline rtsha_btree_node* btree_node_left_rotate(rtsha_btree_node* node, rtsha_btree_node* parent)
+static inline rtsha_btree_node* btree_node_right_right_rotate(rtsha_btree_node* node, rtsha_btree_node* parent)
 {
     rtsha_btree_node* temp;
     if (node != NULL)
@@ -139,6 +203,10 @@ static inline rtsha_btree_node* btree_node_left_rotate(rtsha_btree_node* node, r
                 node->left->parent = node;
             }
         }
+
+        node->balance = balance(node);
+        temp->balance = balance(temp);
+                
         return temp;
     }
     return NULL;
@@ -156,103 +224,52 @@ static void btree_balance(rtsha_btree_node** node, rtsha_btree_node* inserted_no
         a++;
     }
 
-    if (root->balance == -2)
+    if (root->balance == 2)
     {
         rtsha_btree_node* left_child = root->left;
         if ((left_child != NULL) &&
-            (left_child->balance == 1) &&
+            (abs(left_child->balance) == 1) &&
             (inserted_node != NULL) &&
             (left_child->right != NULL ) &&
             (left_child->right == inserted_node) )            
         {
-            root->left = btree_node_left_rotate(left_child, root->parent);
-            root_new = btree_node_right_rotate(root, root->parent);
+            root->left = btree_node_right_right_rotate(left_child, root->parent);
+            root_new = btree_left_left_rotate(root, root->parent);
 
             if (root_new->parent != NULL)
             {
                 root_new->parent->left = root_new;
             }
-
-            if (root_new->balance == -1)
-            {
-                left_child->balance = 0;
-                root->balance = 1;
-            }
-            else if (root_new->balance == 0)
-            {
-                left_child->balance = 0;
-                root->balance = 0;
-            }
-            else
-            {
-                left_child->balance = -1;
-                root->balance = 0;
-            }
-            root_new->balance = 0;
-        }
+            left_child->height--;
+            root->height = root->height - 2;
+            root_new->height++;
+         }
         else
         {
-            root_new = btree_node_right_rotate(root, root->parent);
-
-            if (root_new->balance == 1)
-            {
-                root_new->balance = 0;
-                root->balance = 0;
-            }
-            else
-            {
-                root_new->balance = 0;
-                root->balance = 0;
-            }
-           
+            root_new = btree_left_left_rotate(root, root->parent);        
+            root->height = root->height - 2;
         }
     }
-    else if (root->balance == 2)
+    else if (root->balance == -2)
     {
         rtsha_btree_node* right_child = root->right;
         if ((right_child != NULL) && 
-            (right_child->balance == -1) &&            
+            //(right_child->balance == -1) &&            
             (inserted_node != NULL) &&
             (right_child->left != NULL) &&
             (right_child->left == inserted_node))
         {
-            root->right = btree_node_right_rotate(right_child, root->parent);
-            root_new = btree_node_left_rotate(root, root->right->parent);
+            root->right = btree_left_left_rotate(right_child, root->parent);
+            root_new = btree_node_right_right_rotate(root, root->right->parent);
 
-            if (NULL != right_child)
-            {
-                if (root_new->balance == 1)
-                {
-                    right_child->balance = 0;
-                    root->balance = -1;
-                }
-                else if (root_new->balance == 0)
-                {
-                    /*standard case*/
-                    right_child->balance = 0;
-                    root->balance = 0;
-                }
-                else
-                {
-                    right_child->balance = 1;
-                    root->balance = 0;
-                }
-            }
-            root_new->balance = 0;
+            root->height = root->height - 2;
+            root_new->height++;
+            right_child->height--;
         }
         else
         {
-            root_new = btree_node_left_rotate(root, root->parent);
-            if (root_new->balance == 0)
-            {
-                root_new->balance = -1;
-                root->balance = 1;
-            }
-            else
-            {
-                root_new->balance = 0;
-                root->balance = 0;
-            }
+            root_new = btree_node_right_right_rotate(root, root->parent);
+            root->height = root->height - 2;
         }
 
         if ((root->left == NULL) && (root->right == NULL))
@@ -270,7 +287,8 @@ static void btree_balance(rtsha_btree_node** node, rtsha_btree_node* inserted_no
 bool btree_node_insert(HBTREE h, size_t address, uint32_t key)
 {
     rtsha_btree_node* pNode, * temp;
-    int32_t tempH = 0;
+    int16_t height = 1;
+    bool balanced = false;
 
     pNode = NULL;
     temp = NULL;
@@ -313,6 +331,7 @@ bool btree_node_insert(HBTREE h, size_t address, uint32_t key)
                     break;
                 }
             }
+           
         }
 
         if ((pNode != NULL) && (key < pNode->key))
@@ -330,29 +349,20 @@ bool btree_node_insert(HBTREE h, size_t address, uint32_t key)
 
         /*After the Insert, go back up to the root node by node, updating heights*/
 
-        int hl, hr;
-        temp = pNode;
+        temp = pNode;        
+        balanced = false;
         while (temp != NULL)
-        {                                   
-            if (temp->left != NULL)
-            {
-                temp->balance--;
-            }
-            else if (temp->right != NULL)
-            {
-                temp->balance++;
-            }
-                                    
-            tempH++;
-            if ((temp->balance < -1) || (temp->balance > 1))
+        {
+            temp->height = height;
+            temp->balance = balance_factor(temp);
+            
+            if ( ((temp->balance < -1) || (temp->balance > 1)) && (!balanced))
             {
                 btree_balance(&temp, pNode);
-                if (temp->balance == 0)
-                {
-                    break;
-                }
+                balanced = true;
             }
             temp = temp->parent;
+            height++;
         }
 
         /*find new root*/
