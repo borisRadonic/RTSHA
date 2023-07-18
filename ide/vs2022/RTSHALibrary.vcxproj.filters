@@ -27,7 +27,10 @@
     <ClInclude Include="..\..\include\allocator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\brtree.h">
+    <ClInclude Include="..\..\include\FastPlusAllocator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\InternMapAllocator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -38,7 +41,10 @@
     <ClCompile Include="..\..\src\heap.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\brtree.c">
+    <ClCompile Include="..\..\src\free_list.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\MultiMap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

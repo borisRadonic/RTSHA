@@ -9,33 +9,22 @@ HBTREE rtsha_btree_create()
     {
         return INVALID_BTREE_HANDLE;
     }
-
     _btree[_last_btree_num].root = NULL;
-
     _last_btree_num++;
     return (_last_btree_num - 1U);
 }
 
-static inline rtsha_btree_node* rtsha_btree_node_create(size_t address, uint32_t key)
+static inline rtsha_btree_node* rtsha_btree_node_create(size_t address, uint64_t key)
 {
     rtsha_btree_node* node = (rtsha_btree_node*)(void*)(address);
-
-    node->key = key;
-    node->left = NULL;
-    node->right = NULL;
-    node->parent = NULL;
-    node->balance = 0;
-    node->height = 1;
+    node->key       = key;
+    node->left      = NULL;
+    node->right     = NULL;
+    node->parent    = NULL;
+    node->balance   = 0;
+    node->height    = 1;
     return node;
 }
-/*
-int32_t static height(rtsha_btree_node* node)
-{
-    if (node == NULL)
-        return -1;
-    return node->height;
-}
-*/
 
 static int16_t balance_factor(rtsha_btree_node* root)
 {
@@ -88,17 +77,15 @@ static int16_t balance(rtsha_btree_node* node)
     }
 
     if (lh > rh)
+    {
         return (lh);
+    }
     return (rh);
 }
 
-
-
-
-
 static inline rtsha_btree_node* btree_left_left_rotate(rtsha_btree_node* node, rtsha_btree_node* parent)
 {
-    rtsha_btree_node* temp;
+    rtsha_btree_node* temp = NULL;
 
     if (node != NULL)
     {
@@ -156,7 +143,7 @@ static inline rtsha_btree_node* btree_left_left_rotate(rtsha_btree_node* node, r
 
 static inline rtsha_btree_node* btree_node_right_right_rotate(rtsha_btree_node* node, rtsha_btree_node* parent)
 {
-    rtsha_btree_node* temp;
+    rtsha_btree_node* temp = NULL;
     if (node != NULL)
     {
         temp = node->right;
@@ -236,12 +223,26 @@ static void btree_balance(rtsha_btree_node** node, rtsha_btree_node* inserted_no
             }
             left_child->height--;
             root->height = root->height - 2;
+
+            if (root->height <= 0)
+            {
+                root->height = 1;
+            }
+            if (left_child->height <= 0)
+            {
+                left_child->height = 1;
+            }
+
             root_new->height++;
          }
         else
         {
             root_new = btree_left_left_rotate(root, root->parent);        
             root->height = root->height - 2;
+            if (root->height <= 0)
+            {
+                root->height = 1;
+            }
         }
     }
     else if (root->balance == -2)
@@ -257,13 +258,26 @@ static void btree_balance(rtsha_btree_node** node, rtsha_btree_node* inserted_no
             root_new = btree_node_right_right_rotate(root, root->right->parent);
 
             root->height = root->height - 2;
+            if (root->height <= 0)
+            {
+                root->height = 1;
+            }
             root_new->height++;
             right_child->height--;
+            if (right_child->height <= 0)
+            {
+                right_child->height = 1;
+            }
         }
         else
         {
             root_new = btree_node_right_right_rotate(root, root->parent);
+           // root_new->height = root->height + 1;
             root->height = root->height - 2;
+            if (root->height <= 0)
+            {
+                root->height = 1;
+            }
         }
 
         if ((root->left == NULL) && (root->right == NULL))
@@ -278,7 +292,23 @@ static void btree_balance(rtsha_btree_node** node, rtsha_btree_node* inserted_no
     *node = root_new;
 }
 
-bool btree_node_insert(HBTREE h, size_t address, uint32_t key)
+
+static inline void find_new_root(rtsha_btree_node* node, const uint8_t h)
+{
+    rtsha_btree_node* root = node;
+    while (root != NULL)
+    {
+        if (root->parent == NULL)
+        {
+            _btree[h].root = root;
+            _btree[h].root->parent = NULL;
+            break;
+        }
+        root = root->parent;
+    }
+}
+
+bool btree_node_insert(HBTREE h, size_t address, uint64_t key)
 {
     rtsha_btree_node* pNode, *temp;
     int16_t height = 1;
@@ -292,7 +322,13 @@ bool btree_node_insert(HBTREE h, size_t address, uint32_t key)
         return false;
     }
 
-    if (_btree[h].root == NULL)
+
+    if (key == 0x51)
+    {
+        key = 0x50;
+    }
+
+    if (_btree[h].root == NULL || _btree[h].root->key == 0U)
     {
         _btree[h].root = rtsha_btree_node_create(address, key);
         return (NULL != _btree[h].root);
@@ -344,10 +380,16 @@ bool btree_node_insert(HBTREE h, size_t address, uint32_t key)
         /*After the Insert, go back up to the root node by node, updating heights*/
 
         temp = pNode;        
+
+        if (temp->right == temp)
+        {
+            int a = 0;
+            a++;
+        }
+
         balanced = false;
         while (temp != NULL)
-        {
-
+        {           
             temp->height = height;
             temp->balance = balance_factor(temp);
 
@@ -356,38 +398,23 @@ bool btree_node_insert(HBTREE h, size_t address, uint32_t key)
                 btree_balance(&temp, pNode);
                 balanced = true;
             }
+            if (temp == temp->parent)
+            {
+                /*something is not good*/
+                temp->parent = NULL;
+                break;
+            }
             temp = temp->parent;
             height++;
         }
 
-        /*find new root*/
-        while (pNode != NULL)
-        {
-            if (pNode->parent == NULL)
-            {
-                _btree[h].root = pNode;
-                _btree[h].root->parent = NULL;
-                break;
-            }
-            pNode = pNode->parent;
-        }
+        find_new_root(pNode, h);
         return true;
     }
     return false;
 }
 
-static rtsha_btree_node* find_last_leaf_right(rtsha_btree_node* node)
-{
-    if (node == NULL)
-        return NULL;
-
-    while (node->right != NULL)
-        node = node->right;
-
-    return node;
-}
-
-bool btree_node_delete(HBTREE h, size_t address, uint32_t key)
+bool btree_node_delete(HBTREE h, size_t address, uint64_t key)
 {
     rtsha_btree_node* successor, * successor_parent;
     rtsha_btree_node* parent, *temp;
@@ -398,13 +425,39 @@ bool btree_node_delete(HBTREE h, size_t address, uint32_t key)
     successor_parent = NULL;
     left_child = NULL;
     right_child = NULL;
-    bool must_balance = true;
+    int16_t temphl = 0;
+    int16_t temphr = 0;
 
+    int16_t height = 1;
+    bool balanced = false;
 
     if (h >= MAX_BTREES || _btree[h].root == NULL)
     {
         return false;
     }
+    if (pNode->parent == NULL)
+    {
+        if (pNode != _btree[h].root)
+        {
+            /*something is not good
+            */
+            return false;
+        }
+       
+    }
+
+    /*
+    if (_btree[h].root->key == key)
+    {
+
+        _btree[h].root->key = 0;
+        _btree[h].root->left = NULL;
+        _btree[h].root->right = NULL;
+        _btree[h].root = NULL;
+        return true;
+    }
+    */
+
     parent = pNode->parent;
 
     if (pNode->key != key)
@@ -419,28 +472,40 @@ bool btree_node_delete(HBTREE h, size_t address, uint32_t key)
     {
         if (parent != NULL)
         {
-            if (parent->left == pNode)
+            if ((parent->left != NULL) &&(parent->left == pNode) )
             {
                 parent->left = NULL;
             }
-            else if (parent->right == pNode)
+            else if ((parent->right != NULL) && (parent->right == pNode))
             {
                 parent->right = NULL;
             }
-
+            if ((parent->right == NULL) && (parent->left == NULL))
+            {
+                parent->height = 1;
+            }
             parent->balance = balance_factor(parent);
-            parent->height = 1;
             if ( (parent->balance < -1) || (parent->balance > 1) )
             {
                 btree_balance(&parent, NULL);
-                /*we are done*/
-                must_balance = false;
+                /*we are done*/             
+  
+            }
+            else
+            {              
+                find_new_root(parent, h);
+            }
+            if (parent == pNode)
+            {
+                int a = 0;
+                a++;
             }
             temp = parent;
+           
         }
         else
         {
-            _btree[h].root = NULL;
+            _btree[h].root = NULL;            
         }
     }
     else if ((pNode->right != NULL) && (pNode->left != NULL))
@@ -470,6 +535,7 @@ bool btree_node_delete(HBTREE h, size_t address, uint32_t key)
         {
             parent->right = successor;
         }
+
         if (successor_parent != NULL)
         {
             if (successor_parent->left == successor)
@@ -480,15 +546,16 @@ bool btree_node_delete(HBTREE h, size_t address, uint32_t key)
             {
                 successor_parent->right = successor->right;
             }
-        }
-
-        if (successor->right != NULL)
-        {
-            successor->right->parent = successor_parent;
-        }
+        }        
 
         if ((pNode != NULL) && (successor != NULL))
         {
+
+            if (successor->right != NULL)
+            {
+                successor->right->parent = successor_parent;
+            }
+
             if (pNode->left != NULL)
             {
                 successor->left = pNode->left;
@@ -497,21 +564,41 @@ bool btree_node_delete(HBTREE h, size_t address, uint32_t key)
             {
                 successor->right = pNode->right;
             }
-        }
-        if (successor != NULL)
-        {
             successor->parent = parent;
-        }
-        if (pNode != NULL)
-        {
-            if (pNode->left != NULL)
+            if (pNode != NULL)
             {
-                pNode->left->parent = successor;
+                if (pNode->left != NULL)
+                {
+                    pNode->left->parent = successor;
+                }
+                if (pNode->right != NULL)
+                {
+                    pNode->right->parent = successor;
+                }
+                temp = successor;
             }
 
-            if (pNode->right != NULL)
+
+            pNode->key = 0;
+            pNode->key = 0;
+            pNode->parent = NULL;
+            pNode->left = NULL;
+            pNode->right = NULL;
+            pNode->balance = 0;
+            pNode->height = 0;
+
+            while (temp != NULL)
             {
-                pNode->right->parent = successor;
+                temp->height = height;
+                temp->balance = balance_factor(temp);
+
+                if (((temp->balance < -1) || (temp->balance > 1)) && (!balanced))
+                {
+                    btree_balance(&temp, pNode);
+                    break;
+                }
+                temp = temp->parent;
+                height++;
             }
         }
     }
@@ -524,12 +611,33 @@ bool btree_node_delete(HBTREE h, size_t address, uint32_t key)
             {
                 if (parent->right == pNode)
                 {
-                    parent->right = pNode->left;
+                    /*connect parent right with right child of the node to be deleted*/
+                    parent->right = pNode->right;
+
+                    if (parent->right != NULL)
+                    {
+                        parent->right->height = 1;
+                    }
+                   
+                    temp = parent->right;
+                    if (parent->left != NULL)
+                    {
+                        temp = parent->left;
+                    }
                 }
                 else if (parent->left == pNode)
                 {
+                    /*connect parent left with left child of the node to be deleted*/
                     parent->left = pNode->left;
+                    parent->left->height = 1;
                 }
+                /*calculate balance factor of the parent*/
+                parent->balance = balance_factor(parent);
+                if ((parent->balance < -1) || (parent->balance > 1))
+                {
+                    btree_balance(&parent, NULL);                    
+                }
+                temp = parent;
             }
             else
             {
@@ -542,12 +650,33 @@ bool btree_node_delete(HBTREE h, size_t address, uint32_t key)
             {
                 if (parent->right == pNode)
                 {
+                    /*connect parent right with right child of the node to be deleted*/
                     parent->right = pNode->right;
+
+                    if (parent->right != NULL)
+                    {
+                        parent->right->height = 1;
+                    }
+
+                    temp = parent->right;
+                    if (parent->left != NULL)
+                    {
+                        temp = parent->left;
+                    }
                 }
                 else if (parent->left == pNode)
                 {
+                    /*connect parent left with left child of the node to be deleted*/
                     parent->left = pNode->right;
+                    parent->left->height = 1;
                 }
+                /*calculate balance factor of the parent*/
+                parent->balance = balance_factor(parent);
+                if ((parent->balance < -1) || (parent->balance > 1))
+                {
+                    btree_balance(&parent, NULL);
+                }
+                temp = parent;
             }
             else
             {
@@ -555,21 +684,117 @@ bool btree_node_delete(HBTREE h, size_t address, uint32_t key)
             }
         }       
     }
-    if (must_balance)
+    /*find longest path down*/
+    while (temp != NULL)
     {
+        temphr = 0;
+        temphl = 0;
 
+        if (temp->right != NULL)
+        {
+            temphr = temp->right->height;
+        }
+
+        if (temp->left != NULL)
+        {
+            temphl = temp->left->height;
+        }
+        if ((temphr == 0) && (temphl == 0))
+        {
+            break;
+        }
+        if (temphr > temphl)
+        {
+            temp = temp->right;
+        }
+        else
+        {
+            temp = temp->left;
+        }
+    }
+    /*set height*/
+
+    balanced = false;
+    while (temp != NULL)
+    {
+        temp->height = height;
+        temp->balance = balance_factor(temp);
+
+        if (((temp->balance < -1) || (temp->balance > 1)) && (!balanced))
+        {
+            btree_balance(&temp, pNode);
+            balanced = true;
+        }
+        if (temp == temp->parent)
+        {
+            /*something is not good*/
+            break;
+        }
+        temp = temp->parent;
+        height++;
+    }
+    
+    find_new_root(pNode, h);
+    return true;
+}
+
+
+rtsha_btree_node* btree_seek(HBTREE h, uint64_t key)
+{
+    rtsha_btree_node* pNode;
+
+    if (h >= MAX_BTREES)
+    {
+        return NULL;
+    }
+    pNode = _btree[h].root;
+
+    if ((NULL == pNode) || pNode->key == 0U)
+    {
+        return NULL;
     }
 
-    /*find new root*/
     while (pNode != NULL)
+    {
+        if (key < pNode->key)
+        {
+            if (pNode->left != NULL)
+            {
+                pNode = pNode->left;
+            }
+            else
+            {
+                break;
+            }
+        }
+        else if (key >= pNode->key)
+        {
+            if (pNode->right != NULL)
+            {
+                pNode = pNode->right;
+            }
+            else
+            {
+                break;
+            }
+        }
+    }
+    if (pNode != NULL)
     {
         if (pNode->parent == NULL)
         {
-            _btree[h].root = pNode;
-            _btree[h].root->parent = NULL;
-            break;
+            return pNode;
         }
-        pNode = pNode->parent;
+        if (pNode->key == key)
+        {
+            return pNode;
+        }
+        return pNode->parent;
     }
-    return true;
+    return NULL;
+}
+
+void btree_reinit(HBTREE h)
+{
+    _btree[h].root = NULL;
 }

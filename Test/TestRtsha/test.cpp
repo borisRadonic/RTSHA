@@ -5,7 +5,9 @@
 #include <sstream>
 #include <string>
 #include "VisualizePage.h"
-#include "brtree.h"
+#include "FastPlusAllocator.h"
+#include "InternMapAllocator.h"
+#include "errors.h"
 
 
 using namespace std;
@@ -17,198 +19,216 @@ TEST(TestCaseBtree, TestBtreeSLLRotation)
 	void* memory = (void*)malloc(65536);
 
 	size_t address = (size_t)memory;
-	size_t nodee_size = sizeof(rtsha_btree_node);
+	size_t nodee_size = sizeof(rtsha_free_list_node);
 
 
-	HBTREE btree = rtsha_btree_create();
+	uint8_t hlist = free_list_create();
 
-	EXPECT_TRUE(btree != INVALID_BTREE_HANDLE);
+	EXPECT_TRUE(hlist != RTSHA_FreeListInvalidHandle);
 
-	/*Single LL(Left Left) Rotation*/
-	btree_node_insert(btree, address, 50);
-	address += nodee_size;
-
-	btree_node_insert(btree, address, 40);
-	address += nodee_size;
-
-	btree_node_insert(btree, address, 30);
-	address += nodee_size;
-
-	free(memory);
-}
-
-
-
-TEST(TestCaseBtree, TestBtreeSRRRotation)
-{
-	void* memory = (void*)malloc(65536);
-
-	size_t address = (size_t)memory;
-	size_t nodee_size = sizeof(rtsha_btree_node);
-
-
-	HBTREE btree = rtsha_btree_create();
-
-	EXPECT_TRUE(btree != INVALID_BTREE_HANDLE);
-
-	/*Single RR(Right Right) Rotation*/
-	btree_node_insert(btree, address, 50);
-	address += nodee_size;
-
-	btree_node_insert(btree, address, 60);
-	address += nodee_size;
-
-	btree_node_insert(btree, address, 70);
-	address += nodee_size;
-
-	free(memory);
-}
-
-
-
-TEST(TestCaseBtree, TestBtreeDLRRotation)
-{
-	void* memory = (void*)malloc(65536);
-
-	size_t address = (size_t)memory;
-	size_t nodee_size = sizeof(rtsha_btree_node);
-
-
-	HBTREE btree = rtsha_btree_create();
-
-	EXPECT_TRUE(btree != INVALID_BTREE_HANDLE);
-
-	/*LR Rotation*/
-	btree_node_insert(btree, address, 50);
-	address += nodee_size;
-
-	btree_node_insert(btree, address, 40);
-	address += nodee_size;
-
-	btree_node_insert(btree, address, 45);
-	address += nodee_size;
-	
-	free(memory);
-}
-
-
-
-TEST(TestCaseBtree, TestBtreeDRLRotation)
-{
-	void* memory = (void*)malloc(65536);
-
-	size_t address = (size_t)memory;
-	size_t nodee_size = sizeof(rtsha_btree_node);
-
-
-	HBTREE btree = rtsha_btree_create();
-
-	EXPECT_TRUE(btree != INVALID_BTREE_HANDLE);
-
-	/*R-L Rotation*/
-
-	btree_node_insert(btree, address, 50);
-	address += nodee_size;
-
-	btree_node_insert(btree, address, 60);
-	address += nodee_size;
-
-	btree_node_insert(btree, address, 55);
-	address += nodee_size;
-	
-
-	free(memory);
-}
-
-
-
-TEST(TestCaseBtree, TestBtree)
-{
-	void* memory = (void*) malloc(65536);
-
-	size_t address = (size_t)memory;
-	size_t nodee_size = sizeof(rtsha_btree_node);
-	
-
-	HBTREE btree = rtsha_btree_create();
-
-	EXPECT_TRUE(btree != INVALID_BTREE_HANDLE);
-		
-
-	btree_node_insert(btree, address, 11);
-	address += nodee_size;
-	
-	btree_node_insert(btree, address, 19);
-	address += nodee_size;
-
-	btree_node_insert(btree, address, 5);
-	size_t address5 = address;
-	address += nodee_size;
-	
-	btree_node_insert(btree, address, 2);
-	size_t address2 = address;
-	address += nodee_size;
-	
-	btree_node_insert(btree, address, 13);
-	size_t address13 = address;
-	address += nodee_size;
-	
-	btree_node_insert(btree, address, 11);
-	address += nodee_size;
-	
-	btree_node_insert(btree, address, 12);
-	address += nodee_size;
-	
-	btree_node_insert(btree, address, 80 );
-	address += nodee_size;
-
-	btree_node_insert(btree, address, 82);
-	size_t address82 = address;
-	address += nodee_size;
-
-	btree_node_insert(btree, address, 44);
-	size_t address44 = address;
-	address += nodee_size;
-
-	btree_node_insert(btree, address, 78);
-	size_t address78 = address;
-	address += nodee_size;
 	/*
-	btree_node_insert(btree, address, 50);
+	free_list_insert(hlist, address);
 	address += nodee_size;
 
-	btree_node_insert(btree, address, 32);
+	free_list_insert(hlist, address);
 	address += nodee_size;
 
-	btree_node_insert(btree, address, 17);
-	size_t address17 = address;
+	free_list_insert(hlist, address);
+	address += nodee_size;
+	size_t address3 = address;
+
+	free_list_insert(hlist, address);
 	address += nodee_size;
 
-	btree_node_insert(btree, address, 88);
-	address += nodee_size;
-
-	btree_node_insert(btree, address, 84);
-	size_t address84 = address;
-	address += nodee_size;
-
-	btree_node_insert(btree, address, 92);
-	address += nodee_size;
+	free_list_delete(hlist, address);
+	free_list_delete(hlist, address3);
 	*/
-	//btree_node_delete(btree, address13, 13);
-	
-	//btree_node_delete(btree, address17, 17);
 
-	//btree_node_delete(btree, address84, 84);
-
-	btree_node_delete(btree, address2, 2);
-
-	btree_node_delete(btree, address5, 5);
-	
-	btree_node_delete(btree, address78, 78);
-
-
-	
+	free(memory);
 }
+
+
+
+
+
+TEST(TestCaseBtree, TestMyMallocFrteePerformance64)
+{	
+	multimap_create(0);
+
+	/*
+	std::multimap<size_t, size_t, less<size_t>, Mallocator<pair<size_t, size_t>>> map;
+	std::multimap<size_t, size_t, less<size_t>, internal::InternMapAllocator<pair<size_t, size_t>>> map2;
+	
+	std::multimap<size_t, size_t, less<size_t>, Mallocator<pair<size_t, size_t>>>::iterator iter;
+
+	map.insert(pair<size_t, size_t>(1, 40));
+	map.insert(pair<size_t, size_t>(40, 50));
+	map.insert(pair<size_t, size_t>(41, 51));
+
+	iter = map.find( 40 );
+	map.erase(40);
+	*/
+	rtsha_heap_t* heapPtr;
+	size_t size = 100 * 0x1F4000;
+	void* heapMemory = malloc(size); //allocate 2MB for heap
+	EXPECT_TRUE(heapMemory != NULL);
+
+	/*Initialize heap allocator*/
+	heapPtr = rtsha_heap_init(heapMemory, size);
+
+	size_t free_space = rtsha_get_free_space();
+
+
+	/*Add pages*/
+	rtsha_page* pagePtr0 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_64, RTSHA_PAGE_SIZE_64K);
+	free_space = rtsha_get_free_space();
+
+	//rtsha_page* pagePtr1 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_16, RTSHA_PAGE_SIZE_64K);
+	//free_space = rtsha_get_free_space();
+
+	
+
+	//rtsha_page* pagePtr9 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_BIG, free_space);
+	//free_space = rtsha_get_free_space();
+
+	for (int i = 0; i < 100000; i++)
+	{
+		
+		void* memory1 = (void*)rtsha_malloc(35);
+		void* memory2 = (void*)rtsha_malloc(64);
+		void* memory3 = (void*)rtsha_malloc(64);
+		void* memory4 = (void*)rtsha_malloc(64);
+		void* memory5 = (void*)rtsha_malloc(64);
+		void* memory6 = (void*)rtsha_malloc(64);
+		void* memory7 = (void*)rtsha_malloc(50);
+		void* memory8 = (void*)rtsha_malloc(61);
+		void* memory9 = (void*)rtsha_malloc(60);
+
+		rtsha_free(memory3);
+		EXPECT_TRUE(pagePtr0->free_blocks == 1);
+		
+		rtsha_free(memory5);
+		EXPECT_TRUE(pagePtr0->free_blocks == 2);
+
+		rtsha_free(memory1);
+		EXPECT_TRUE(pagePtr0->free_blocks == 3);
+
+		rtsha_free(memory7);
+		EXPECT_TRUE(pagePtr0->free_blocks == 4);
+
+		rtsha_free(memory9);
+		EXPECT_TRUE(pagePtr0->free_blocks == 5);
+
+		rtsha_free(memory2);
+		EXPECT_TRUE(pagePtr0->free_blocks == 6);
+
+		rtsha_free(memory4);
+		EXPECT_TRUE(pagePtr0->free_blocks == 7);
+
+		rtsha_free(memory6);
+		EXPECT_TRUE(pagePtr0->free_blocks == 8);
+
+		rtsha_free(memory8);
+		EXPECT_TRUE(pagePtr0->free_blocks == 9);
+	}
+
+}
+
+
+TEST(TestCaseBtree, TestMallocFrteePerformance)
+{
+	for (int i = 0; i < 100000; i++)
+	{
+		void* memory1 = (void*)malloc(64);
+		void* memory2 = (void*)malloc(128);
+		void* memory3 = (void*)malloc(256);
+		void* memory4 = (void*)malloc(1024);
+		void* memory5 = (void*)malloc(1024);
+		void* memory6 = (void*)malloc(10240);
+		void* memory7 = (void*)malloc(10);
+		void* memory8 = (void*)malloc(15);
+		void* memory9 = (void*)malloc(1024);
+		free(memory3);
+		free(memory5);
+		free(memory1);
+		free(memory7);
+		free(memory9);
+		free(memory2);
+		free(memory4);
+		free(memory6);
+		free(memory8);
+	}
+}
+
+
+TEST(TestCaseBtree, TestMyMallocFrteePerformance)
+{
+	rtsha_heap_t* heapPtr;
+	size_t size = 100 * 0x1F4000;
+	void* heapMemory = malloc(size); //allocate 2MB for heap
+	EXPECT_TRUE(heapMemory != NULL);
+
+	/*Initialize heap allocator*/
+	heapPtr = rtsha_heap_init(heapMemory, size);
+
+	size_t free_space = rtsha_get_free_space();
+
+
+	/*Add pages*/
+	rtsha_page* pagePtr0 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_16, RTSHA_PAGE_SIZE_64K);
+	free_space = rtsha_get_free_space();
+
+	rtsha_page* pagePtr1 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_16, RTSHA_PAGE_SIZE_64K);
+	free_space = rtsha_get_free_space();
+
+	rtsha_page* pagePtr3 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_32, RTSHA_PAGE_SIZE_64K);
+	free_space = rtsha_get_free_space();
+
+	rtsha_page* pagePtr4 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_32, RTSHA_PAGE_SIZE_64K);
+	free_space = rtsha_get_free_space();
+
+	rtsha_page* pagePtr5 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_64, RTSHA_PAGE_SIZE_256K);
+	free_space = rtsha_get_free_space();
+
+	rtsha_page* pagePtr6 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_128, RTSHA_PAGE_SIZE_256K);
+	free_space = rtsha_get_free_space();
+
+	rtsha_page* pagePtr7 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_256, RTSHA_PAGE_SIZE_256K);
+	free_space = rtsha_get_free_space();
+
+	rtsha_page* pagePtr8 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_512, RTSHA_PAGE_SIZE_512K);
+	free_space = rtsha_get_free_space();
+
+	rtsha_page* pagePtr9 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_BIG, free_space);
+	free_space = rtsha_get_free_space();
+
+
+	for (int i = 0; i < 100000; i++)
+	{
+		/*
+		void* memory1 = (void*)rtsha_malloc(64);
+		void* memory2 = (void*)rtsha_malloc(128);
+		void* memory3 = (void*)rtsha_malloc(256);
+		*/
+		void* memory1 = (void*)rtsha_malloc(1024);
+		void* memory2 = (void*)rtsha_malloc(1024);
+		void* memory3 = (void*)rtsha_malloc(10240);
+		//void* memory7 = (void*)rtsha_malloc(10);
+		//void* memory8 = (void*)rtsha_malloc(15);
+		void* memory4 = (void*)rtsha_malloc(1024);
+		//rtsha_free(memory3);
+		rtsha_free(memory2);
+		//rtsha_free(memory1);
+		//rtsha_free(memory7);
+		rtsha_free(memory4);
+		//rtsha_free(memory2);
+		rtsha_free(memory3);
+		rtsha_free(memory1);
+		//rtsha_free(memory8);
+	}
+
+}
+
 
 TEST(TestCasePage16, TestName)
 {

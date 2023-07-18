@@ -20,15 +20,17 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\allocator.h" />
-    <ClInclude Include="..\..\include\brtree.h" />
     <ClInclude Include="..\..\include\errors.h" />
+    <ClInclude Include="..\..\include\FastPlusAllocator.h" />
     <ClInclude Include="..\..\include\internal.h" />
+    <ClInclude Include="..\..\include\InternMapAllocator.h" />
     <ClInclude Include="..\..\include\structures.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\allocator.c" />
-    <ClCompile Include="..\..\src\brtree.c" />
+    <ClCompile Include="..\..\src\free_list.c" />
     <ClCompile Include="..\..\src\heap.c" />
+    <ClCompile Include="..\..\src\MultiMap.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

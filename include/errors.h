@@ -11,4 +11,9 @@
 #define RTSHA_NoPages						(128U)
 #define RTSHA_NoPage						(129U)
 #define RTSHA_NoFreePage					(130U)
+#define RTSHA_FreeListAllocError			(131U)
+#define RTSHA_FreeListInsertError			(132U)
+#define RTSHA_FreeListError					(133U)
+#define RTSHA_FreeListInvalidHandle			(134U)
+	
 
