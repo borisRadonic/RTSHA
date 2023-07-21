@@ -23,6 +23,7 @@
     <ClInclude Include="..\..\include\errors.h" />
     <ClInclude Include="..\..\include\FastPlusAllocator.h" />
     <ClInclude Include="..\..\include\internal.h" />
+    <ClInclude Include="..\..\include\InternListAllocator.h" />
     <ClInclude Include="..\..\include\InternMapAllocator.h" />
     <ClInclude Include="..\..\include\structures.h" />
   </ItemGroup>

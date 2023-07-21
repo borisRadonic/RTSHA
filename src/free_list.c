@@ -1,89 +1,61 @@
-#include "internal.h"
+#include "allocator.h"
 #include "errors.h"
+#include "InternListAllocator.h"
+#include <cstdlib>
+#include <xstddef>
+#include <forward_list>
+#include <utility>
 
-static uint8_t _last_free_list_num = 0U;
+using namespace internal;
 
-uint8_t free_list_create()
+static InternListAllocator<std::size_t>* _lallocators[64];
+using flist = std::forward_list<size_t, InternListAllocator<size_t>>;
+
+flist* _lists[MAX_PAGES];
+
+static size_t _internal_list_storage[MAX_PAGES]; /*only sizeof(size_t) per list is used by first allocate call after construction*/
+
+static uint8_t _last_list = 0U;
+
+uint8_t list_create(rtsha_page* page)
 {
-    if (_last_free_list_num >= MAX_PAGES)
-    {
-        return RTSHA_FreeListInvalidHandle;
-    }
-    _last_free_list_num++;
-    return (_last_free_list_num - 1U);
+	uint8_t ret = _last_list;
+	using namespace std;
+	if ((_last_list >= MAX_PAGES) || (page == NULL))
+	{
+		return MAX_PAGES;
+	}
+
+	_lallocators[_last_list] = new InternListAllocator<size_t>(page, &(_internal_list_storage[_last_list]) );
+	_lists[_last_list] = new flist(InternListAllocator<size_t>(*_lallocators[_last_list]));
+	
+	_last_list++;
+	return ret;
 }
 
-static inline rtsha_free_list_node* free_list_node_create(size_t address)
+bool list_push(uint16_t handle, const size_t address)
 {
-    rtsha_free_list_node* node = (rtsha_free_list_node*)(void*)(address);
-    node->next = NULL;
-    return node;
+	if (handle < _last_list)
+	{
+		_lists[handle]->emplace_front(address);
+		return true;
+	}
+	return false;
 }
 
-bool free_list_insert(uint8_t h, size_t address, rtsha_free_list_node** free_list_ptr, rtsha_free_list_node** last_free_list_ptr)
-{
-    rtsha_free_list_node* pNode;
-    pNode = NULL;
-  
-    if ( (h >= MAX_PAGES) || (free_list_ptr == NULL) || (last_free_list_ptr == NULL) )
-    {
-        return false;
-    }
-
-    pNode = free_list_node_create(address);
-    
-    if (*free_list_ptr == NULL )
-    {
-        *free_list_ptr = pNode;
-        *last_free_list_ptr = pNode;
-        return true;
-    }
-    /*update old last next*/
-    (*last_free_list_ptr)->next = pNode;
-    /*set new last*/
-    (*last_free_list_ptr) = pNode;
-     
-       
-    return true;
-
+size_t list_pop(uint16_t handle)
+{	
+	if (handle < _last_list)
+	{
+		flist::iterator ptr = _lists[handle]->begin();
+		if (ptr != _lists[handle]->end())
+		{
+			size_t address = _lists[handle]->front();
+			_lists[handle]->pop_front();
+			return address;
+		}
+	}
+	return 0U;
 }
 
-void free_list_delete(uint8_t h, size_t address, rtsha_free_list_node** free_list_ptr, rtsha_free_list_node** last_free_list_ptr)
-{
-    rtsha_free_list_node* pNode = (rtsha_free_list_node*)(void*)address;
-    rtsha_free_list_node* temp;
 
-    size_t adr = 0U;
-    temp = NULL;
-
-
-    if( (h < MAX_PAGES) && (pNode != NULL) && (*last_free_list_ptr != NULL) && (*free_list_ptr != NULL) )
-    {
-        if( (pNode == *last_free_list_ptr) && (pNode == *free_list_ptr) )
-        {
-            /*delete first and the last list*/
-            *free_list_ptr = NULL;
-            *last_free_list_ptr = NULL;
-            return;
-        }
-        else if ( (pNode != *last_free_list_ptr) && (pNode == *free_list_ptr) )
-        {
-            /*delete first list*/
-            *free_list_ptr = (*free_list_ptr)->next;
-        }
-        else if ((pNode == *last_free_list_ptr) && (pNode != *free_list_ptr))
-        {
-            /*delete last list*/
-            adr = ((size_t)(void*) (*last_free_list_ptr)) - sizeof(rtsha_free_list_node);
-            temp = (rtsha_free_list_node*)(void*)adr;
-            *last_free_list_ptr = temp;
-        }
-        else
-        {
-            /*delete list in the middle*/
-            adr = ((size_t)(void*)pNode) - sizeof(rtsha_free_list_node);
-            temp = (rtsha_free_list_node*)(void*)adr;
-            temp->next = pNode->next;
-        }            
-    }
-}

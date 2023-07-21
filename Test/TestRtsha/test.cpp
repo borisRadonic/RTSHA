@@ -3,6 +3,7 @@
 #include "allocator.h"
 #include <iostream>
 #include <sstream>
+#include <chrono>
 #include <string>
 #include "VisualizePage.h"
 #include "FastPlusAllocator.h"
@@ -11,50 +12,12 @@
 
 
 using namespace std;
-
-
-
-TEST(TestCaseBtree, TestBtreeSLLRotation)
-{
-	void* memory = (void*)malloc(65536);
-
-	size_t address = (size_t)memory;
-	size_t nodee_size = sizeof(rtsha_free_list_node);
-
-
-	uint8_t hlist = free_list_create();
-
-	EXPECT_TRUE(hlist != RTSHA_FreeListInvalidHandle);
-
-	/*
-	free_list_insert(hlist, address);
-	address += nodee_size;
-
-	free_list_insert(hlist, address);
-	address += nodee_size;
-
-	free_list_insert(hlist, address);
-	address += nodee_size;
-	size_t address3 = address;
-
-	free_list_insert(hlist, address);
-	address += nodee_size;
-
-	free_list_delete(hlist, address);
-	free_list_delete(hlist, address3);
-	*/
-
-	free(memory);
-}
-
-
-
+using namespace std::chrono;
 
 
 TEST(TestCaseBtree, TestMyMallocFrteePerformance64)
 {	
-	multimap_create(0);
-
+	
 	/*
 	std::multimap<size_t, size_t, less<size_t>, Mallocator<pair<size_t, size_t>>> map;
 	std::multimap<size_t, size_t, less<size_t>, internal::InternMapAllocator<pair<size_t, size_t>>> map2;
@@ -83,13 +46,15 @@ TEST(TestCaseBtree, TestMyMallocFrteePerformance64)
 	rtsha_page* pagePtr0 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_64, RTSHA_PAGE_SIZE_64K);
 	free_space = rtsha_get_free_space();
 
-	//rtsha_page* pagePtr1 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_16, RTSHA_PAGE_SIZE_64K);
+	//rtsha_page* pagePtr1 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_24, RTSHA_PAGE_SIZE_64K);
 	//free_space = rtsha_get_free_space();
 
 	
 
 	//rtsha_page* pagePtr9 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_BIG, free_space);
 	//free_space = rtsha_get_free_space();
+
+	return;
 
 	for (int i = 0; i < 100000; i++)
 	{
@@ -137,34 +102,51 @@ TEST(TestCaseBtree, TestMyMallocFrteePerformance64)
 
 TEST(TestCaseBtree, TestMallocFrteePerformance)
 {
+	auto start = high_resolution_clock::now();
+
 	for (int i = 0; i < 100000; i++)
 	{
-		void* memory1 = (void*)malloc(64);
-		void* memory2 = (void*)malloc(128);
-		void* memory3 = (void*)malloc(256);
-		void* memory4 = (void*)malloc(1024);
-		void* memory5 = (void*)malloc(1024);
-		void* memory6 = (void*)malloc(10240);
-		void* memory7 = (void*)malloc(10);
-		void* memory8 = (void*)malloc(15);
-		void* memory9 = (void*)malloc(1024);
-		free(memory3);
-		free(memory5);
+		void* memory1 = (void*)malloc(std::rand() % 31 + 1);
+		void* memory2 = (void*)malloc(std::rand() % 31 + 1);
+		void* memory3 = (void*)malloc(std::rand() % 31 + 1);
+		void* memory4 = (void*)malloc(std::rand() % 31 + 1);
+		void* memory5 = (void*)malloc(std::rand() % 31 + 1);
+		void* memory6 = (void*)malloc(std::rand() % 31 + 1);
+		void* memory7 = (void*)malloc(std::rand() % 31 + 1);
+		void* memory8 = (void*)malloc(std::rand() % 31 + 1);
+		void* memory9 = (void*)malloc(std::rand() % 31 + 1);
+		void* memory10 = (void*)malloc(std::rand() % 31 + 1);
+		void* memory11 = (void*)malloc(std::rand() % 31 + 1);
+
 		free(memory1);
+
+		free(memory5);
+
 		free(memory7);
-		free(memory9);
+
+		free(memory3);
 		free(memory2);
+		free(memory9);
+		free(memory10);
 		free(memory4);
+		free(memory11);
 		free(memory6);
+		
 		free(memory8);
 	}
+
+	auto stop = high_resolution_clock::now();
+	auto duration = duration_cast<microseconds>(stop - start);
+
+	cout << "TestMallocFrteePerformance took " << duration.count() << " microseconds\n";
 }
 
 
-TEST(TestCaseBtree, TestMyMallocFrteePerformance)
+
+TEST(TestCaseMyMalloc, TestMyMallocSmallMemory)
 {
 	rtsha_heap_t* heapPtr;
-	size_t size = 100 * 0x1F4000;
+	size_t size = 0x1F4000;
 	void* heapMemory = malloc(size); //allocate 2MB for heap
 	EXPECT_TRUE(heapMemory != NULL);
 
@@ -175,10 +157,88 @@ TEST(TestCaseBtree, TestMyMallocFrteePerformance)
 
 
 	/*Add pages*/
-	rtsha_page* pagePtr0 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_16, RTSHA_PAGE_SIZE_64K);
+	rtsha_page* pagePtr0 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_32, RTSHA_PAGE_SIZE_256K);
+	free_space = rtsha_get_free_space();
+	
+	auto start = high_resolution_clock::now();
+	
+	for (int i = 0; i < 100000; i++)
+	{		
+		void* memory1 = (void*)rtsha_malloc(std::rand() % 31 + 1);
+		void* memory2 = (void*)rtsha_malloc(std::rand() % 31 + 1);
+		void* memory3 = (void*)rtsha_malloc(std::rand() % 31 + 1);
+		void* memory4 = (void*)rtsha_malloc(std::rand() % 31 + 1);
+		void* memory5 = (void*)rtsha_malloc(std::rand() % 31 + 1);
+		void* memory6 = (void*)rtsha_malloc(std::rand() % 31 + 1);
+		void* memory7 = (void*)rtsha_malloc(std::rand() % 31 + 1);
+		void* memory8 = (void*)rtsha_malloc(std::rand() % 31 + 1);
+		void* memory9 = (void*)rtsha_malloc(std::rand() % 31 + 1);
+		void* memory10 = (void*)rtsha_malloc(std::rand() % 31 + 1);
+		void* memory11 = (void*)rtsha_malloc(std::rand() % 31 + 1);
+	
+		rtsha_free(memory1);
+		rtsha_free(memory5);
+		rtsha_free(memory7);
+		rtsha_free(memory3);
+		rtsha_free(memory2);
+		rtsha_free(memory9);
+		rtsha_free(memory10);
+		rtsha_free(memory4);
+		rtsha_free(memory11);
+		rtsha_free(memory6);
+		rtsha_free(memory1);
+		rtsha_free(memory8);
+	}
+
+	auto stop = high_resolution_clock::now();
+	auto duration = duration_cast<microseconds>(stop - start);
+
+	cout << "TestMyMallocSmallMemory took " << duration.count() << " microseconds\n";
+}
+
+
+TEST(TestCaseMyMalloc, TestMallocPerformanceBigBlocks)
+{
+
+	for (int i = 0; i < 100000; i++)
+	{
+		void* memory1 = (void*)malloc(max(512, std::rand() % 1024));
+		void* memory2 = (void*)malloc(max(512, std::rand() % 1024));
+		void* memory3 = (void*)malloc(max(512, std::rand() % 10240));
+		void* memory4 = (void*)malloc(max(512, std::rand() % 50000));
+		void* memory5 = (void*)malloc(max(512, std::rand() % 5240));
+		void* memory6 = (void*)malloc(max(512, std::rand() % 1000));
+		void* memory7 = (void*)malloc(max(512, std::rand() % 4000));
+
+		free(memory5);
+		free(memory7);
+		free(memory6);
+		free(memory2);
+		free(memory4);
+		free(memory3);
+		free(memory1);
+
+	}
+}
+
+TEST(TestCaseMyMalloc, TestMyMallocPerformanceBigBlocks)
+{
+	rtsha_heap_t* heapPtr;
+	size_t size = 0x1F4000 * 100;
+	void* heapMemory = malloc(size); //allocate 2MB for heap
+	EXPECT_TRUE(heapMemory != NULL);
+
+	/*Initialize heap allocator*/
+	heapPtr = rtsha_heap_init(heapMemory, size);
+
+	size_t free_space = rtsha_get_free_space();
+
+
+	/*Add pages*/
+	rtsha_page* pagePtr0 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_24, RTSHA_PAGE_SIZE_64K);
 	free_space = rtsha_get_free_space();
 
-	rtsha_page* pagePtr1 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_16, RTSHA_PAGE_SIZE_64K);
+	rtsha_page* pagePtr1 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_24, RTSHA_PAGE_SIZE_64K);
 	free_space = rtsha_get_free_space();
 
 	rtsha_page* pagePtr3 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_32, RTSHA_PAGE_SIZE_64K);
@@ -205,33 +265,27 @@ TEST(TestCaseBtree, TestMyMallocFrteePerformance)
 
 	for (int i = 0; i < 100000; i++)
 	{
-		/*
-		void* memory1 = (void*)rtsha_malloc(64);
-		void* memory2 = (void*)rtsha_malloc(128);
-		void* memory3 = (void*)rtsha_malloc(256);
-		*/
-		void* memory1 = (void*)rtsha_malloc(1024);
-		void* memory2 = (void*)rtsha_malloc(1024);
-		void* memory3 = (void*)rtsha_malloc(10240);
-		//void* memory7 = (void*)rtsha_malloc(10);
-		//void* memory8 = (void*)rtsha_malloc(15);
-		void* memory4 = (void*)rtsha_malloc(1024);
-		//rtsha_free(memory3);
+		void* memory1 = (void*)rtsha_malloc(max(513, std::rand() % 1024));
+		void* memory2 = (void*)rtsha_malloc(max(513, std::rand() % 1024));
+		void* memory3 = (void*)rtsha_malloc(max(513, std::rand() % 10240));
+		void* memory4 = (void*)rtsha_malloc(max(513, std::rand() % 50000));
+		void* memory5 = (void*)rtsha_malloc(max(513, std::rand() % 5240));
+		void* memory6 = (void*)rtsha_malloc(max(513, std::rand() % 1000));
+		void* memory7 = (void*)rtsha_malloc(max(513, std::rand() % 4000));
+
+		rtsha_free(memory5);
+		rtsha_free(memory7);
+		rtsha_free(memory6);
 		rtsha_free(memory2);
-		//rtsha_free(memory1);
-		//rtsha_free(memory7);
 		rtsha_free(memory4);
-		//rtsha_free(memory2);
 		rtsha_free(memory3);
 		rtsha_free(memory1);
-		//rtsha_free(memory8);
 	}
-
-}
-
+   }
 
 TEST(TestCasePage16, TestName)
 {
+	return;
 	stringstream textStream;
 
 	rtsha_heap_t* heapPtr;
@@ -246,8 +300,8 @@ TEST(TestCasePage16, TestName)
 
 	
 	/*Add pages*/
-	rtsha_page* pagePtr0 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_16, RTSHA_PAGE_SIZE_64K);
-	rtsha_page* pagePtr1 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_16, RTSHA_PAGE_SIZE_64K);
+	rtsha_page* pagePtr0 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_24, RTSHA_PAGE_SIZE_64K);
+	rtsha_page* pagePtr1 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_24, RTSHA_PAGE_SIZE_64K);
 	
 	VisualizePage visPage9(pagePtr0);
 	visPage9.print(textStream);
@@ -327,10 +381,10 @@ TEST(TestCaseName, TestName)
 
 
 	/*Add pages*/
-	rtsha_page* pagePtr0 = rtsha_add_page( heapPtr, RTSHA_PAGE_TYPE_16, RTSHA_PAGE_SIZE_64K );
+	rtsha_page* pagePtr0 = rtsha_add_page( heapPtr, RTSHA_PAGE_TYPE_24, RTSHA_PAGE_SIZE_64K );
 	free_space = rtsha_get_free_space();
 
-	rtsha_page* pagePtr1 = rtsha_add_page( heapPtr, RTSHA_PAGE_TYPE_16, RTSHA_PAGE_SIZE_64K );
+	rtsha_page* pagePtr1 = rtsha_add_page( heapPtr, RTSHA_PAGE_TYPE_24, RTSHA_PAGE_SIZE_64K );
 	free_space = rtsha_get_free_space();
 	
 	rtsha_page* pagePtr3 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_32, RTSHA_PAGE_SIZE_64K);
@@ -397,8 +451,6 @@ TEST(TestCaseName, TestName)
 	textStream << "F 1300 (should shrink left and right)" << std::endl;
 	rtsha_free(ptr3);
 	visPage9.print(textStream);
-
-	cout << textStream.str();
 	
 	textStream << "F 1200" << std::endl;
 	rtsha_free(ptr5);

@@ -17,7 +17,7 @@ typedef uint16_t RTSHA_PageType;
 
 
 
-#define RTSHA_PAGE_SIZE_16K			0x4000
+
 #define RTSHA_PAGE_SIZE_24K			0x6000
 #define RTSHA_PAGE_SIZE_32K			0x8000
 #define RTSHA_PAGE_SIZE_64K			0x10000
@@ -32,7 +32,7 @@ typedef uint16_t RTSHA_PageType;
 
 #define RTSHA_PAGE_INTERN	(1U)
 
-#define RTSHA_PAGE_TYPE_16			(16U)
+
 #define RTSHA_PAGE_TYPE_24			(24U)
 #define RTSHA_PAGE_TYPE_32			(32U)
 #define RTSHA_PAGE_TYPE_64			(64U)
@@ -55,14 +55,17 @@ typedef struct rtsha_block_struct
 /*Additional bytes are required to store Free Node Data in Free block: ->(size of Free Structure - sizeof(size) - sizeof( rtsha_block_struct*) + Block Size) >= (sizeof(FreeListNode) */
 
 #if defined _WIN64 || defined _ARM64
-	#define RTSHA_BLOCK_HEADER_SIZE  (sizeof(size_t) + sizeof(size_t))
+	#define RTSHA_BLOCK_HEADER_SIZE  (2 * sizeof(size_t))
+#define MIN_BLOCK_SIZE_FOR_SPLIT	56U /*todo*/
 #else
-	#define RTSHA_BLOCK_HEADER_SIZE  (sizeof(size_t))
+	#define RTSHA_LIST_ITEM_SIZE  (2 * sizeof(size_t))
+	#define MIN_BLOCK_SIZE_FOR_SPLIT	48U /*todo*/
 #endif
 
 
 typedef struct rtsha_free_list_struct
 {
+	struct rtsha_free_list_struct* prev;
 	struct rtsha_free_list_struct* next;
 } rtsha_free_list_node;
 
@@ -85,11 +88,10 @@ typedef struct rtsha_page_struct
 	size_t						reserved_start;
 	size_t						max_blocks;
 
-	struct rtsha_page_struct*	internal_page;
+	size_t						lastFreeBlockAddress;
 
-			
-	rtsha_free_list_node* free_list;
-	rtsha_free_list_node* free_list_last;
+	//struct rtsha_page_struct*	internal_page;
+
 
 	struct rtsha_page_struct*	next;
 

@@ -8,7 +8,7 @@
 
 #define is_bit(val,n) ( (val >> n) & 0x01U )
 
-#define get_block_size(val) ( (val >> 2U) << 2U )
+#define get_block_size(val) ( (size_t) ( (size_t) val >> 2U) << 2U )
 
 #ifndef rtsha_assert
     #define rtsha_assert(x) assert(x)
@@ -37,21 +37,32 @@ static inline uintptr_t rtsha_align(uintptr_t ptr)
     return (((ptr + mask) / RTSHA_ALIGMENT) * RTSHA_ALIGMENT);
    
 }
-uint8_t free_list_create();
-
-bool free_list_insert(uint8_t h, size_t address, rtsha_free_list_node** free_list_ptr, rtsha_free_list_node** last_free_list_ptr);
-
-void free_list_delete(uint8_t h, size_t address, rtsha_free_list_node** free_list_ptr, rtsha_free_list_node** last_free_list_ptr);
 
 rtsha_heap_t* rtsha_heap_init(void* start, size_t size);
 
 rtsha_page* rtsha_add_page(rtsha_heap_t* heap, RTSHA_PageType page_type, size_t size);
 
-uint16_t multimap_create(rtsha_page* page);
+void rtsha_free_page_block(rtsha_page* page, void* block);
 
-bool multimap_insert(uint16_t handle, const size_t key, size_t block);
+void* rtsha_allocate_page_block(rtsha_page* page, size_t size);
+
+uint8_t multimap_create(rtsha_page* page);
+
+bool multimap_insert(uint16_t handle, const uint64_t key, size_t block);
+
+void multimap_delete(uint16_t handle, const uint64_t key, size_t block);
+
+size_t multimap_find(uint16_t handle, const uint64_t key);
 
 void multimap_destroy(uint16_t handle);
+
+void multimap_drop_all(uint16_t handle);
+
+uint8_t list_create(rtsha_page* page);
+
+bool list_push(uint16_t handle, const size_t address);
+
+size_t list_pop(uint16_t handle);
 
 size_t rtsha_get_free_space();
 
