@@ -112,12 +112,3 @@ void multimap_drop_all(uint16_t handle)
 		_maps[handle]->clear();
 	}
 }
-
-void multimap_destroy(uint16_t handle)
-{
-	if (handle < _last_map)
-	{
-		delete _maps[handle];
-		delete _allocators[handle];
-	}
-}

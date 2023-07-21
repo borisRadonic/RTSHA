@@ -54,8 +54,6 @@ void multimap_delete(uint16_t handle, const uint64_t key, size_t block);
 
 size_t multimap_find(uint16_t handle, const uint64_t key);
 
-void multimap_destroy(uint16_t handle);
-
 void multimap_drop_all(uint16_t handle);
 
 uint8_t list_create(rtsha_page* page);
