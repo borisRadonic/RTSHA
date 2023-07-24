@@ -60,9 +60,9 @@ The main requirements that need to be fulfilled are:
 
 The algorithm:
 
-- promptly merges or coalesced the memory blocks after their release. This is a standard part of memory management in which two adjacent free blocks of memory are merged.
-- expects user memory devided in pages defined by user. The page contains the memory blocks of the same size ( for example 16, 32, 64, 128, 512 bytes and the pages for 'big blocks' )
-  The smallest allocatable memory block is 16 bytes and the biggest allocatable block is user defined.
+- promptly merges or coalesces the big memory blocks (>512 bytes) after their release. This is a standard part of memory management in which two adjacent free blocks of memory are merged.
+- expects user memory devided in pages defined by user. The page contains the memory blocks of the same size ( for example 32, 64, 128, 512 bytes and the pages for 'big blocks' )
+  The smallest allocatable memory block is 32 bytes and the biggest allocatable block is user defined.
 - Almost-Best-Fit strategy is employed to minimize fragmentation of big blocks (blocks greater than 512 bytes)
 - reuses recently released memory blocks over those that were released further in the past
 

@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "internal.h"
-#include "allocator.h"
+#include "heap.h"
 #include <iostream>
 #include <sstream>
 #include <chrono>
@@ -15,36 +15,53 @@ using namespace std;
 using namespace std::chrono;
 
 
-TEST(TestCaseBtree, TestMyMallocFrteePerformance64)
+TEST(TestCaseClassHeap, TestHeap)
 {	
-	
-	/*
-	std::multimap<size_t, size_t, less<size_t>, Mallocator<pair<size_t, size_t>>> map;
-	std::multimap<size_t, size_t, less<size_t>, internal::InternMapAllocator<pair<size_t, size_t>>> map2;
-	
-	std::multimap<size_t, size_t, less<size_t>, Mallocator<pair<size_t, size_t>>>::iterator iter;
-
-	map.insert(pair<size_t, size_t>(1, 40));
-	map.insert(pair<size_t, size_t>(40, 50));
-	map.insert(pair<size_t, size_t>(41, 51));
-
-	iter = map.find( 40 );
-	map.erase(40);
-	*/
-	rtsha_heap_t* heapPtr;
-	size_t size = 100 * 0x1F4000;
+	size_t size = 0x1F4000;
 	void* heapMemory = malloc(size); //allocate 2MB for heap
 	EXPECT_TRUE(heapMemory != NULL);
+	
+	Heap heap;
+	EXPECT_TRUE(heap.init(heapMemory, size) );
 
-	/*Initialize heap allocator*/
-	heapPtr = rtsha_heap_init(heapMemory, size);
+	EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageType16, 65536U));
+	EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageType24, 65536U));
+	EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageType32, 65536U));
+	EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageType64, 65536U));
+	EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageType128, 65536U));
+	EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageType256, 65536U));
+	EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageType512, 65536U));
+	EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageTypeBig, 4U * 65536U));
 
-	size_t free_space = rtsha_get_free_space();
+	size_t free = heap.get_free_space();
+	EXPECT_EQ(free, 1327104);
 
+	EXPECT_EQ(rtsha_page_size_type::PageType16, heap.get_ideal_page(15U) );
+	EXPECT_EQ(rtsha_page_size_type::PageType24, heap.get_ideal_page(17U));
+	EXPECT_EQ(rtsha_page_size_type::PageType24, heap.get_ideal_page(24U));
+	EXPECT_EQ(rtsha_page_size_type::PageType32, heap.get_ideal_page(25U));
+	EXPECT_EQ(rtsha_page_size_type::PageType32, heap.get_ideal_page(32U));
+	EXPECT_EQ(rtsha_page_size_type::PageType64, heap.get_ideal_page(50U));
+	EXPECT_EQ(rtsha_page_size_type::PageType64, heap.get_ideal_page(64U));
+	EXPECT_EQ(rtsha_page_size_type::PageType128, heap.get_ideal_page(120U));
+	EXPECT_EQ(rtsha_page_size_type::PageType128, heap.get_ideal_page(128U));
+	EXPECT_EQ(rtsha_page_size_type::PageType256, heap.get_ideal_page(129U));
+	EXPECT_EQ(rtsha_page_size_type::PageType256, heap.get_ideal_page(256U));
+	EXPECT_EQ(rtsha_page_size_type::PageType512, heap.get_ideal_page(500U));
+	EXPECT_EQ(rtsha_page_size_type::PageType512, heap.get_ideal_page(512U));
+	EXPECT_EQ(rtsha_page_size_type::PageTypeBig, heap.get_ideal_page(513U));
+
+	void *mem = heap.malloc(15);
+	rtsha_page* page = heap.select_page(rtsha_page_size_type::PageType24, 15);
+	EXPECT_EQ(65472, page->free);
+
+
+	/*
+	
 
 	/*Add pages*/
-	rtsha_page* pagePtr0 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_64, RTSHA_PAGE_SIZE_64K);
-	free_space = rtsha_get_free_space();
+	//rtsha_page* pagePtr0 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_64, RTSHA_PAGE_SIZE_64K);
+	//free_space = rtsha_get_free_space();
 
 	//rtsha_page* pagePtr1 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_24, RTSHA_PAGE_SIZE_64K);
 	//free_space = rtsha_get_free_space();
@@ -54,11 +71,11 @@ TEST(TestCaseBtree, TestMyMallocFrteePerformance64)
 	//rtsha_page* pagePtr9 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_BIG, free_space);
 	//free_space = rtsha_get_free_space();
 
-	return;
+	//return;
 
-	for (int i = 0; i < 100000; i++)
-	{
-		
+	//for (int i = 0; i < 100000; i++)
+	//{
+		/*
 		void* memory1 = (void*)rtsha_malloc(35);
 		void* memory2 = (void*)rtsha_malloc(64);
 		void* memory3 = (void*)rtsha_malloc(64);
@@ -95,7 +112,8 @@ TEST(TestCaseBtree, TestMyMallocFrteePerformance64)
 
 		rtsha_free(memory8);
 		EXPECT_TRUE(pagePtr0->free_blocks == 9);
-	}
+		*/
+	//}
 
 }
 
@@ -145,18 +163,20 @@ TEST(TestCaseBtree, TestMallocFrteePerformance)
 
 TEST(TestCaseMyMalloc, TestMyMallocSmallMemory)
 {
+/*
 	rtsha_heap_t* heapPtr;
 	size_t size = 0x1F4000;
 	void* heapMemory = malloc(size); //allocate 2MB for heap
 	EXPECT_TRUE(heapMemory != NULL);
-
+*/
 	/*Initialize heap allocator*/
+	/*
 	heapPtr = rtsha_heap_init(heapMemory, size);
 
 	size_t free_space = rtsha_get_free_space();
 
 
-	/*Add pages*/
+	
 	rtsha_page* pagePtr0 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_32, RTSHA_PAGE_SIZE_256K);
 	free_space = rtsha_get_free_space();
 	
@@ -189,11 +209,11 @@ TEST(TestCaseMyMalloc, TestMyMallocSmallMemory)
 		rtsha_free(memory1);
 		rtsha_free(memory8);
 	}
+	*/
+	//auto stop = high_resolution_clock::now();
+	//auto duration = duration_cast<microseconds>(stop - start);
 
-	auto stop = high_resolution_clock::now();
-	auto duration = duration_cast<microseconds>(stop - start);
-
-	cout << "TestMyMallocSmallMemory took " << duration.count() << " microseconds\n";
+	//cout << "TestMyMallocSmallMemory took " << duration.count() << " microseconds\n";
 }
 
 
@@ -223,18 +243,17 @@ TEST(TestCaseMyMalloc, TestMallocPerformanceBigBlocks)
 
 TEST(TestCaseMyMalloc, TestMyMallocPerformanceBigBlocks)
 {
+	/*
 	rtsha_heap_t* heapPtr;
 	size_t size = 0x1F4000 * 100;
-	void* heapMemory = malloc(size); //allocate 2MB for heap
+	void* heapMemory = malloc(size);
 	EXPECT_TRUE(heapMemory != NULL);
 
-	/*Initialize heap allocator*/
+
 	heapPtr = rtsha_heap_init(heapMemory, size);
 
 	size_t free_space = rtsha_get_free_space();
 
-
-	/*Add pages*/
 	rtsha_page* pagePtr0 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_24, RTSHA_PAGE_SIZE_64K);
 	free_space = rtsha_get_free_space();
 
@@ -281,25 +300,28 @@ TEST(TestCaseMyMalloc, TestMyMallocPerformanceBigBlocks)
 		rtsha_free(memory3);
 		rtsha_free(memory1);
 	}
-   }
+	*/
+}
 
 TEST(TestCasePage16, TestName)
 {
 	return;
 	stringstream textStream;
 
+/*
 	rtsha_heap_t* heapPtr;
 	size_t size = 0x1F4000;
-	void* heapMemory = malloc(size); //allocate 2MB for heap
+	void* heapMemory = malloc(size);
 	EXPECT_TRUE(heapMemory != NULL);
 
-	/*Initialize heap allocator*/
+
+	
 	heapPtr = rtsha_heap_init(heapMemory, size);
 
 	size_t free_space = rtsha_get_free_space();
 
 	
-	/*Add pages*/
+	
 	rtsha_page* pagePtr0 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_24, RTSHA_PAGE_SIZE_64K);
 	rtsha_page* pagePtr1 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_24, RTSHA_PAGE_SIZE_64K);
 	
@@ -323,13 +345,14 @@ TEST(TestCasePage16, TestName)
 			break;
 		}
 	}
+	*/
 	
 	/*clear first 100*/
 	for (uint32_t i = 0; i < 100; i++)
 	{
-		rtsha_free(ptrMemory[i]);
+		//rtsha_free(ptrMemory[i]);
 	}
-
+	/*
 
 	EXPECT_EQ(100U, pagePtr0->free_blocks);
 	EXPECT_EQ( 2412U, pagePtr0->free );
@@ -338,8 +361,8 @@ TEST(TestCasePage16, TestName)
 	{
 		rtsha_free(ptrMemory[i]);
 	}
-
-	visPage9.print(textStream);
+	*/
+	//visPage9.print(textStream);
 
 	//EXPECT_EQ(pagePtr0->free, 65504U);
 
@@ -348,39 +371,39 @@ TEST(TestCasePage16, TestName)
 
 	for (uint32_t i = 0; i < 9000; i++)
 	{
-		void* ptr = rtsha_malloc(16U);
-		if (!ptr)
-		{
-			EXPECT_EQ(i, 4094U);
-			break;
-		}
+		//void* ptr = rtsha_malloc(16U);
+		//if (!ptr)
+		//{
+		//	EXPECT_EQ(i, 4094U);
+		//	break;
+		//}
 	}
 
-	textStream << std::endl;
-	textStream << "Page0 free:" << pagePtr0->free << std::endl;
-	textStream << "Page1 free:" << pagePtr1->free << std::endl;
+	//textStream << std::endl;
+	//textStream << "Page0 free:" << pagePtr0->free << std::endl;
+	//textStream << "Page1 free:" << pagePtr1->free << std::endl;
 
-	visPage9.print(textStream);
-	cout << textStream.str();
+	//visPage9.print(textStream);
+	//cout << textStream.str();
 }
 
 
 TEST(TestCaseName, TestName)
 {
+	/*
 	stringstream textStream;
 	
 	rtsha_heap_t* heapPtr;
 	size_t size = 0x1F4000;
-	void* heapMemory = malloc(size); //allocate 2MB for heap
+	void* heapMemory = malloc(size);
 	EXPECT_TRUE(heapMemory != NULL);
 	
-	/*Initialize heap allocator*/
+
 	heapPtr = rtsha_heap_init(heapMemory, size);
 
 	size_t free_space = rtsha_get_free_space();
 
 
-	/*Add pages*/
 	rtsha_page* pagePtr0 = rtsha_add_page( heapPtr, RTSHA_PAGE_TYPE_24, RTSHA_PAGE_SIZE_64K );
 	free_space = rtsha_get_free_space();
 
@@ -413,7 +436,7 @@ TEST(TestCaseName, TestName)
 	void* ptr3 = rtsha_malloc(1300);
 	void* ptr4 = rtsha_malloc(2000);
 	void* ptr5 = rtsha_malloc(1200);
-
+	
 	VisualizePage visPage9(pagePtr9);
 	visPage9.print(textStream);
 	
@@ -424,17 +447,17 @@ TEST(TestCaseName, TestName)
 	
 
 	rtsha_free(ptr2);
-
+	*/
 	/*test best fit -identical*/
-	ptr2 = rtsha_malloc(1200);
-	textStream << "A 1200" << std::endl;
-	visPage9.print(textStream);
+	//ptr2 = rtsha_malloc(1200);
+	//textStream << "A 1200" << std::endl;
+	//visPage9.print(textStream);
 		
-	textStream << "F 1200" << std::endl;
-	rtsha_free(ptr2);
-	visPage9.print(textStream);
+	//textStream << "F 1200" << std::endl;
+	//rtsha_free(ptr2);
+	//visPage9.print(textStream);
 
-	/*test create new when no best fit*/
+	/*
 	ptr2 = rtsha_malloc(1204);
 	textStream << "A 1204" << std::endl;
 	visPage9.print(textStream);
@@ -443,7 +466,7 @@ TEST(TestCaseName, TestName)
 	textStream << "F 1204" << std::endl;
 	visPage9.print(textStream);
 		
-	/*test shrink*/
+
 	textStream << "F 2000" << std::endl;
 	rtsha_free(ptr4);
 	visPage9.print(textStream);
@@ -461,6 +484,7 @@ TEST(TestCaseName, TestName)
 	visPage9.print(textStream);
 	
 	cout << textStream.str();
+	*/
 
   EXPECT_EQ(1, 1);
   EXPECT_TRUE(true);

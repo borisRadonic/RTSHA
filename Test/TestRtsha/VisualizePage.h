@@ -1,8 +1,10 @@
 #pragma once
-#include "internal.h"
+#include "MemoryPage.h"
 #include <iostream>
 #include <sstream>
 #include <string>
+
+using namespace internal;
 
 class VisualizePage
 {

@@ -1,5 +1,5 @@
-#pragma onc
-#include "structures.h"
+#pragma once
+#include "MemoryPage.h"
 #include <cstdlib>
 #include <new>
 #include <limits>
@@ -37,7 +37,7 @@ namespace internal
             {
                 throw std::bad_array_new_length();
             }
-            if (_allocated_intern == 0U)
+            if ((_allocated_intern == 0U) && (_page->lastFreeBlockAddress == 0U))
             {
                 if (n > 1)
                 {

@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "VisualizePage.h"
+#include "MemoryBlock.h"
 
 extern uintptr_t	_heap_start;
 extern size_t		_heap_top;
@@ -13,9 +14,9 @@ void VisualizePage::print(std::stringstream& textStream)
 		//textStream << "Free:" << _page->free << std::endl;
 		//textStream << "Free blocks:" << _page->free_blocks << std::endl;
 		//textStream << "Reserved:" << _page->reserved << std::endl;
-		
+		/*
 		size_t tempPos = _page->start_position;
-		rtsha_block_struct* pBlock = (rtsha_block_struct*)tempPos;
+		rtsha_block* pBlock = (rtsha_block_struct*)tempPos;
 		
 		while ((pBlock != NULL) )
 		{
@@ -52,7 +53,7 @@ void VisualizePage::print(std::stringstream& textStream)
 			}
 			pBlock = (rtsha_block*)((void*)tempPos);
 		}
-	
+	*/
 		textStream << std::endl;
 
 	}
