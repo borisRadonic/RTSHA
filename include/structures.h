@@ -20,7 +20,7 @@ typedef uint16_t RTSHA_PageType;
 #define MIN_BLOCK_SIZE_FOR_SPLIT	56U /*todo*/
 #else
 	#define RTSHA_LIST_ITEM_SIZE  (2 * sizeof(size_t))
-	#define MIN_BLOCK_SIZE_FOR_SPLIT	48U /*todo*/
+	#define MIN_BLOCK_SIZE_FOR_SPLIT	512U /*todo*/
 #endif
 
 

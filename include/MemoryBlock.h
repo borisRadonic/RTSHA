@@ -87,7 +87,7 @@ namespace internal
 
 		inline size_t getFreeBlockAddress() const
 		{
-			return ((size_t)_block + sizeof(size_t));
+			return ((size_t)_block + 2U * sizeof(size_t));
 		}
 
 		inline void setPrev(const MemoryBlock& prev)

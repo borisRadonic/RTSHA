@@ -56,7 +56,7 @@ namespace internal
 		rtsha_page* page = (rtsha_page*)(void*)_heap_current_position;
 		
 		/*set this page as last page*/
-		page->flags = (uint16_t) size_type;
+		page->flags = (uint32_t) size_type;
 		page->free = a_size - sizeof(rtsha_page);
 		page->free_blocks = 0U;
 		page->size = page->free;
@@ -72,11 +72,29 @@ namespace internal
 			if (a_size < (size_t) rtsha_page_size_type::PageType512)
 			{
 				return false;
-			}
+			}			
+			/*we need additional space for out map data... we can not store data in free blocks... to dangerous...not safe...*/
+
+			page->max_blocks = (page->free - 2U * INTERNAL_MAP_STORAGE_SIZE - sizeof(rtsha_page)) / (INTERNAL_MAP_STORAGE_SIZE + 512U + sizeof(rtsha_block));
+			page->start_map_data = (page->size + page->start_position - page->max_blocks * (INTERNAL_MAP_STORAGE_SIZE * 2U) ); /*fixed blocks 64 bytes on 32 bit platform*/
+			page->map_page = reinterpret_cast<rtsha_page*>(page->start_map_data);
+
+			page->map_page->flags = (uint32_t) rtsha_page_size_type::PageType64;						
+			page->map_page->free_blocks = 0U;
+			page->map_page->size = page->free - page->start_map_data;
+			page->map_page->free = page->map_page->size;
+			page->map_page->last_block = NULL;
+			page->map_page->start_map_data = 0U;
+			page->map_page->map_page = nullptr;
+			page->map_page->position = page->start_map_data + sizeof(rtsha_page);
+
+			page->map_page->ptr_list_map = reinterpret_cast<size_t> (reinterpret_cast<void*>(createFreeList(page->map_page)));
 			page->ptr_list_map = reinterpret_cast<size_t> (reinterpret_cast<void*>(createFreeMap(page)));
 		}
 		else
 		{
+			page->start_map_data = 0U;
+			page->map_page = nullptr;
 			page->ptr_list_map = reinterpret_cast<size_t> (reinterpret_cast<void*>(createFreeList(page)));
 		}
 		page->free_blocks = 0U;
@@ -186,15 +204,13 @@ namespace internal
 		return NULL;
 	}
 
-
 	void* Heap::malloc(size_t size)
 	{
 		if (size > 0U)
 		{
-			size_t a_size = rtsha_align(size);
+			size_t a_size(size);
 			/*we have header and data*/
-			a_size += sizeof(rtsha_block);
-
+			a_size += sizeof(rtsha_block);			
 			rtsha_page_size_type ideal_page = get_ideal_page(a_size);
 			if (ideal_page != rtsha_page_size_type::PageTypeNotDefined)
 			{
@@ -206,8 +222,12 @@ namespace internal
 				}
 
 				if (page->flags != (uint16_t)rtsha_page_size_type::PageTypeBig)
-				{
+				{					
 					a_size = (size_t) page->flags;
+				}
+				else
+				{
+					a_size = rtsha_align(a_size);
 				}
 				MemoryPage memory_page(page);
 				return memory_page.allocate_page_block(a_size);
@@ -219,24 +239,27 @@ namespace internal
 
 	void Heap::free(void* ptr)
 	{
-		size_t address = (size_t)ptr;
-		address -= (2U * sizeof(size_t)); /*skip size and pointer to prev*/
-				
-		MemoryBlock block((rtsha_block*)(void*)address);
-		
-		if (block.isValid())
+		if (ptr != nullptr)
 		{
-			size_t size = block.getSize();
-			rtsha_page_size_type ideal_page = get_ideal_page(size);
-			if (ideal_page != rtsha_page_size_type::PageTypeNotDefined)
+			size_t address = (size_t)ptr;
+			address -= (2U * sizeof(size_t)); /*skip size and pointer to prev*/
+
+			MemoryBlock block((rtsha_block*)(void*)address);
+
+			if (block.isValid())
 			{
-				rtsha_page* page = select_page(ideal_page, size);
-				MemoryPage memory_page(page);
-				if (page != NULL)
+				size_t size = block.getSize();
+				rtsha_page_size_type ideal_page = get_ideal_page(size);
+				if (ideal_page != rtsha_page_size_type::PageTypeNotDefined)
 				{
-					if (!block.isFree())
+					rtsha_page* page = select_page(ideal_page, size);
+					MemoryPage memory_page(page);
+					if (page != NULL)
 					{
-						memory_page.free_block(block);
+						if (!block.isFree())
+						{
+							memory_page.free_block(block);
+						}
 					}
 				}
 			}
@@ -309,33 +332,22 @@ namespace internal
 
 	FreeList* Heap::createFreeList(rtsha_page* page)
 	{
-		if (_last_list < MAX_PAGES)
+		/*create objects on stack in reserved memory using new in place*/
+		void* ptrList = _storage_free_lists.get_next_ptr();
+		if(ptrList != nullptr)
 		{
-			/*create objects on stack in reserved memory using new in place*/
-			uint8_t* ptrStack = _storage_free_lists;
-			ptrStack += _last_list * sizeof(FreeList);
-
-			FreeList* ptr = new (ptrStack) FreeList(page);
-			_last_list++;
-			return ptr;
+			return new (ptrList) FreeList(page);
 		}
 		return nullptr;
 	}
 
 	FreeMap* Heap::createFreeMap(rtsha_page* page)
 	{
-		if (_last_map < MAX_PAGES)
+		void* ptrMap = _storage_free_maps.get_next_ptr();
+		if (ptrMap != nullptr)
 		{
-			uint8_t* ptrStack = _storage_free_maps;
-			ptrStack += _last_map * sizeof(FreeMap);
-
-			/*create objects on stack in reserved memory using new in place*/
-			FreeMap* ptr = new (ptrStack) FreeMap(page);
-			_last_map++;
-			return ptr;
+			return new (ptrMap) FreeMap(page);
 		}
 		return nullptr;
 	}
-
-
 }

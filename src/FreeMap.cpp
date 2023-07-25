@@ -5,14 +5,22 @@ namespace internal
 	FreeMap::FreeMap(rtsha_page* page)
 		:_page(page)
 	{
-		/*create objects on stack using new in place*/
-		_fnc = new (_storage_fnc) fmap_get_local_mem;
-		_mallocator = new (_storage_allocator) mmap_allocator(page, _fnc);
-		_ptrMap = new (_storage_map) mmap(*_mallocator);
+		/*create objects on stack using new in place*/		
+		_mallocator = new (_storage_allocator.get_ptr())	mmap_allocator(page);
+		_ptrMap		= new (_storage_map.get_ptr())			mmap(*_mallocator);
 	}
 
 	void FreeMap::insert(const uint64_t key, size_t block)
 	{
+
+		MemoryBlock mblock(reinterpret_cast<rtsha_block*>((void*)block));
+		if (mblock.getSize() != key)
+		{
+			int a = 0;
+			a++;
+
+		}
+
 		if ((_ptrMap != nullptr))
 		{
 			_ptrMap->insert(std::pair<const uint64_t, size_t>(key, block));
@@ -49,6 +57,15 @@ namespace internal
 			{
 				return it->second;
 			}
+		}
+		return 0U;
+	}
+
+	size_t FreeMap::size() const
+	{
+		if ((_ptrMap != nullptr))
+		{
+			_ptrMap->size();
 		}
 		return 0U;
 	}

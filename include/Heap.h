@@ -54,13 +54,9 @@ namespace internal
 		std::array<rtsha_page*, MAX_PAGES>	_pages; 
 		
 	private:
-
 		/*bytes on stack to store map and list objects created with new inplace*/
-		uint8_t _last_list = 0U;
-		uint8_t _storage_free_lists[MAX_SMALL_PAGES * sizeof(FreeList)];
-
-		uint8_t _last_map = 0U;
-		uint8_t _storage_free_maps[MAX_BIG_PAGES * sizeof(FreeMap)];
+		PREALLOC_MEMORY<FreeList,	(MAX_SMALL_PAGES + MAX_BIG_PAGES)>	_storage_free_lists = 0U;
+		PREALLOC_MEMORY<FreeMap,	MAX_BIG_PAGES>		_storage_free_maps = 0U;
 	};
 }
 

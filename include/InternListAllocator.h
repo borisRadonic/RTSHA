@@ -2,13 +2,10 @@
 #include "MemoryPage.h"
 #include <cstdlib>
 #include <new>
-#include <limits>
 #include <iostream>
-#include <vector>
 
 namespace internal
 {
-
     template<class T>
     struct InternListAllocator
     {
@@ -29,49 +26,34 @@ namespace internal
             this->_ptrInternalSmallStorage = rhs._ptrInternalSmallStorage;
         }
 
-        [[nodiscard]] T* allocate(std::size_t n)
+        [[nodiscard]] T* allocate(std::size_t n)  noexcept
         {
-            size_t size = n * sizeof(T);
             /*max. 1 block*/
             if (n != 1U)
             {
-                throw std::bad_array_new_length();
+                return nullptr;
             }
             if ((_allocated_intern == 0U) && (_page->lastFreeBlockAddress == 0U))
             {
                 if (n > 1)
                 {
-                    throw std::bad_array_new_length();
+                    return nullptr;
                 }
                 _allocated_intern++;
                 auto p = static_cast<T*>((void*)_ptrInternalSmallStorage);
                 return p;
             }
-                      
-            /*the number of bytes are never greater than we have on free_block_address - n must be 1*/
-           
             auto p = static_cast<T*>( (void*) _page->lastFreeBlockAddress);
-           
-            if (p)
-            {                
-                //report(p, n);
-                return p;
-            }
-
-            throw std::bad_alloc();
+            return p;
         }
 
-        void deallocate(T* p, std::size_t n) noexcept
+        void deallocate(T* /*p*/, std::size_t /*n*/) noexcept
         {
-            //report(p, n, 0);
         }
-
 
         rtsha_page* _page;
-
-        size_t _allocated_intern = 0U;
-
-        size_t* _ptrInternalSmallStorage = NULL;
+        size_t      _allocated_intern           = 0U;
+        size_t*     _ptrInternalSmallStorage    = NULL;
 
     private:
         void report(T* p, std::size_t n, bool alloc = true) const
@@ -81,13 +63,11 @@ namespace internal
                 << reinterpret_cast<void*>(p) << std::dec << '\n';
         }
     };
-
-   
+       
     template<class T, class U>
     bool operator==(const InternListAllocator <T>&, const InternListAllocator <U>&) { return true; }
 
     template<class T, class U>
     bool operator!=(const InternListAllocator <T>&, const InternListAllocator <U>&) { return false; }
-
 }
 

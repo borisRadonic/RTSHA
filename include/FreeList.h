@@ -37,11 +37,11 @@ namespace internal
 		* 1 x size_of(size_t) should be fine for the first call
 		* for all other calls block free space will be used as storage using InternListAllocator
 		*/
-		size_t _internal_list_storage;
-		uint8_t _storage_allocator[sizeof(InternListAllocator<size_t>)];
-		uint8_t _storage_list[sizeof(flist)];
+		PREALLOC_MEMORY<size_t> _internal_list_storage = 0U;
+		
+		/*reserved storage for object that will be created with 'placement new' on stack*/
+		PREALLOC_MEMORY <InternListAllocator<size_t>> _storage_allocator = 0U;
+		PREALLOC_MEMORY<flist> _storage_list = 0U;
 	};
-
-	FreeList* createFreeList(rtsha_page* page);
 }
 

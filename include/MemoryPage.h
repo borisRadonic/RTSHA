@@ -40,6 +40,13 @@ namespace internal
 
 		size_t						lastFreeBlockAddress	= 0U;
 
+		size_t						start_map_data			= 0U;
+		
+		rtsha_page*					map_page				= 0U;
+
+
+		size_t						max_blocks				= 0U;
+
 		rtsha_page*					next					= NULL;
 
 	};
@@ -88,10 +95,24 @@ namespace internal
 
 		inline bool fitOnPage(size_t size) const
 		{
-			return ((_page->position + size) < (_page->size + _page->start_position));
+			if ((_page->position + size) < (_page->size + _page->start_position))
+			{
+				if (_page->start_map_data == 0U)
+				{
+					return true;
+				}
+				else
+				{
+					if ((_page->position + size) < _page->start_map_data)
+					{
+						return true;
+					}
+				}
+			}
+			return false;
 		}
 
-		inline bool isLastBlock(MemoryBlock& block) const
+		inline bool isLastPageBlock(MemoryBlock& block) const
 		{
 			return (block.getBlock() == _page->last_block);
 		}

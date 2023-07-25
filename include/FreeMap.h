@@ -11,8 +11,7 @@ namespace internal
 	using mmap_allocator = InternMapAllocator<std::pair<const uint64_t, size_t>>;
 	
 	using mmap = std::multimap<const uint64_t, size_t, std::less<const uint64_t>, internal::InternMapAllocator<std::pair<const uint64_t, size_t>>>;
-
-		
+			
 	class alignas(sizeof(size_t)) FreeMap
 	{
 	public:
@@ -30,20 +29,19 @@ namespace internal
 		void del(const uint64_t key, size_t block);
 
 		size_t find(const uint64_t key);
+
+		size_t size() const;
 				
 	private:
-		rtsha_page* _page;
-		mmap_allocator* _mallocator;
-		mmap* _ptrMap;
-		fmap_get_local_mem* _fnc;
+		rtsha_page*			_page;
+		mmap_allocator*		_mallocator;
+		mmap*				_ptrMap;
+		
 
 	private:
-	
-		/*the objects will be instantiated in space reserved here*/
-		uint8_t _storage_allocator[sizeof(mmap_allocator)];
-		uint8_t _storage_map[sizeof(mmap)];
-		uint8_t _storage_fnc[sizeof(fmap_get_local_mem)];
 
-		
+		/*reserved storage for object that will be created with 'placement new' on stack*/
+		PREALLOC_MEMORY <mmap_allocator>		_storage_allocator = 0U;
+		PREALLOC_MEMORY<mmap>					_storage_map = 0U;
 	};
 }

@@ -6,8 +6,8 @@ namespace internal
 		:_page(page)
 	{
 		/*create objects on stack using new in place*/
-		_lallocator = new (_storage_allocator) InternListAllocator<size_t>( page, &_internal_list_storage);
-		ptrLlist = new (_storage_list) flist(*_lallocator);
+		_lallocator = new (_storage_allocator.get_ptr()) InternListAllocator<size_t>( page, reinterpret_cast<size_t*>(&_internal_list_storage));
+		ptrLlist = new (_storage_list.get_ptr()) flist(*_lallocator);
 	}
 	
 	void FreeList::push(const size_t address)
@@ -24,5 +24,6 @@ namespace internal
 			ptrLlist->pop_front();
 			return address;
 		}
+		return 0U;
 	}
 }
