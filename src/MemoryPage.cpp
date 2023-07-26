@@ -7,109 +7,140 @@
 
 namespace internal
 {
-	void* MemoryPage::try_alloc_page_block(size_t size)
+	void* MemoryPage::allocate_block_at_current_pos(size_t size)
 	{
+		if( !this->fitOnPage(size) )
+		{
+			return nullptr;
+		}		
+		MemoryBlock block(reinterpret_cast<rtsha_block*>((void*) this->getPosition()));
+		block.setSize(size);
+		if (this->hasLastBlock())
+		{
+			MemoryBlock last_block(this->getLastBlock());
+			block.setPrev(last_block);
+		}
+		this->setLastBlock(block);
+		this->incPosition( size );
+		this->decreaseFree(size);				
+		return block.getAllocAddress();
+	}
+	
+	void* SmallFixMemoryPage::allocate_block(size_t size)
+	{
+		if ((0U == size) || (nullptr == _page))
+		{
+			return nullptr;
+		}
 		/*try to use next free block*/
-		FreeList *ptrList = reinterpret_cast<FreeList*> (reinterpret_cast<void*>(_page->ptr_list_map));
+		FreeList* ptrList = reinterpret_cast<FreeList*>(this->getFreeList());
 		size_t address = ptrList->pop();
 		if (address > 0U)
-		{			
-			if (getFreeBlocks() >= 1U)
-			{
-				_page->free_blocks -= 1U;
-			}
+		{
+			this->decFreeBlocks();
 			/*set block as allocated*/
 			MemoryBlock block(reinterpret_cast<rtsha_block*>((void*)address));
 			block.setAllocated();
-
-			_page->free = _page->free - size;
+			this->decreaseFree(size);
 			return block.getAllocAddress();
 		}
 		return allocate_block_at_current_pos(size);
 	}
 
-	void* MemoryPage::try_alloc_big_page_block(size_t size)
+	void SmallFixMemoryPage::free_block(MemoryBlock& block)
 	{
-		FreeMap* ptrMap = reinterpret_cast<FreeMap*> (reinterpret_cast<void*>(_page->ptr_list_map));
-		if ( (_page->free_blocks > 0U) || (ptrMap->size() > 0U) )
-		{			
+		this->increaseFree( block.getSize() );
+
+		/*set as free*/
+		block.setFree();
+
+		if (this->isLastPageBlock(block))
+		{
+			block.setLast();
+		}
+
+		/*check if it is the first page block*/
+		if (!block.hasPrev())
+		{
+			/*it must be the first: update prev of the next*/
+			rtsha_block* next_block = block.getNextBlock();
+			MemoryBlock next(next_block);
+			next.setAsFirst();
+		}
+
+		FreeList* ptrList = reinterpret_cast<FreeList*>(this->getFreeList());
+		this->setFreeBlockAllocatorsAddress( block.getFreeBlockAddress() );
+		ptrList->push(reinterpret_cast<size_t>(reinterpret_cast<void*>(block.getBlock())));
+		this->incFreeBlocks();
+	}
+
+	void* BigMemoryPage::allocate_block(size_t size)
+	{
+		if ((0U == size) || (nullptr == _page))
+		{
+			return nullptr;
+		}
+	
+		FreeMap* ptrMap = reinterpret_cast<FreeMap*>(this->getFreeMap());
+		if ((this->getFreeBlocks() > 0U) || (ptrMap->size() > 0U))
+		{
 			size_t address = ptrMap->find((const uint64_t)size);
 			if (address != 0U)
 			{
 				MemoryBlock block(reinterpret_cast<rtsha_block*>((void*)address));
+				
 				size_t orig_size = block.getSize();
-								
-				if ( block.isValid() && (orig_size >= size))
+							
+				if (block.isValid() && (orig_size >= size))
 				{
 					size_t diff = orig_size - size;
-					diff = rtsha_align(diff);
-					if (diff >= MIN_BLOCK_SIZE_FOR_SPLIT)
+					//diff = rtsha_align(diff);
+					
+					if (diff >= (MIN_BLOCK_SIZE_FOR_SPLIT << 12))
 					{
+						/*delete used block from the map of free blocks*/
+						const uint64_t k = (const uint64_t)orig_size;
+						if (ptrMap->del(k, (size_t)block.getBlock()))
+						{
+							/*decrease the number of free blocks*/
+							this->decFreeBlocks();
+						}
+
 						/*splitt block*/
 						MemoryBlock tempNode(block.splitt(size));
 						/*insert new block to the map of free blocks*/
-
-
-						ptrMap->insert((const uint64_t)tempNode.getSize(), (size_t)tempNode.getBlock());												
+						ptrMap->insert((const uint64_t)tempNode.getSize(), (size_t)tempNode.getBlock());
+						this->incFreeBlocks();
 					}
-					/*delete used block from the map of free blocks*/
-					
-					ptrMap->del(( const uint64_t)orig_size, (size_t)block.getBlock());
-					_page->free_blocks -= 1U;
+					else
+					{
+						/*delete used block from the map of free blocks*/
+						const uint64_t k = (const uint64_t)orig_size;
+						if (ptrMap->del(k, (size_t)block.getBlock()))
+						{
+							/*decrease the number of free blocks*/
+							this->decFreeBlocks();
+						}
+					}
 
 					/*set block as allocated*/
 					block.setAllocated();
+
 					
-					_page->free = _page->free - size;
+
 					return block.getAllocAddress();
 				}
 				return NULL;
 			}
 		}
-		return allocate_block_at_current_pos(size);
+		return MemoryPage::allocate_block_at_current_pos(size);
 	}
 
-	void* MemoryPage::allocate_block_at_current_pos(size_t size)
+	void BigMemoryPage::free_block(MemoryBlock& block)
 	{
-		if( !fitOnPage(size) )
-		{
-			return NULL;
-		}
-		
-		MemoryBlock block(reinterpret_cast<rtsha_block*>((void*)_page->position));
-		block.setSize(size);
-
-		if (_page->last_block != nullptr)
-		{
-			MemoryBlock last_block(_page->last_block);
-			block.setPrev(last_block);
-		}
-		
-		_page->last_block = block.getBlock();
-
-		_page->position += size;
-		_page->free = _page->free - size;
-		
-		return block.getAllocAddress();
-	}
-
-	void* MemoryPage::allocate_page_block(size_t size)
-	{
-		if ((0U == size) || (NULL == _page))
-		{
-			return NULL;
-		}
-
-		if (_page->flags == (uint16_t)rtsha_page_size_type::PageTypeBig)
-		{
-			return try_alloc_big_page_block(size);
-		}
-		return try_alloc_page_block(size);
-	}
-
-	void MemoryPage::free_block(MemoryBlock& block)
-	{
-		_page->free = _page->free + block.getSize();
+		bool left(false);
+		bool right(false);
+		this->increaseFree(block.getSize());
 
 		/*set as free*/
 		block.setFree();
@@ -118,149 +149,130 @@ namespace internal
 		{
 			block.setLast();
 		}
-
-		/*shrink only for big variable size */
-		if (_page->flags == (uint16_t)rtsha_page_size_type::PageTypeBig)
-		{
-			if (getFreeBlocks() > 0U)
-			{
-				//try_merge_left(block);
-			}
-			if (getFreeBlocks() > 0U)
-			{
-				/*check if not last block*/
 		
-				if ( !block.isLast() && !isLastPageBlock(block) )
-				{
-					try_merge_right(block);
-				}
-			}
-			if (getFreeBlocks() > 0U)
-			{
-				//try_merge_left(block);
-			}			
-			FreeMap* ptrMap = reinterpret_cast<FreeMap*> (reinterpret_cast<void*>(_page->ptr_list_map));
-			ptrMap->insert((const uint64_t)block.getSize(), (size_t)block.getBlock());
-			_page->free_blocks++;
-			return;
+		/*check if it is the first page block*/
+		if(!block.hasPrev())
+		{
+			/*it must be the first: update prev of the next*/
+			rtsha_block* next_block = block.getNextBlock();
+			MemoryBlock next(next_block);
+			next.setAsFirst();
 		}
-		_page->free_blocks += 1U;
-		_page->lastFreeBlockAddress = block.getFreeBlockAddress();
-		FreeList* ptrList = reinterpret_cast<FreeList*> (reinterpret_cast<void*>(_page->ptr_list_map));
-		ptrList->push( reinterpret_cast<size_t>(reinterpret_cast<void*>(block.getBlock())) );
+		else
+		{
+			if (this->getFreeBlocks() > 0U)
+			{
+				try_merge_left(block, left);
+			}
+		}
+		if (this->getFreeBlocks() > 0U)
+		{
+			/*check if not last block*/
+			if (!block.isLast() && !this->isLastPageBlock(block))
+			{
+				try_merge_right(block, right);
+			}
+		}
+		if (getFreeBlocks() > 0U)
+		{
+			//try_merge_left(block);
+		}
+		FreeMap* ptrMap = reinterpret_cast<FreeMap*>(this->getFreeMap());
+		ptrMap->insert((const uint64_t)block.getSize(), (size_t)block.getBlock());
+		this->incFreeBlocks();		
 	}
 
-	void MemoryPage::try_merge_left(MemoryBlock& block)
+	void BigMemoryPage::try_merge_left(MemoryBlock& block, bool& merged)
 	{
-		rtsha_block* pBlock = block.getBlock();
-		
-		size_t temp_size = 0U;
-		rtsha_block* pLastFree = pBlock;
-
-		/*merge all free neighbor blocks left together*/
-		while ( (pBlock->prev != NULL) )
+		size_t old_size = 0U;
+		merged = false;
+		if ((this->getFreeBlocks() >= 1U) && block.hasPrev())
 		{
-			MemoryBlock myBlock(pBlock);
-			/*left is free -> shrink those two blocks*/
-			MemoryBlock prev(pBlock->prev);
-			if ( !prev.isValid() || !prev.isFree() )
+			MemoryBlock prev(block.getPrev());
+			if (prev.isValid() && prev.isFree())
 			{
-				break;
-			}
-			temp_size = prev.getSize();
-			prev.setSize(temp_size + myBlock.getSize());
+				/*left is free -> merge those two blocks*/
+				old_size = prev.getSize();
+				prev.setSize(prev.getSize() + block.getSize());
 
-			/*remove prev. block from map of the free blocks*/
-			FreeMap* ptrMap = reinterpret_cast<FreeMap*> (reinterpret_cast<void*>(_page->ptr_list_map));
-			ptrMap->del( (const uint64_t)temp_size, (size_t)prev.getBlock());
+				merged = true;
 
-			if (this->getFreeBlocks() >= 1U)
-			{
-				_page->free_blocks -= 1U;
-			}
-			
-			/*set as free*/
-			if (prev.getSize() > 0U)
-			{
-				if (pBlock == _page->last_block)
+				/*remove prev. block with old size from map of the free blocks*/
+				FreeMap* ptrMap = reinterpret_cast<FreeMap*>(this->getFreeMap());
+				if (ptrMap != nullptr)
+				{					
+					if (ptrMap->del((const uint64_t)old_size, (size_t)prev.getBlock()))
+					{
+						this->decFreeBlocks();
+					}
+				}
+				/*prev. block with new size will be inserted later*/
+				if (this->isLastPageBlock(block))
 				{
-					/*set as last block*/
 					setLastBlock(prev);
 					prev.setLast();
 				}
+
+				/*set as free*/
 				prev.setFree();
 
-				pLastFree = pBlock->prev;
-
-				/*update previous of the block on the right side*/
-				if (!isLastPageBlock(myBlock))
+				if (!block.isLast())
 				{
-					MemoryBlock temp_block((rtsha_block*)((size_t)((void*)pBlock) + myBlock.getSize()));
+					/*update previous of the block on the right side*/
+					MemoryBlock temp_block((rtsha_block*)((size_t)((void*)block.getBlock()) + block.getSize()));
 					if (temp_block.isValid() && temp_block.hasPrev())
 					{
 						temp_block.setPrev(prev);
 					}
 				}
+				block = MemoryBlock(prev.getBlock());
 			}
-			pBlock = pBlock->prev;
 		}
-		block = MemoryBlock(pLastFree);
 	}
-
-	void MemoryPage::try_merge_right(MemoryBlock& block)
-	{		
-		size_t size = block.getSize();
-		rtsha_block* pBlock = block.getBlock();
-
-		if (!isLastPageBlock(block))
+	
+	void BigMemoryPage::try_merge_right(MemoryBlock& block, bool& merged)
+	{	
+		merged = false;
+		if (!this->isLastPageBlock(block) && (this->getFreeBlocks() > 0U))
 		{
-			bool condition = true;
-			while (condition)
+			rtsha_block* pBlock = block.getBlock();
+			MemoryBlock temp_block((rtsha_block*)((size_t)((size_t)(void*)pBlock) + block.getSize()));
+			if (temp_block.isValid() && (temp_block.getSize() > 0U) && temp_block.isFree() && temp_block.hasPrev() && (temp_block.getPrev() == pBlock))
 			{
-				MemoryBlock temp_block((rtsha_block*)((size_t)((size_t)(void*)pBlock) + size));
-				if (temp_block.isValid() || (temp_block.getSize() == 0U) || !temp_block.isFree())
-				{
-					break;
-				}
-
 				/*right is free -> merge two blocks*/
 				block.setSize(block.getSize() + temp_block.getSize());
-				
+
+				merged = true;
+
 				/*clear right block header data*/
 				if (temp_block.isLast())
 				{
 					/*set as last block*/
 					block.setLast();
-					this->setLastBlock(block);					
+					this->setLastBlock(block);
 				}
 				else
 				{
 					/*set prev of the next right*/
 					MemoryBlock temp_blockR(temp_block.getNextBlock());
-					if (temp_blockR.isValid())
+					if (temp_blockR.isValid() && temp_blockR.hasPrev() && (temp_blockR.getPrev() == temp_block.getBlock()))
 					{
 						temp_blockR.setPrev(temp_block);
 					}
 				}
-
-				if (this->getFreeBlocks() >= 1U)
+				FreeMap* ptrMap = reinterpret_cast<FreeMap*>(this->getFreeMap());
+				if (ptrMap != nullptr)
 				{
-					FreeMap* ptrMap = reinterpret_cast<FreeMap*> (reinterpret_cast<void*>(_page->ptr_list_map));
-					ptrMap->del((const uint64_t)temp_block.getSize(), (size_t)temp_block.getBlock());
-					_page->free_blocks -= 1U;
+					if (ptrMap->del((const uint64_t)temp_block.getSize(), (size_t)temp_block.getBlock()))
+					{
+						this->decFreeBlocks();
+					}
 				}
-				temp_block.setSize(0U);
+				temp_block.setSize(0U);				
 
 				/*set as free*/
 				block.setFree();
-				if (block.isLast())
-				{
-					break;
-				}
-				size = block.getSize();
-				pBlock = (rtsha_block*) ((size_t) ((void*)pBlock) + temp_block.getSize());
 			}
 		}
 	}
 }
-

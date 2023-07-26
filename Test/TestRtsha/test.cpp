@@ -122,6 +122,77 @@ TEST(TestCaseClassHeap, TestHeap)
 }
 
 
+TEST(TestCaseClassHeap, TestBlockMergeLeft)
+{
+	size_t size = 0x1F4000;
+	void* heapMemory = malloc(size); //allocate 2MB for heap
+	EXPECT_TRUE(heapMemory != NULL);
+
+	Heap heap;
+	EXPECT_TRUE(heap.init(heapMemory, size));
+
+	
+	EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageTypeBig, 16U * 65536U));
+		
+
+	rtsha_page* page_big = heap.select_page(rtsha_page_size_type::PageTypeBig, 80);
+
+
+	void* memory1 = heap.malloc(1024-8);
+	EXPECT_TRUE(memory1 != nullptr);
+
+	void* memory2 = heap.malloc(2048-8);
+	EXPECT_TRUE(memory2 != nullptr);
+
+	void* memory3 = heap.malloc(4096-8);
+	EXPECT_TRUE(memory3 != nullptr);
+
+	void* memory4 = heap.malloc(8192-8);
+	EXPECT_TRUE(memory4 != nullptr);
+
+	void* memory5 = heap.malloc(16384-8);
+	EXPECT_TRUE(memory5 != nullptr);
+
+	void* memory6 = heap.malloc(1024-8);
+	EXPECT_TRUE(memory6 != nullptr);
+
+	void* memory7 = heap.malloc(2048-8);
+	EXPECT_TRUE(memory7 != nullptr);
+
+	void* memory8 = heap.malloc(4096-8);
+	EXPECT_TRUE(memory8 != nullptr);
+
+	void* memory9 = heap.malloc(8192-8);
+	EXPECT_TRUE(memory9 != nullptr);
+
+	/*delete the block before last block*/
+	heap.free(memory8);
+			
+	/*delete the last block*/
+	/*it must merge the previous free block on the left side */
+	heap.free(memory9);
+
+	size_t block_size = page_big->last_block->size;
+	
+	/*it must merge the last free block on the right side */
+	heap.free(memory7);
+
+
+
+
+	heap.free(memory2);
+		
+	heap.free(memory3);
+	
+
+	heap.free(memory6);
+		
+
+	heap.free(memory5);
+
+
+}
+
 TEST(TestStandardMalloc, TestStandardMallocSmallMemory)
 {
 	auto start = high_resolution_clock::now();
@@ -292,6 +363,10 @@ TEST(TestCaseMyMalloc, TestMyMallocPerformanceBigBlocks)
 
 		void* memory4 = heap.malloc(max(513, std::rand() % 50000));
 		EXPECT_TRUE(memory4 != nullptr);
+		if (memory4 == nullptr)
+		{
+			memory4 = heap.malloc(max(513, std::rand() % 50000));
+		}
 
 		void* memory5 = heap.malloc(max(513, std::rand() % 5240));
 		EXPECT_TRUE(memory5 != nullptr);
@@ -299,16 +374,34 @@ TEST(TestCaseMyMalloc, TestMyMallocPerformanceBigBlocks)
 		void* memory6 = heap.malloc(max(513, std::rand() % 1000));
 		EXPECT_TRUE(memory6 != nullptr);
 
+
  		void* memory7 = heap.malloc(max(513, std::rand() % 4000));
 		EXPECT_TRUE(memory7 != nullptr);
+		if (memory7 == nullptr)
+		{
+			memory7 = heap.malloc(max(513, std::rand() % 50000));
+		}
 
+		memset(memory1, 1, 10);
+		memset(memory2, 2, 10);
+		memset(memory3, 3, 10);
+		memset(memory4, 4, 10);
+		memset(memory5, 5, 10);
+		memset(memory6, 6, 10);
+		memset(memory7, 7, 10);
+		if( i == 99000)
+		{
+			int a = 0;
+			a++;
+		}
 		heap.free(memory1);
 		heap.free(memory2);
 		heap.free(memory3);
-		heap.free(memory4);
+		
 		heap.free(memory5);		
 		heap.free(memory6);
 		heap.free(memory7);
+		heap.free(memory4);
 	
 	}
 }

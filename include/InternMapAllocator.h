@@ -35,10 +35,10 @@ namespace internal
         {
             if (_page->map_page != nullptr)
             {
-                MemoryPage map_page(_page->map_page);
+                SmallFixMemoryPage map_page(_page->map_page);
                 if ((size_t)_page->map_page->flags >= (n * sizeof(T)))
                 {
-                    auto p = reinterpret_cast<T*>(map_page.try_alloc_page_block((size_t)_page->map_page->flags));
+                    auto p = reinterpret_cast<T*>(map_page.allocate_block((size_t)_page->map_page->flags));
                     if (p != nullptr)
                     {
                         //report(p, n, 1);
@@ -53,7 +53,7 @@ namespace internal
         {
             if (_page->map_page != nullptr)
             {
-                MemoryPage map_page(_page->map_page);
+                SmallFixMemoryPage map_page(_page->map_page);
 
                 size_t address = (size_t)(void*)p;
                 address -= (2U * sizeof(size_t)); /*skip size and pointer to prev*/

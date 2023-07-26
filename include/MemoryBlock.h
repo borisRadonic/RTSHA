@@ -98,6 +98,11 @@ namespace internal
 			}
 		}
 
+		inline void setAsFirst()
+		{
+			_block->prev = NULL;			
+		}
+
 		inline bool isFree()
 		{
 			return is_bit(_block->size, 0U);
@@ -116,6 +121,11 @@ namespace internal
 		inline rtsha_block* getNextBlock()
 		{
 			return reinterpret_cast<rtsha_block*>((size_t)_block + this->getSize());
+		}
+
+		inline rtsha_block* getPrev()
+		{
+			return _block->prev;
 		}
 		
 	private:

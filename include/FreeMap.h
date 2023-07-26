@@ -26,7 +26,7 @@ namespace internal
 
 		void insert(const uint64_t key, size_t block);
 
-		void del(const uint64_t key, size_t block);
+		bool del(const uint64_t key, size_t block);
 
 		size_t find(const uint64_t key);
 

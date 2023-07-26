@@ -27,7 +27,6 @@ namespace internal
 			_last_heap_error = RTSHA_ErrorInit;
 			return false;
 		}
-
 		_heap_start = a_start;
 		_heap_top = (size_t)_heap_start + a_size;
 		_heap_current_position = (size_t)_heap_start;
@@ -102,10 +101,6 @@ namespace internal
 		page->next = (rtsha_page*)(void*)_heap_current_position;
 		_pages[_number_pages] = page;
 		_number_pages++;
-		
-
-
-
 		return true;
 	}
 
@@ -163,11 +158,8 @@ namespace internal
 		for (const auto& page : _pages)
 		{
 			if( (page != nullptr) && (page->flags == (uint16_t) ideal_page))
-			{
-				if (page->free >= (size + sizeof(rtsha_block)))
-				{
-					return page;
-				}
+			{				
+				return page;			
 			}
 		}
 		/*no ideal page*/
@@ -179,10 +171,7 @@ namespace internal
 			{
 				if ( (page != nullptr) && (page->flags == (uint16_t)rtsha_page_size_type::PageTypeBig))
 				{
-					if (page->free >= (size + sizeof(rtsha_block)))
-					{
-						return page;
-					}
+					return page;
 				}
 			}
 		}
@@ -194,10 +183,7 @@ namespace internal
 			{
 				if (size < (size_t) page->flags)
 				{
-					if (page->free >= (size + sizeof(rtsha_block)))
-					{
-						return page;
-					}
+					return page;
 				}
 			}
 		}
@@ -219,23 +205,24 @@ namespace internal
 				{
 					_last_heap_error = RTSHA_NoFreePage;
 					return NULL;
-				}
+				}				
 
 				if (page->flags != (uint16_t)rtsha_page_size_type::PageTypeBig)
 				{					
 					a_size = (size_t) page->flags;
+					SmallFixMemoryPage memory_page(page);
+					return memory_page.allocate_block(a_size);
 				}
 				else
 				{
 					a_size = rtsha_align(a_size);
-				}
-				MemoryPage memory_page(page);
-				return memory_page.allocate_page_block(a_size);
+					BigMemoryPage memory_page(page);					
+					return memory_page.allocate_block(a_size);
+				}				
 			}
 		}
 		return NULL;
 	}
-
 
 	void Heap::free(void* ptr)
 	{
@@ -246,6 +233,8 @@ namespace internal
 
 			MemoryBlock block((rtsha_block*)(void*)address);
 
+			size_t old_size = block.getSize();
+
 			if (block.isValid())
 			{
 				size_t size = block.getSize();
@@ -253,14 +242,20 @@ namespace internal
 				if (ideal_page != rtsha_page_size_type::PageTypeNotDefined)
 				{
 					rtsha_page* page = select_page(ideal_page, size);
-					MemoryPage memory_page(page);
-					if (page != NULL)
+
+					if ( (page != nullptr) && (!block.isFree()) )
 					{
-						if (!block.isFree())
+						if (page->flags == (uint16_t)rtsha_page_size_type::PageTypeBig)
 						{
+							BigMemoryPage memory_page(page);
 							memory_page.free_block(block);
 						}
-					}
+						else
+						{
+							SmallFixMemoryPage memory_page(page);
+							memory_page.free_block(block);
+						}
+					}					
 				}
 			}
 		}
@@ -276,7 +271,7 @@ namespace internal
 		void* new_memory;
 		size_t* ptr_old;
 		size_t* ptr_new;
-		rtsha_block* block;
+
 		size_t a_size;
 		size_t count = 0U;
 
@@ -286,31 +281,30 @@ namespace internal
 
 		if (size == 0U)
 		{
-			free(ptr);
+			this->free(ptr);
 			return NULL;
 		}
 
-		/*todo!!!!!!!!!!!!!!!!!!!!!!*/
+		size_t address = (size_t)ptr;
+		address -= (2U * sizeof(size_t)); /*skip size and pointer to prev*/
 
-		block = (rtsha_block*)ptr;
-		block--;
+		MemoryBlock block((rtsha_block*)(void*)address);
 
-		if (block->size == a_size)
+
+		if (block.getSize() == a_size)
 		{
 			return ptr;
 		}
 
-		/*todo!!!!!!!!!!!!!!!!!!!!!!*/
-
 		/*allocate new memory*/
-		new_memory = malloc(size);
+		new_memory = this->malloc(size);
 		ptr_new = (size_t*)new_memory;
 
 		if (NULL != new_memory)
 		{
-			if (block->size > a_size)
+			if (block.getSize() > a_size)
 			{
-				for (count = 0U; count < block->size; count++)
+				for (count = 0U; count < block.getSize(); count++)
 				{
 					*ptr_new = *ptr_old;
 					ptr_old++;
@@ -327,6 +321,9 @@ namespace internal
 				}
 			}
 		}
+
+		this->free(ptr);
+
 		return new_memory;
 	}
 

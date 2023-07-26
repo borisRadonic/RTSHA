@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include "MemoryBlock.h"
 
+
 namespace internal
 {
 	using namespace std;
@@ -19,7 +20,7 @@ namespace internal
 		PageType512 = 512U,
 		PageTypeBig = 4096U
 	};
-		
+	
 	struct rtsha_page
 	{
 		rtsha_page()		
@@ -44,7 +45,6 @@ namespace internal
 		
 		rtsha_page*					map_page				= 0U;
 
-
 		size_t						max_blocks				= 0U;
 
 		rtsha_page*					next					= NULL;
@@ -58,31 +58,40 @@ namespace internal
 		MemoryPage() = delete;
 
 		MemoryPage(rtsha_page* page ) : _page(page)
-		{
-			
+		{			
 		}
 
-		~MemoryPage()
+		virtual ~MemoryPage()
 		{
 		}
-
-		void* allocate_page_block(size_t size);
+				
+		virtual void* allocate_block(size_t size) = 0;
+		
+		virtual void free_block(MemoryBlock& block) = 0;
 
 		void* allocate_block_at_current_pos(size_t size);
-
-		void* try_alloc_big_page_block(size_t size);
-
-		void* try_alloc_page_block(size_t size);
-
-		void free_block(MemoryBlock& block);
-
-		void try_merge_left(MemoryBlock& block);
-
-		void try_merge_right(MemoryBlock& block);
-
-
-	
+			
 	protected:
+
+		inline void setFreeBlockAllocatorsAddress(size_t address)
+		{
+			_page->lastFreeBlockAddress = address;
+		}
+
+		inline rtsha_page_size_type getPageType() const
+		{
+			return (rtsha_page_size_type) _page->flags;
+		}
+
+		inline void* getFreeList() const
+		{
+			return reinterpret_cast<void*>(_page->ptr_list_map);
+		}
+
+		inline void* getFreeMap() const
+		{
+			return reinterpret_cast<void*>(_page->ptr_list_map);
+		}
 
 		inline size_t getFreeBlocks() const
 		{
@@ -91,6 +100,62 @@ namespace internal
 				return _page->free_blocks;
 			}
 			return 0U;
+		}
+
+		inline size_t getPosition() const
+		{
+			if (_page != nullptr)
+			{
+				return _page->position;
+			}
+			return 0U;
+		}
+
+		inline void incPosition(size_t inc_val)
+		{
+			if (_page != nullptr)
+			{
+				_page->position += inc_val;
+			}
+		}
+
+		inline void incFreeBlocks()
+		{
+			if (_page != nullptr)
+			{
+				_page->free_blocks++;
+			}
+		}
+
+		inline void decFreeBlocks()
+		{
+			if ( (_page != nullptr) && (_page->free_blocks > 0U) )
+			{
+				_page->free_blocks--;
+			}
+		}
+
+		inline void setFree(size_t free)
+		{
+			_page->free = free;
+		}
+		
+		inline void increaseFree(size_t size)
+		{
+			_page->free = _page->free + size;			
+		}
+
+		inline void decreaseFree(size_t size)
+		{
+			if (size <= _page->free)
+			{
+				_page->free = _page->free - size;
+			}
+		}
+
+		inline size_t getFree() const
+		{
+			return _page->free;
 		}
 
 		inline bool fitOnPage(size_t size) const
@@ -112,9 +177,19 @@ namespace internal
 			return false;
 		}
 
+		inline bool hasLastBlock() const
+		{
+			return (_page->last_block != nullptr);
+		}
+
 		inline bool isLastPageBlock(MemoryBlock& block) const
 		{
 			return (block.getBlock() == _page->last_block);
+		}
+
+		inline rtsha_block* getLastBlock() const
+		{
+			return _page->last_block;
 		}
 
 		inline void setLastBlock( const MemoryBlock& block)
@@ -122,9 +197,48 @@ namespace internal
 			_page->last_block = block.getBlock();
 		}
 
-
-	private:
 		rtsha_page* _page;
 	};
+
+	class SmallFixMemoryPage : MemoryPage
+	{
+	public:
+		SmallFixMemoryPage() = delete;
+
+		SmallFixMemoryPage(rtsha_page* page) : MemoryPage( page)
+		{
+		}
+
+		virtual ~SmallFixMemoryPage()
+		{
+		}
+
+		virtual void* allocate_block(size_t size) final;
+
+		virtual void free_block(MemoryBlock& block) final;
+	};
+
+	class BigMemoryPage : MemoryPage
+	{
+	public:
+		BigMemoryPage() = delete;
+
+		BigMemoryPage(rtsha_page* page) : MemoryPage(page)
+		{
+		}
+
+		virtual ~BigMemoryPage()
+		{
+		}
+
+		virtual void* allocate_block(size_t size) final;
+
+		virtual void free_block(MemoryBlock& block) final;
+
+		void try_merge_left(MemoryBlock& block, bool& merged);
+
+		void try_merge_right(MemoryBlock& block, bool& merged);
+	};
+
 }
 

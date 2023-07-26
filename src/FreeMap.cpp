@@ -12,22 +12,13 @@ namespace internal
 
 	void FreeMap::insert(const uint64_t key, size_t block)
 	{
-
-		MemoryBlock mblock(reinterpret_cast<rtsha_block*>((void*)block));
-		if (mblock.getSize() != key)
-		{
-			int a = 0;
-			a++;
-
-		}
-
 		if ((_ptrMap != nullptr))
 		{
 			_ptrMap->insert(std::pair<const uint64_t, size_t>(key, block));
 		}
 	}
 
-	void FreeMap::del(const uint64_t key, size_t block)
+	bool FreeMap::del(const uint64_t key, size_t block)
 	{
 		if ((_ptrMap != nullptr))
 		{
@@ -39,15 +30,15 @@ namespace internal
 					if ((it->first == key) && (it->second == block))
 					{
 						_ptrMap->erase(it);
-						break;
+						return true;
 					}
 					it++;
 				}
 			}
-
 		}
+		return false;
 	}
-
+	
 	size_t FreeMap::find(const uint64_t key)
 	{
 		if ((_ptrMap != nullptr))
@@ -65,7 +56,7 @@ namespace internal
 	{
 		if ((_ptrMap != nullptr))
 		{
-			_ptrMap->size();
+			return _ptrMap->size();
 		}
 		return 0U;
 	}
