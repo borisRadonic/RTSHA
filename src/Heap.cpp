@@ -1,6 +1,9 @@
 #include "Heap.h"
 #include "FreeList.h"
 #include "FreeMap.h"
+#include "BigMemoryPage.h"
+#include "SmallFixMemoryPage.h"
+#include "PowerTwoMemoryPage.h"
 
 namespace internal
 {
@@ -44,7 +47,7 @@ namespace internal
 		return true;
 	}
 
-	bool Heap::add_page(rtsha_page_size_type size_type, size_t size)
+	bool Heap::add_page(rtsha_page_size_type size_type, size_t size, size_t max_objects, size_t min_block_size, size_t max_block_size)
 	{
 		size_t a_size = rtsha_align(size);
 		if (_heap_top < (_heap_current_position + (a_size - sizeof(rtsha_page))))
@@ -53,12 +56,16 @@ namespace internal
 			return false;
 		}
 		rtsha_page* page = (rtsha_page*)(void*)_heap_current_position;
-		
+			
+
 		/*set this page as last page*/
 		page->flags = (uint32_t) size_type;
 		page->free = a_size - sizeof(rtsha_page);
+
+		page->end_position = _heap_current_position + a_size;
+
 		page->free_blocks = 0U;
-		page->size = page->free;
+		
 		page->last_block = NULL;
 
 		/*set page blocks current possition*/
@@ -68,20 +75,33 @@ namespace internal
 
 		if (rtsha_page_size_type::PageTypeBig == size_type)
 		{
+			
 			if (a_size < (size_t) rtsha_page_size_type::PageType512)
 			{
 				return false;
-			}			
+			}
 			/*we need additional space for out map data... we can not store data in free blocks... to dangerous...not safe...*/
+			if (max_objects == 0U)
+			{
+				page->max_blocks = (page->free - 2U * INTERNAL_MAP_STORAGE_SIZE - sizeof(rtsha_page)) / (INTERNAL_MAP_STORAGE_SIZE + 512U + sizeof(rtsha_block));
+			}
+			else
+			{
+				page->max_blocks = max_objects;
+			}
+			page->start_map_data = (page->end_position - page->max_blocks * (INTERNAL_MAP_STORAGE_SIZE * 2U)); /*fixed blocks 64 bytes on 32 bit platform*/
 
-			page->max_blocks = (page->free - 2U * INTERNAL_MAP_STORAGE_SIZE - sizeof(rtsha_page)) / (INTERNAL_MAP_STORAGE_SIZE + 512U + sizeof(rtsha_block));
-			page->start_map_data = (page->size + page->start_position - page->max_blocks * (INTERNAL_MAP_STORAGE_SIZE * 2U) ); /*fixed blocks 64 bytes on 32 bit platform*/
 			page->map_page = reinterpret_cast<rtsha_page*>(page->start_map_data);
 
-			page->map_page->flags = (uint32_t) rtsha_page_size_type::PageType64;						
+			page->map_page->flags = (uint32_t)rtsha_page_size_type::PageType64;
 			page->map_page->free_blocks = 0U;
-			page->map_page->size = page->free - page->start_map_data;
-			page->map_page->free = page->map_page->size;
+
+			page->map_page->end_position = page->end_position;
+
+			page->map_page->free = page->end_position - page->start_map_data;
+
+			page->end_position = page->start_map_data;
+
 			page->map_page->last_block = NULL;
 			page->map_page->start_map_data = 0U;
 			page->map_page->map_page = nullptr;
@@ -89,16 +109,101 @@ namespace internal
 
 			page->map_page->ptr_list_map = reinterpret_cast<size_t> (reinterpret_cast<void*>(createFreeList(page->map_page)));
 			page->ptr_list_map = reinterpret_cast<size_t> (reinterpret_cast<void*>(createFreeMap(page)));
+
+			_heap_current_position += a_size;
+			page->next = (rtsha_page*)(void*)_heap_current_position;
+		}
+		else if (rtsha_page_size_type::PageTypePowerTwo == size_type)
+		{
+			/*we need additional space for out map data... we can not store data in free blocks... to dangerous...not safe...*/
+
+			if (min_block_size == 0U || max_block_size == 0U)
+			{
+				return false;
+			}
+			page->min_block_size = std::max( 32U, ExpandToPowerOf2(min_block_size) );
+			page->max_block_size = std::max(64U, ExpandToPowerOf2(max_block_size) );
+
+			if (max_objects == 0U)
+			{
+				//todo: platform 32 and 64 bit
+				page->max_blocks = (page->free - 2U * INTERNAL_MAP_STORAGE_SIZE - sizeof(rtsha_page)) / (INTERNAL_MAP_STORAGE_SIZE + 512U + sizeof(rtsha_block));
+			}
+			else
+			{
+				page->max_blocks = max_objects;
+			}
+			
+			//todo: platform 32 and 64 bit
+			page->start_map_data = (page->end_position - page->max_blocks * (INTERNAL_MAP_STORAGE_SIZE * 2U)); /*fixed blocks 64 bytes on 32 bit platform*/
+			
+			
+			page->map_page = reinterpret_cast<rtsha_page*>(page->start_map_data);
+
+			page->map_page->flags = (uint32_t)rtsha_page_size_type::PageType64;
+			page->map_page->free_blocks = 0U;
+
+			page->map_page->end_position = page->end_position;
+
+			page->map_page->free = page->end_position - page->start_map_data;
+
+			page->end_position = page->start_map_data;
+						
+
+			page->map_page->last_block = NULL;
+			page->map_page->start_map_data = 0U;
+			page->map_page->map_page = nullptr;
+			page->map_page->position = page->start_map_data + sizeof(rtsha_page);
+			
+			page->map_page->ptr_list_map = reinterpret_cast<size_t> (reinterpret_cast<void*>(createFreeList(page->map_page)));
+			page->ptr_list_map = reinterpret_cast<size_t> (reinterpret_cast<void*>(createFreeMap(page)));
+
+			/*create initial free blocks*/
+			size_t data_size = page->end_position - page->start_position;
+			size_t last_lbit = sizeof( SIZE_MAX ) * 8U - 1U;
+			size_t val = 1U << last_lbit;
+			size_t rest = data_size;
+			rtsha_block* prev = nullptr;
+			FreeMap* ptrMap = reinterpret_cast<FreeMap*>(page->ptr_list_map);
+
+			PowerTwoMemoryPage mem_page(page);
+			
+			while( (rest > page->min_block_size) && (page->position < page->end_position) )
+			{
+				if (rest < val)
+				{
+					val = val >> 1U; /*divide with two by shiftibg 1 bit right*/
+				}
+				else
+				{					
+					MemoryBlock block(reinterpret_cast<rtsha_block*>(page->position));
+					block.setSize(val);
+					block.setPrev(prev);
+					
+					page->position += val;
+					rest = rest - val;
+					prev = block.getBlock();
+
+					ptrMap->insert((const uint64_t)block.getSize(), (size_t)block.getBlock());
+					page->last_block = block.getBlock();
+					mem_page.incFreeBlocks();
+
+				}
+			}
+			_heap_current_position += a_size;
+			page->next = (rtsha_page*)(void*)_heap_current_position;
 		}
 		else
 		{
 			page->start_map_data = 0U;
 			page->map_page = nullptr;
 			page->ptr_list_map = reinterpret_cast<size_t> (reinterpret_cast<void*>(createFreeList(page)));
+			page->free_blocks = 0U;
+			_heap_current_position += a_size;
+			page->next = (rtsha_page*)(void*)_heap_current_position;
 		}
-		page->free_blocks = 0U;
-		_heap_current_position += (sizeof(rtsha_page) + page->size);
-		page->next = (rtsha_page*)(void*)_heap_current_position;
+		
+		
 		_pages[_number_pages] = page;
 		_number_pages++;
 		return true;
@@ -153,35 +258,45 @@ namespace internal
 		}
 	}
 
-	rtsha_page* Heap::select_page(rtsha_page_size_type ideal_page, size_t size) const
+	rtsha_page* Heap::select_page(rtsha_page_size_type ideal_page, size_t size, bool no_big) const
 	{
-		for (const auto& page : _pages)
+		if (rtsha_page_size_type::PageTypeNotDefined != ideal_page)
 		{
-			if( (page != nullptr) && (page->flags == (uint16_t) ideal_page))
-			{				
-				return page;			
-			}
-		}
-		/*no ideal page*/
-		/*check if big*/
-		if (size > (size_t)rtsha_page_size_type::PageType512)
-		{
-			/*use big page*/
 			for (const auto& page : _pages)
 			{
-				if ( (page != nullptr) && (page->flags == (uint16_t)rtsha_page_size_type::PageTypeBig))
+				if ((page != nullptr) && (page->flags == (uint16_t)ideal_page))
 				{
 					return page;
 				}
 			}
 		}
-		
+		/*no ideal page*/
+		if (false == no_big)
+		{
+			/*check if big*/
+			if (size > (size_t)rtsha_page_size_type::PageType512)
+			{
+				/*use big page*/
+				for (const auto& page : _pages)
+				{
+					if ((page != nullptr) && (page->flags == (uint16_t)rtsha_page_size_type::PageTypeBig))
+					{
+						return page;
+					}
+				}
+			}
+		}	
+
 		/*try to use first that fits*/
 		for (const auto& page : _pages)
 		{
 			if ( (page != nullptr) && (size < (size_t)page->flags) )
 			{
-				if (size < (size_t) page->flags)
+				if ( (page->flags != (uint16_t)rtsha_page_size_type::PageTypePowerTwo) &&(size <= (size_t) page->flags))
+				{
+					return page;
+				}
+				else if (page->flags == (uint16_t)rtsha_page_size_type::PageTypePowerTwo)
 				{
 					return page;
 				}
@@ -190,36 +305,73 @@ namespace internal
 		return NULL;
 	}
 
+	rtsha_page* Heap::get_big_memorypage() const
+	{
+		for (const auto& page : _pages)
+		{
+			if ((page != nullptr) && (page->flags == (uint16_t)rtsha_page_size_type::PageTypeBig))
+			{
+				return page;
+			}
+		}
+		return nullptr;
+	}
+
 	void* Heap::malloc(size_t size)
 	{
 		if (size > 0U)
 		{
 			size_t a_size(size);
 			/*we have header and data*/
-			a_size += sizeof(rtsha_block);			
-			rtsha_page_size_type ideal_page = get_ideal_page(a_size);
-			if (ideal_page != rtsha_page_size_type::PageTypeNotDefined)
+			a_size += sizeof(rtsha_block);
+
+			if (get_big_memorypage() != nullptr)
 			{
-				rtsha_page* page = select_page(ideal_page, a_size);
+				rtsha_page_size_type ideal_page = get_ideal_page(a_size);
+				if (ideal_page != rtsha_page_size_type::PageTypeNotDefined)
+				{
+					rtsha_page* page = select_page(ideal_page, a_size);
+					if (NULL == page)
+					{
+						_last_heap_error = RTSHA_NoFreePage;
+						return NULL;
+					}
+
+					if (page->flags != (uint16_t)rtsha_page_size_type::PageTypeBig)
+					{
+						a_size = (size_t)page->flags;
+						SmallFixMemoryPage memory_page(page);
+						return memory_page.allocate_block(a_size);
+					}
+					else
+					{
+						a_size = rtsha_align(a_size);
+						BigMemoryPage memory_page(page);
+						return memory_page.allocate_block(a_size);
+					}
+				}
+			}
+			else
+			{
+				a_size = ExpandToPowerOf2(a_size);
+				rtsha_page* page = select_page(rtsha_page_size_type::PageTypeNotDefined, a_size, true);
 				if (NULL == page)
 				{
 					_last_heap_error = RTSHA_NoFreePage;
 					return NULL;
-				}				
-
-				if (page->flags != (uint16_t)rtsha_page_size_type::PageTypeBig)
-				{					
-					a_size = (size_t) page->flags;
-					SmallFixMemoryPage memory_page(page);
+				}
+				if (page->flags != (uint16_t)rtsha_page_size_type::PageTypePowerTwo)
+				{
+					PowerTwoMemoryPage memory_page(page);
 					return memory_page.allocate_block(a_size);
 				}
 				else
 				{
-					a_size = rtsha_align(a_size);
-					BigMemoryPage memory_page(page);					
+					a_size = (size_t)page->flags;
+					SmallFixMemoryPage memory_page(page);
 					return memory_page.allocate_block(a_size);
-				}				
-			}
+				}
+			}			
 		}
 		return NULL;
 	}

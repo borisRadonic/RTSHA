@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\allocator.h" />
+    <ClInclude Include="..\..\include\BigMemoryPage.h" />
     <ClInclude Include="..\..\include\errors.h" />
     <ClInclude Include="..\..\include\FastPlusAllocator.h" />
     <ClInclude Include="..\..\include\FreeList.h" />
@@ -30,14 +31,19 @@
     <ClInclude Include="..\..\include\InternMapAllocator.h" />
     <ClInclude Include="..\..\include\MemoryBlock.h" />
     <ClInclude Include="..\..\include\MemoryPage.h" />
+    <ClInclude Include="..\..\include\PowerTwoMemoryPage.h" />
+    <ClInclude Include="..\..\include\SmallFixMemoryPage.h" />
     <ClInclude Include="..\..\include\structures.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\src\BigMemoryPage.cpp" />
     <ClCompile Include="..\..\src\FreeList.cpp" />
     <ClCompile Include="..\..\src\FreeMap.cpp" />
     <ClCompile Include="..\..\src\Heap.cpp" />
     <ClCompile Include="..\..\src\MemoryBlock.cpp" />
     <ClCompile Include="..\..\src\MemoryPage.cpp" />
+    <ClCompile Include="..\..\src\PowerTwoMemoryPage.cpp" />
+    <ClCompile Include="..\..\src\SmallFixMemoryPage.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

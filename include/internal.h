@@ -12,6 +12,30 @@
     #define rtsha_assert(x) assert(x)
 #endif
 
+
+
+
+
+#if defined(WIN64) // The _BitScanReverse64 intrinsic is only available for 64 bit builds because it depends on x64
+
+inline uint64_t ExpandToPowerOf2(uint64_t Value)
+{
+    unsigned long Index;
+    _BitScanReverse64(&Index, Value - 1);
+    return (1ULL << (Index + 1));
+}
+#else
+
+inline uint32_t ExpandToPowerOf2(uint32_t Value)
+{
+    unsigned long Index;
+    _BitScanReverse(&Index, Value - 1);
+    return (1U << (Index + 1));
+}
+#endif
+
+
+
 template<typename T, size_t n = 1U>
 struct alignas(sizeof(size_t)) PREALLOC_MEMORY
 {

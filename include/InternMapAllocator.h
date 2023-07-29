@@ -1,5 +1,5 @@
 #pragma once
-#include "MemoryPage.h"
+#include "SmallFixMemoryPage.h"
 #include <cstdlib>
 #include <new>
 #include <iostream>

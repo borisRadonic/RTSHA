@@ -21,10 +21,11 @@ namespace internal
 
 		bool init(void* start, size_t size);
 
-		bool add_page(rtsha_page_size_type size_type, size_t size);
+		bool add_page(rtsha_page_size_type size_type, size_t size, size_t max_objects = 0U, size_t min_block_size = 0U, size_t max_block_size = 0U);
 
 		size_t get_free_space() const;
-
+		
+		rtsha_page* get_big_memorypage() const;
 		
 		void* malloc(size_t size);
 
@@ -36,7 +37,7 @@ namespace internal
 
 		rtsha_page_size_type get_ideal_page(size_t size) const;
 
-		rtsha_page* select_page(rtsha_page_size_type ideal_page, size_t size) const;
+		rtsha_page* select_page(rtsha_page_size_type ideal_page, size_t size, bool no_big = false) const;
 
 		FreeList* createFreeList(rtsha_page* page);
 		

@@ -18,7 +18,9 @@ namespace internal
 		PageType128 = 128U,
 		PageType256 = 256U,
 		PageType512 = 512U,
-		PageTypeBig = 4096U
+
+		PageTypeBig			= 613U,
+		PageTypePowerTwo	= 713U
 	};
 	
 	struct rtsha_page
@@ -32,11 +34,14 @@ namespace internal
 		uint32_t					flags					= 0U;
 
 		size_t						start_position			= 0U;
-		size_t						size					= 0U;
+		size_t						end_position			= 0U;
+
+		//size_t						size					= 0U;
 		size_t						free					= 0U;
+		
 		size_t						position				= 0U;
 		size_t						free_blocks				= 0U;
-
+		
 		rtsha_block*				last_block				= NULL;
 
 		size_t						lastFreeBlockAddress	= 0U;
@@ -46,6 +51,9 @@ namespace internal
 		rtsha_page*					map_page				= 0U;
 
 		size_t						max_blocks				= 0U;
+
+		size_t						min_block_size			= 0U; /*used with PowerTwo Pages*/
+		size_t						max_block_size			= 0U; /*used with PowerTwo Pages*/
 
 		rtsha_page*					next					= NULL;
 
@@ -70,6 +78,14 @@ namespace internal
 		virtual void free_block(MemoryBlock& block) = 0;
 
 		void* allocate_block_at_current_pos(size_t size);
+
+		inline void incFreeBlocks()
+		{
+			if (_page != nullptr)
+			{
+				_page->free_blocks++;
+			}
+		}
 			
 	protected:
 
@@ -119,14 +135,7 @@ namespace internal
 			}
 		}
 
-		inline void incFreeBlocks()
-		{
-			if (_page != nullptr)
-			{
-				_page->free_blocks++;
-			}
-		}
-
+		
 		inline void decFreeBlocks()
 		{
 			if ( (_page != nullptr) && (_page->free_blocks > 0U) )
@@ -160,7 +169,7 @@ namespace internal
 
 		inline bool fitOnPage(size_t size) const
 		{
-			if ((_page->position + size) < (_page->size + _page->start_position))
+			if ((_page->position + size) < (_page->end_position))
 			{
 				if (_page->start_map_data == 0U)
 				{
@@ -199,46 +208,5 @@ namespace internal
 
 		rtsha_page* _page;
 	};
-
-	class SmallFixMemoryPage : MemoryPage
-	{
-	public:
-		SmallFixMemoryPage() = delete;
-
-		SmallFixMemoryPage(rtsha_page* page) : MemoryPage( page)
-		{
-		}
-
-		virtual ~SmallFixMemoryPage()
-		{
-		}
-
-		virtual void* allocate_block(size_t size) final;
-
-		virtual void free_block(MemoryBlock& block) final;
-	};
-
-	class BigMemoryPage : MemoryPage
-	{
-	public:
-		BigMemoryPage() = delete;
-
-		BigMemoryPage(rtsha_page* page) : MemoryPage(page)
-		{
-		}
-
-		virtual ~BigMemoryPage()
-		{
-		}
-
-		virtual void* allocate_block(size_t size) final;
-
-		virtual void free_block(MemoryBlock& block) final;
-
-		void try_merge_left(MemoryBlock& block, bool& merged);
-
-		void try_merge_right(MemoryBlock& block, bool& merged);
-	};
-
 }
 

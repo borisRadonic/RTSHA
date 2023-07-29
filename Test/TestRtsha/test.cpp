@@ -122,6 +122,28 @@ TEST(TestCaseClassHeap, TestHeap)
 }
 
 
+TEST(TestCaseClassHeap, TestHeapCreatePowerTwoPage)
+{
+	size_t size = 0x1F4000;
+	void* heapMemory = malloc(size); //allocate 2MB for heap
+	EXPECT_TRUE(heapMemory != NULL);
+
+	Heap heap;
+	EXPECT_TRUE(heap.init(heapMemory, size));
+
+
+	
+	EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageTypePowerTwo, 4U * 65536U, 100U, 32U, 2048U ));
+
+	size_t free = heap.get_free_space();
+	//EXPECT_EQ(free, 1327104);
+
+	EXPECT_EQ(rtsha_page_size_type::PageType16, heap.get_ideal_page(15U));
+	
+	rtsha_page* page24 = heap.select_page(rtsha_page_size_type::PageTypePowerTwo, 32, true);
+	
+}
+
 TEST(TestCaseClassHeap, TestBlockMergeLeft)
 {
 	size_t size = 0x1F4000;
