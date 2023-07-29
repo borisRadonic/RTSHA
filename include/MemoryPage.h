@@ -167,6 +167,17 @@ namespace internal
 			return _page->free;
 		}
 
+
+		inline size_t getEndPosition() const
+		{
+			return _page->end_position;
+		}
+
+		inline size_t getStartPosition() const
+		{
+			return _page->start_position;
+		}
+
 		inline bool fitOnPage(size_t size) const
 		{
 			if ((_page->position + size) < (_page->end_position))

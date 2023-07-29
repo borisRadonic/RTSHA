@@ -136,11 +136,24 @@ TEST(TestCaseClassHeap, TestHeapCreatePowerTwoPage)
 	EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageTypePowerTwo, 4U * 65536U, 100U, 32U, 2048U ));
 
 	size_t free = heap.get_free_space();
-	//EXPECT_EQ(free, 1327104);
-
-	EXPECT_EQ(rtsha_page_size_type::PageType16, heap.get_ideal_page(15U));
 	
-	rtsha_page* page24 = heap.select_page(rtsha_page_size_type::PageTypePowerTwo, 32, true);
+	rtsha_page* page = heap.select_page(rtsha_page_size_type::PageTypePowerTwo, 64, true);
+
+	void* memory1 = heap.malloc(50U);
+	EXPECT_TRUE(memory1 != nullptr);
+
+	/*first splitt*/
+	void* memory2 = heap.malloc(51U);
+	EXPECT_TRUE(memory2 != nullptr);
+
+	
+	void* memory3 = heap.malloc(51U);
+	EXPECT_TRUE(memory3 != nullptr);
+
+	/*second splitt*/
+	void* memory4 = heap.malloc(51U);
+	EXPECT_TRUE(memory4 != nullptr);
+
 	
 }
 

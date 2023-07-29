@@ -152,8 +152,9 @@ namespace internal
 
 			page->map_page->last_block = NULL;
 			page->map_page->start_map_data = 0U;
-			page->map_page->map_page = nullptr;
+			page->map_page->map_page = nullptr;			
 			page->map_page->position = page->start_map_data + sizeof(rtsha_page);
+			page->map_page->start_position = page->start_map_data;
 			
 			page->map_page->ptr_list_map = reinterpret_cast<size_t> (reinterpret_cast<void*>(createFreeList(page->map_page)));
 			page->ptr_list_map = reinterpret_cast<size_t> (reinterpret_cast<void*>(createFreeMap(page)));
@@ -168,7 +169,9 @@ namespace internal
 
 			PowerTwoMemoryPage mem_page(page);
 			
-			while( (rest > page->min_block_size) && (page->position < page->end_position) )
+			bool first = false;
+			bool condition = (rest > page->min_block_size) && (page->position < page->end_position);
+			while( condition )
 			{
 				if (rest < val)
 				{
@@ -179,6 +182,13 @@ namespace internal
 					MemoryBlock block(reinterpret_cast<rtsha_block*>(page->position));
 					block.setSize(val);
 					block.setPrev(prev);
+
+					if (!first)
+					{
+						block.setAsFirst();
+						first = true;
+					}
+					
 					
 					page->position += val;
 					rest = rest - val;
@@ -187,6 +197,13 @@ namespace internal
 					ptrMap->insert((const uint64_t)block.getSize(), (size_t)block.getBlock());
 					page->last_block = block.getBlock();
 					mem_page.incFreeBlocks();
+
+					condition = (rest > page->min_block_size) && (page->position < page->end_position);
+					if (!condition)
+					{
+						block.setLast();
+						break;
+					}
 
 				}
 			}
@@ -292,7 +309,9 @@ namespace internal
 		{
 			if ( (page != nullptr) && (size < (size_t)page->flags) )
 			{
-				if ( (page->flags != (uint16_t)rtsha_page_size_type::PageTypePowerTwo) &&(size <= (size_t) page->flags))
+				if ( (page->flags != (uint16_t)rtsha_page_size_type::PageTypePowerTwo) &&
+					 (page->flags != (uint16_t)rtsha_page_size_type::PageTypeBig) &&
+					 (size <= (size_t) page->flags))
 				{
 					return page;
 				}
@@ -360,7 +379,7 @@ namespace internal
 					_last_heap_error = RTSHA_NoFreePage;
 					return NULL;
 				}
-				if (page->flags != (uint16_t)rtsha_page_size_type::PageTypePowerTwo)
+				if (page->flags == (uint16_t)rtsha_page_size_type::PageTypePowerTwo)
 				{
 					PowerTwoMemoryPage memory_page(page);
 					return memory_page.allocate_block(a_size);
@@ -384,9 +403,7 @@ namespace internal
 			address -= (2U * sizeof(size_t)); /*skip size and pointer to prev*/
 
 			MemoryBlock block((rtsha_block*)(void*)address);
-
-			size_t old_size = block.getSize();
-
+			
 			if (block.isValid())
 			{
 				size_t size = block.getSize();
@@ -400,6 +417,11 @@ namespace internal
 						if (page->flags == (uint16_t)rtsha_page_size_type::PageTypeBig)
 						{
 							BigMemoryPage memory_page(page);
+							memory_page.free_block(block);
+						}
+						else if (page->flags == (uint16_t)rtsha_page_size_type::PageTypePowerTwo)
+						{
+							PowerTwoMemoryPage memory_page(page);
 							memory_page.free_block(block);
 						}
 						else

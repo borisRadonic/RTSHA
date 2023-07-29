@@ -23,5 +23,7 @@ namespace internal
 
 		virtual void free_block(MemoryBlock& block) final;
 
+		void splitBlockPowerTwo(MemoryBlock& block, size_t end_size);
+
 	};
 }

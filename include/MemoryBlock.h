@@ -44,7 +44,10 @@ namespace internal
 		/*returns new small block*/
 		/*old block is resized*/
 		rtsha_block* splitt(size_t new_size);
-		
+
+		/*returns block on the left side (last block in the chain)*/
+		void splitt_22();
+
 		inline void setAllocated()
 		{
 			_block->size = (_block->size >> 1U) << 1U;

@@ -33,18 +33,15 @@ namespace internal
 						/*decrease the number of free blocks*/
 						this->decFreeBlocks();
 					}
-					if (orig_size != size)
+					if (block.isValid() && (orig_size > size))
 					{
-						/*splitt block*/
-						//MemoryBlock tempNode(block.splitt(size));
-						/*insert new block to the map of free blocks*/
-						//ptrMap->insert((const uint64_t)tempNode.getSize(), (size_t)tempNode.getBlock());
-						//this->incFreeBlocks();
+						this->splitBlockPowerTwo(block, size);
 					}
-								
 
 					/*set block as allocated*/
 					block.setAllocated();
+
+					
 					return block.getAllocAddress();
 				}
 				return NULL;
@@ -55,8 +52,6 @@ namespace internal
 
 	void PowerTwoMemoryPage::free_block(MemoryBlock& block)
 	{
-		bool left(false);
-		bool right(false);
 		this->increaseFree(block.getSize());
 
 		/*set as free*/
@@ -97,5 +92,26 @@ namespace internal
 		FreeMap* ptrMap = reinterpret_cast<FreeMap*>(this->getFreeMap());
 		ptrMap->insert((const uint64_t)block.getSize(), (size_t)block.getBlock());
 		this->incFreeBlocks();
+	}
+
+
+	void PowerTwoMemoryPage::splitBlockPowerTwo(MemoryBlock& block, size_t end_size)
+	{
+		/*create initial free blocks*/
+		size_t data_size = block.getSize();
+		FreeMap* ptrMap = reinterpret_cast<FreeMap*>(this->getFreeMap());
+
+		while (data_size > end_size)
+		{
+			block.splitt_22();
+			data_size = block.getSize();
+			MemoryBlock next(block.getNextBlock());
+
+
+			
+
+			ptrMap->insert((const uint64_t)next.getSize(), (size_t)next.getBlock());
+			this->incFreeBlocks();
+		}
 	}
 }
