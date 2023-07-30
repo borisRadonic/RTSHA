@@ -48,6 +48,10 @@ namespace internal
 		/*returns block on the left side (last block in the chain)*/
 		void splitt_22();
 
+		void merge_left();
+
+		void merge_right();
+
 		inline void setAllocated()
 		{
 			_block->size = (_block->size >> 1U) << 1U;
@@ -85,7 +89,24 @@ namespace internal
 
 		inline void setSize( size_t size )
 		{
-			_block->size = size;
+			if (_block->size != 0U)
+			{
+				bool free = isFree();
+				bool last = isLast();
+				_block->size = size;
+				if (free)
+				{
+					setFree();
+				}
+				if (last)
+				{
+					setLast();
+				}
+			}
+			else
+			{
+				_block->size = size;
+			}
 		}
 
 		inline size_t getFreeBlockAddress() const

@@ -154,7 +154,16 @@ TEST(TestCaseClassHeap, TestHeapCreatePowerTwoPage)
 	void* memory4 = heap.malloc(51U);
 	EXPECT_TRUE(memory4 != nullptr);
 
-	
+	heap.free(memory3);
+
+	/*merge left*/
+	heap.free(memory2);
+
+	heap.free(memory1);
+
+	/*merge left....*/
+	heap.free(memory4);
+
 }
 
 TEST(TestCaseClassHeap, TestBlockMergeLeft)

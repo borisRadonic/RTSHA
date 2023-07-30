@@ -193,7 +193,7 @@ namespace internal
 					page->position += val;
 					rest = rest - val;
 					prev = block.getBlock();
-
+					block.setFree();
 					ptrMap->insert((const uint64_t)block.getSize(), (size_t)block.getBlock());
 					page->last_block = block.getBlock();
 					mem_page.incFreeBlocks();

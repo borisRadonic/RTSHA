@@ -25,5 +25,9 @@ namespace internal
 
 		void splitBlockPowerTwo(MemoryBlock& block, size_t end_size);
 
+		void mergeLeft(MemoryBlock& block);
+
+		void mergeRight(MemoryBlock& block);
+
 	};
 }

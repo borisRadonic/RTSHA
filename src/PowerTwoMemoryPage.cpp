@@ -39,12 +39,10 @@ namespace internal
 					}
 
 					/*set block as allocated*/
-					block.setAllocated();
-
-					
+					block.setAllocated();										
 					return block.getAllocAddress();
 				}
-				return NULL;
+				return nullptr;
 			}
 		}
 		return nullptr;
@@ -52,44 +50,67 @@ namespace internal
 
 	void PowerTwoMemoryPage::free_block(MemoryBlock& block)
 	{
+		FreeMap* ptrMap = reinterpret_cast<FreeMap*>(this->getFreeMap());
+
 		this->increaseFree(block.getSize());
 
 		/*set as free*/
 		block.setFree();
 
-		if (isLastPageBlock(block))
+		/*merging loop*/
+		bool canMerge = true;
+		while (canMerge)
 		{
-			block.setLast();
-		}
+			if (isLastPageBlock(block))
+			{
+				block.setLast();
+			}
 
-		/*check if it is the first page block*/
-		if (!block.hasPrev())
-		{
-			/*it must be the first: update prev of the next*/
-			rtsha_block* next_block = block.getNextBlock();
-			MemoryBlock next(next_block);
-			next.setAsFirst();
-		}
-		else
-		{
+			/*check if it is the first page block*/
+			if (!block.hasPrev())
+			{
+				/*it must be the first: update prev of the next*/
+				rtsha_block* next_block = block.getNextBlock();
+				MemoryBlock next(next_block);
+				next.setAsFirst();
+				canMerge = false;
+			}
+			else
+			{
+				if (this->getFreeBlocks() > 0U)
+				{
+					MemoryBlock prev(block.getPrev());
+					if (prev.isValid() && prev.isFree() && (prev.getSize() == block.getSize()))
+					{
+						/*merge two blocks*/
+						mergeLeft(block);
+						canMerge = true;
+					}
+					else
+					{
+						canMerge = false;
+					}
+				}
+			}
 			if (this->getFreeBlocks() > 0U)
 			{
-				//try_merge_left(block, left);
+				/*check if not last block*/
+				if (!block.isLast() && !this->isLastPageBlock(block))
+				{
+					MemoryBlock next(block.getNextBlock());
+					if (next.isValid() && next.isFree() && (next.getSize() == block.getSize()))
+					{
+						/*merge two blocks*/
+						mergeRight(block);
+						canMerge = true;
+					}
+					else
+					{
+						canMerge = false;
+					}
+				}
 			}
 		}
-		if (this->getFreeBlocks() > 0U)
-		{
-			/*check if not last block*/
-			if (!block.isLast() && !this->isLastPageBlock(block))
-			{
-				//try_merge_right(block, right);
-			}
-		}
-		if (getFreeBlocks() > 0U)
-		{
-			//try_merge_left(block);
-		}
-		FreeMap* ptrMap = reinterpret_cast<FreeMap*>(this->getFreeMap());
 		ptrMap->insert((const uint64_t)block.getSize(), (size_t)block.getBlock());
 		this->incFreeBlocks();
 	}
@@ -105,13 +126,39 @@ namespace internal
 		{
 			block.splitt_22();
 			data_size = block.getSize();
-			MemoryBlock next(block.getNextBlock());
-
-
 			
-
-			ptrMap->insert((const uint64_t)next.getSize(), (size_t)next.getBlock());
-			this->incFreeBlocks();
+			if (block.hasPrev())
+			{
+				MemoryBlock prev(block.getPrev());
+				ptrMap->insert((const uint64_t) prev.getSize(), (size_t)prev.getBlock());
+				this->incFreeBlocks();
+			}
 		}
+	}
+
+	void PowerTwoMemoryPage::mergeLeft(MemoryBlock& block)
+	{
+		MemoryBlock prev(block.getPrev());
+		FreeMap* ptrMap = reinterpret_cast<FreeMap*>(this->getFreeMap());
+		if (ptrMap->del( (const uint64_t)prev.getSize(), (size_t)prev.getBlock()))
+		{
+			/*decrease the number of free blocks*/
+			this->decFreeBlocks();
+		}
+		
+		block.merge_left();		
+	}
+
+	void PowerTwoMemoryPage::mergeRight(MemoryBlock& block)
+	{
+		MemoryBlock next(block.getNextBlock());
+		FreeMap* ptrMap = reinterpret_cast<FreeMap*>(this->getFreeMap());
+		if (ptrMap->del((const uint64_t)next.getSize(), (size_t)next.getBlock()))
+		{
+			/*decrease the number of free blocks*/
+			this->decFreeBlocks();
+		}
+	
+		block.merge_right();
 	}
 }
