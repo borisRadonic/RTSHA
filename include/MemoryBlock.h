@@ -67,6 +67,11 @@ namespace internal
 			_block->size = (_block->size | 2U);
 		}
 
+		inline void clearIsLast()
+		{
+			_block->size &= ~(1UL << 2U);			
+		}
+
 		inline rtsha_block* getBlock() const
 		{
 			return _block;

@@ -17,6 +17,7 @@ namespace internal
 			rtsha_block* pOldNextRight = reinterpret_cast<rtsha_block*>((void*)((size_t)_block + osize));
 			pOldNextRight->prev = pNewNextRight;
 		}
+		this->setSize(osize-new_size);
 		return pNewNextRight;
 	}
 
@@ -36,6 +37,13 @@ namespace internal
 			rtsha_block* pOldNextRight = reinterpret_cast<rtsha_block*>((void*)((size_t)pNewNextRight + nsize));
 			pOldNextRight->prev = pNewNextRight;
 		}
+		else
+		{
+			/*normaly it should not be the case (last block is the smallest in Power Two Page)*/
+			nextRight.setLast();
+			clearIsLast();
+		}
+		this->setSize(nsize);
 		this->_block = pNewNextRight;
 	}
 
@@ -60,6 +68,10 @@ namespace internal
 						right.setPrev(prev.getBlock());
 					}
 				}
+				else
+				{
+					prev.setLast();
+				}
 				this->_block = prev.getBlock();
 			}
 		}
@@ -70,7 +82,8 @@ namespace internal
 		if (!this->isLast())
 		{
 			MemoryBlock next(this->getNextBlock());
-			bool isLast = next.isLast();
+			bool isLast = next.isLast();				
+
 
 			rtsha_block* next_next = next.getNextBlock();
 			if (!isLast && (next_next != nullptr))

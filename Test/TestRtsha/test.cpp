@@ -154,6 +154,8 @@ TEST(TestCaseClassHeap, TestHeapCreatePowerTwoPage)
 	void* memory4 = heap.malloc(51U);
 	EXPECT_TRUE(memory4 != nullptr);
 
+	 heap.free(memory1);
+
 	heap.free(memory3);
 
 	/*merge left*/

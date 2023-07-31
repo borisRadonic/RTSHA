@@ -13,6 +13,35 @@
 #endif
 
 
+#if _WIN32 || _WIN64
+    #if defined(WIN64) || defined(__amd64__)
+        #define ENV64BIT
+    #else
+        #define ENV32BIT
+    #endif
+#else
+    #if __GNUC__
+        #if __x86_64__ || __ppc64__
+            #define ENV64BIT
+        #else
+            #define ENV32BIT
+        #endif
+    #endif
+#endif
+
+
+#ifdef __arm__ //ARM architecture
+#define ARCH_ARM
+#endif
+
+#ifdef __aarch64__ //ARM 64-bit
+#define ARCH_ARM
+#define ARCH_ARM_64
+#define ARCH_64BIT
+#endif
+
+
+
 
 
 

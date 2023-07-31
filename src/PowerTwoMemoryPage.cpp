@@ -39,7 +39,8 @@ namespace internal
 					}
 
 					/*set block as allocated*/
-					block.setAllocated();										
+					block.setAllocated();
+					this->decreaseFree(block.getSize());
 					return block.getAllocAddress();
 				}
 				return nullptr;
@@ -51,70 +52,44 @@ namespace internal
 	void PowerTwoMemoryPage::free_block(MemoryBlock& block)
 	{
 		FreeMap* ptrMap = reinterpret_cast<FreeMap*>(this->getFreeMap());
-
 		this->increaseFree(block.getSize());
-
 		/*set as free*/
 		block.setFree();
 
-		/*merging loop*/
-		bool canMerge = true;
-		while (canMerge)
-		{
-			if (isLastPageBlock(block))
+		/*merging loop left*/		
+		while (block.hasPrev() && (this->getFreeBlocks() > 0U))
+		{		
+			MemoryBlock prev(block.getPrev());					
+			if (prev.isValid() && prev.isFree() && (prev.getSize() == block.getSize()) )
 			{
-				block.setLast();
-			}
-
-			/*check if it is the first page block*/
-			if (!block.hasPrev())
-			{
-				/*it must be the first: update prev of the next*/
-				rtsha_block* next_block = block.getNextBlock();
-				MemoryBlock next(next_block);
-				next.setAsFirst();
-				canMerge = false;
+				/*merge two blocks*/
+				mergeLeft(block);
 			}
 			else
 			{
-				if (this->getFreeBlocks() > 0U)
-				{
-					MemoryBlock prev(block.getPrev());
-					if (prev.isValid() && prev.isFree() && (prev.getSize() == block.getSize()))
-					{
-						/*merge two blocks*/
-						mergeLeft(block);
-						canMerge = true;
-					}
-					else
-					{
-						canMerge = false;
-					}
-				}
-			}
-			if (this->getFreeBlocks() > 0U)
+				break;
+			}			
+		}
+				
+		/*merging loop right*/
+		while (!block.isLast() && !this->isLastPageBlock(block) && (this->getFreeBlocks() > 0U))
+		{			
+			MemoryBlock next(block.getNextBlock());
+
+			if (next.isValid() && next.isFree() && (next.getSize() == block.getSize()))
 			{
-				/*check if not last block*/
-				if (!block.isLast() && !this->isLastPageBlock(block))
-				{
-					MemoryBlock next(block.getNextBlock());
-					if (next.isValid() && next.isFree() && (next.getSize() == block.getSize()))
-					{
-						/*merge two blocks*/
-						mergeRight(block);
-						canMerge = true;
-					}
-					else
-					{
-						canMerge = false;
-					}
-				}
+				/*merge two blocks*/
+				mergeRight(block);
+			}
+			else
+			{
+				break;
 			}
 		}
+
 		ptrMap->insert((const uint64_t)block.getSize(), (size_t)block.getBlock());
 		this->incFreeBlocks();
 	}
-
 
 	void PowerTwoMemoryPage::splitBlockPowerTwo(MemoryBlock& block, size_t end_size)
 	{
