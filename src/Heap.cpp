@@ -187,8 +187,7 @@ namespace internal
 					{
 						block.setAsFirst();
 						first = true;
-					}
-					
+					}					
 					
 					page->position += val;
 					rest = rest - val;

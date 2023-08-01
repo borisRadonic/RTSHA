@@ -25,9 +25,11 @@ namespace internal
 
 		virtual void free_block(MemoryBlock& block) final;
 
-		void try_merge_left(MemoryBlock& block, bool& merged);
+		void splitBlock(MemoryBlock& block, size_t size);
 
-		void try_merge_right(MemoryBlock& block, bool& merged);
+		void mergeLeft(MemoryBlock& block);
+
+		void mergeRight(MemoryBlock& block);
 	};
 
 

@@ -20,9 +20,7 @@ namespace internal
 			if (address != 0U)
 			{
 				MemoryBlock block(reinterpret_cast<rtsha_block*>((void*)address));
-
 				size_t orig_size = block.getSize();
-
 				if (block.isValid() && (orig_size >= size))
 				{
 					

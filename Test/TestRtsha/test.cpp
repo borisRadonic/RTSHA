@@ -166,6 +166,40 @@ TEST(TestCaseClassHeap, TestHeapCreatePowerTwoPage)
 	/*merge left....*/
 	heap.free(memory4);
 
+	/*All blocks free as at the beginning and there are no fragmented blocks*/
+
+	memory1 = heap.malloc(50U);
+	EXPECT_TRUE(memory1 != nullptr);
+
+	/*first splitt*/
+	memory2 = heap.malloc(51U);
+	EXPECT_TRUE(memory2 != nullptr);
+
+
+	memory3 = heap.malloc(51U);
+	EXPECT_TRUE(memory3 != nullptr);
+
+	/*second splitt*/
+	memory4 = heap.malloc(51U);
+	EXPECT_TRUE(memory4 != nullptr);
+
+	void* memory5 = heap.malloc(51U);
+	EXPECT_TRUE(memory4 != nullptr);
+
+	heap.free(memory1);
+
+	/*merge right*/
+	heap.free(memory2);
+
+	heap.free(memory3);
+
+	/*merge right ...*/
+	heap.free(memory4);
+
+	heap.free(memory5);
+
+	/*at the end one block /64) is fragmented  ...F8192 F1024 F256 F128 'F64' F256*/
+
 }
 
 TEST(TestCaseClassHeap, TestBlockMergeLeft)
@@ -222,8 +256,6 @@ TEST(TestCaseClassHeap, TestBlockMergeLeft)
 	
 	/*it must merge the last free block on the right side */
 	heap.free(memory7);
-
-
 
 
 	heap.free(memory2);
@@ -398,56 +430,109 @@ TEST(TestCaseMyMalloc, TestMyMallocPerformanceBigBlocks)
 
 	for (int i = 0; i < 100000; i++)
 	{
-		void* memory1 = heap.malloc(max(513, std::rand() % 1024));
+		size_t size1 = max(513, std::rand() % 10240);
+		void* memory1 = heap.malloc(size1 );
+		if (memory1 == nullptr)
+		{
+			memory1 = heap.malloc(size1);
+			break;
+		}
 		EXPECT_TRUE(memory1 != nullptr);
 
-		void* memory2 = heap.malloc(max(513, std::rand() % 1024));
+		size_t size2 = max(513, std::rand() % 20000);
+		void* memory2 = heap.malloc(size2);
 		EXPECT_TRUE(memory2 != nullptr);
+		if (memory2 == nullptr)
+		{
+			memory2 = heap.malloc(size2);
+			break;
+		}
 
-		void* memory3 = heap.malloc(max(513, std::rand() % 10240));
+		size_t size3 = max(513, std::rand() % 10240);
+		void* memory3 = heap.malloc(size3);
 		EXPECT_TRUE(memory3 != nullptr);
-
-		void* memory4 = heap.malloc(max(513, std::rand() % 50000));
-		EXPECT_TRUE(memory4 != nullptr);
-		if (memory4 == nullptr)
+		if (memory3 == nullptr)
 		{
-			memory4 = heap.malloc(max(513, std::rand() % 50000));
+			memory3 = heap.malloc(size3);
+			break;
 		}
 
-		void* memory5 = heap.malloc(max(513, std::rand() % 5240));
-		EXPECT_TRUE(memory5 != nullptr);
 
-		void* memory6 = heap.malloc(max(513, std::rand() % 1000));
-		EXPECT_TRUE(memory6 != nullptr);
+		size_t size4 = max(513, std::rand() % 50000);
 
-
- 		void* memory7 = heap.malloc(max(513, std::rand() % 4000));
-		EXPECT_TRUE(memory7 != nullptr);
-		if (memory7 == nullptr)
-		{
-			memory7 = heap.malloc(max(513, std::rand() % 50000));
-		}
-
-		memset(memory1, 1, 10);
-		memset(memory2, 2, 10);
-		memset(memory3, 3, 10);
-		memset(memory4, 4, 10);
-		memset(memory5, 5, 10);
-		memset(memory6, 6, 10);
-		memset(memory7, 7, 10);
-		if( i == 99000)
+		if (size4 == 20089)
 		{
 			int a = 0;
 			a++;
 		}
+
+		void* memory4 = heap.malloc(size4);
+		EXPECT_TRUE(memory4 != nullptr);
+		if (memory4 == nullptr)
+		{
+			memory4 = heap.malloc(size4);
+		}
+
+		size_t size5 = max(513, std::rand() % 5240);
+		void* memory5 = heap.malloc(size5);
+		EXPECT_TRUE(memory5 != nullptr);
+		if (memory5 == nullptr)
+		{
+			memory5 = heap.malloc(size5);
+			break;
+		}
+
+
+		size_t size6 = max(513, std::rand() % 1000);
+		void* memory6 = heap.malloc(size6);
+		EXPECT_TRUE(memory6 != nullptr);
+		if (memory6 == nullptr)
+		{
+			memory6 = heap.malloc(size6);
+			break;
+		}
+
+
+		size_t size7 = max(513, std::rand() % 4000);
+
+		if (size7 == 1736)
+		{
+			int a = 0;
+			a++;
+		}
+		void* memory7 = heap.malloc(size7);
+		EXPECT_TRUE(memory7 != nullptr);
+		if (memory7 == nullptr)
+		{
+			memory7 = heap.malloc(max(513, std::rand() % 50000));
+			break;
+		}
+
+		
+
+		
+		memset(memory1, 1, size1);
+		memset(memory2, 2, size2);
+		memset(memory3, 3, size3);
+		memset(memory4, 4, size4);
+		memset(memory5, 5, size5);
+		memset(memory6, 6, size6);
+		memset(memory7, 7, size7);
+		
+		if (i == 99999)
+		{
+			int a = 0;
+			a++;
+		}
+
 		heap.free(memory1);
 		heap.free(memory2);
-		heap.free(memory3);
-		
+		heap.free(memory3);		
 		heap.free(memory5);		
 		heap.free(memory6);
-		heap.free(memory7);
+		heap.free(memory7);		
 		heap.free(memory4);
+		
 	
 	}
 }

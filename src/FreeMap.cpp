@@ -13,7 +13,7 @@ namespace internal
 	void FreeMap::insert(const uint64_t key, size_t block)
 	{
 		if ((_ptrMap != nullptr))
-		{
+		{			
 			_ptrMap->insert(std::pair<const uint64_t, size_t>(key, block));
 		}
 	}
@@ -40,7 +40,7 @@ namespace internal
 	}
 	
 	size_t FreeMap::find(const uint64_t key)
-	{
+	{		
 		if ((_ptrMap != nullptr))
 		{
 			mmap::iterator it = _ptrMap->lower_bound(key);

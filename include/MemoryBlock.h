@@ -41,11 +41,11 @@ namespace internal
 			return *this;
 		}
 
-		/*returns new small block*/
-		/*old block is resized*/
-		rtsha_block* splitt(size_t new_size);
 
-		/*returns block on the left side (last block in the chain)*/
+		/*old block is resized (on the left side is old block)*/
+		void splitt(size_t new_size);
+
+		/*old block is on the right side (last block in the chain)*/
 		void splitt_22();
 
 		void merge_left();
@@ -69,7 +69,7 @@ namespace internal
 
 		inline void clearIsLast()
 		{
-			_block->size &= ~(1UL << 2U);			
+			_block->size &= ~(1UL << 1U);			
 		}
 
 		inline rtsha_block* getBlock() const
