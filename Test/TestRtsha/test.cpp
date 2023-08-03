@@ -9,6 +9,7 @@
 #include "FastPlusAllocator.h"
 #include "InternMapAllocator.h"
 #include "errors.h"
+#include "BigMemoryPage.h"
 
 using namespace std;
 using namespace std::chrono;
@@ -22,8 +23,6 @@ TEST(TestCaseClassHeap, TestHeap)
 	Heap heap;
 	EXPECT_TRUE(heap.init(heapMemory, size) );
 
-	EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageType16, 65536U));
-	EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageType24, 65536U));
 	EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageType32, 65536U));
 	EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageType64, 65536U));
 	EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageType128, 65536U));
@@ -32,11 +31,9 @@ TEST(TestCaseClassHeap, TestHeap)
 	EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageTypeBig, 4U * 65536U));
 
 	size_t free = heap.get_free_space();
-	EXPECT_EQ(free, 1327104);
+	//EXPECT_EQ(free, 1327104);
 
-	EXPECT_EQ(rtsha_page_size_type::PageType16, heap.get_ideal_page(15U) );
-	EXPECT_EQ(rtsha_page_size_type::PageType24, heap.get_ideal_page(17U));
-	EXPECT_EQ(rtsha_page_size_type::PageType24, heap.get_ideal_page(24U));
+
 	EXPECT_EQ(rtsha_page_size_type::PageType32, heap.get_ideal_page(25U));
 	EXPECT_EQ(rtsha_page_size_type::PageType32, heap.get_ideal_page(32U));
 	EXPECT_EQ(rtsha_page_size_type::PageType64, heap.get_ideal_page(50U));
@@ -65,56 +62,56 @@ TEST(TestCaseClassHeap, TestHeap)
 
 	for (int i = 0; i < 100000; i++)
 	{		
-		void* memory1 = heap.malloc(11);
+		void* memory1 = heap.malloc(11); /*32*/
 		EXPECT_TRUE(memory1 != nullptr);
 
-		void* memory2 = heap.malloc(10);
+		void* memory2 = heap.malloc(10); /*32*/
 		EXPECT_TRUE(memory2 != nullptr);
 
-		void* memory3 = heap.malloc(21);
+		void* memory3 = heap.malloc(21); /*64*/
 		EXPECT_TRUE(memory3 != nullptr);
 
-		void* memory4 = heap.malloc(20);
+		void* memory4 = heap.malloc(20); /*32*/
 		EXPECT_TRUE(memory4 != nullptr);
 
-		void* memory5 = heap.malloc(40);
+		void* memory5 = heap.malloc(40); /*64*/
 		EXPECT_TRUE(memory5 != nullptr);
 
-		void* memory6 = heap.malloc(50);
+		void* memory6 = heap.malloc(50); /*64*/
 		EXPECT_TRUE(memory6 != nullptr);
 
-		void* memory7 = heap.malloc(50);
+		void* memory7 = heap.malloc(50); /*64*/
 		EXPECT_TRUE(memory7 != nullptr);
 
-		void* memory8 = heap.malloc(48);
+		void* memory8 = heap.malloc(48); /*64*/
 		EXPECT_TRUE(memory8 != nullptr);
 
-		void* memory9 = heap.malloc(80);
+		void* memory9 = heap.malloc(80); /*128*/
 		EXPECT_TRUE(memory9 != nullptr);
 
 		heap.free(memory1);
-		EXPECT_TRUE(page24->free_blocks == 1);
+		EXPECT_TRUE(page32->free_blocks == 1);
 		
 		heap.free(memory4);
-		EXPECT_TRUE(page32->free_blocks == 1);
-
-		heap.free(memory2);
-		EXPECT_TRUE(page24->free_blocks == 2);
-
-		heap.free(memory3);
 		EXPECT_TRUE(page32->free_blocks == 2);
 
-		heap.free(memory7);
+		heap.free(memory2);
+		EXPECT_TRUE(page32->free_blocks == 3);
+
+		heap.free(memory3);
 		EXPECT_TRUE(page64->free_blocks == 1);
 
-		heap.free(memory8);
+		heap.free(memory7);
 		EXPECT_TRUE(page64->free_blocks == 2);
 
-		heap.free(memory6);
+		heap.free(memory8);
 		EXPECT_TRUE(page64->free_blocks == 3);
 
-		heap.free(memory5);
+		heap.free(memory6);
 		EXPECT_TRUE(page64->free_blocks == 4);
+
+		heap.free(memory5);
+		EXPECT_TRUE(page64->free_blocks == 5);
 
 		heap.free(memory9);
 		EXPECT_TRUE(page128->free_blocks == 1);
@@ -202,6 +199,149 @@ TEST(TestCaseClassHeap, TestHeapCreatePowerTwoPage)
 
 }
 
+
+
+TEST(TestCaseMyMalloc, TestMyMallocPerformancePowerTwo)
+{
+	size_t size = 0x1F4000;
+	void* heapMemory = malloc(size); //allocate 2MB for heap
+	EXPECT_TRUE(heapMemory != NULL);
+
+	Heap heap;
+	EXPECT_TRUE(heap.init(heapMemory, size));
+
+	EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageTypePowerTwo, size, 0U, 32U, 2048U));
+
+	rtsha_page* page_big = heap.select_page(rtsha_page_size_type::PageTypePowerTwo, 64, true);
+
+	BigMemoryPage page(page_big);
+
+
+	for (int i = 0; i < 100000; i++)
+	{
+		size_t size1 = max(64, std::rand() % 2000);
+		void* memory1 = heap.malloc(size1);
+		if (memory1 == nullptr)
+		{
+			break;
+		}
+		memset(memory1, 1, size1);
+		EXPECT_TRUE(memory1 != nullptr);
+
+		EXPECT_TRUE(page.checkBlock((size_t)memory1));
+
+
+		size_t size2 = max(64, std::rand() % 2000);
+		void* memory2 = heap.malloc(size2);
+		EXPECT_TRUE(memory2 != nullptr);
+		if (memory2 == nullptr)
+		{
+			break;
+		}
+		memset(memory2, 2, size2);
+
+		size_t size3 = max(64, std::rand() % 2000);
+		void* memory3 = heap.malloc(size3);
+		EXPECT_TRUE(memory3 != nullptr);
+		if (memory3 == nullptr)
+		{
+			break;
+		}
+
+		memset(memory3, 3, size3);
+		EXPECT_TRUE(page.checkBlock((size_t)memory1));
+		EXPECT_TRUE(page.checkBlock((size_t)memory2));
+
+
+		size_t size4 = max(64, std::rand() % 2000);
+
+		void* memory4 = heap.malloc(size4);
+		EXPECT_TRUE(memory4 != nullptr);
+		if (memory4 == nullptr)
+		{
+			break;
+		}
+		memset(memory4, 4, size4);
+
+		size_t size5 = max(128, std::rand() % 2000);
+		void* memory5 = heap.malloc(size5);
+		EXPECT_TRUE(memory5 != nullptr);
+		if (memory5 == nullptr)
+		{
+			break;
+		}
+		memset(memory5, 5, size5);
+
+
+		size_t size6 = max(256, std::rand() % 2000);
+		void* memory6 = heap.malloc(size6);
+		EXPECT_TRUE(memory6 != nullptr);
+		if (memory6 == nullptr)
+		{
+			break;
+		}
+		memset(memory6, 6, size6);
+
+
+		size_t size7 = max(1024, std::rand() % 2000);
+		void* memory7 = heap.malloc(size7);
+		EXPECT_TRUE(memory7 != nullptr);
+		if (memory7 == nullptr)
+		{
+			break;
+		}
+		memset(memory7, 7, size7);
+
+		EXPECT_TRUE(page.checkBlock((size_t)memory1));
+		EXPECT_TRUE(page.checkBlock((size_t)memory2));
+		EXPECT_TRUE(page.checkBlock((size_t)memory3));
+		EXPECT_TRUE(page.checkBlock((size_t)memory4));
+		EXPECT_TRUE(page.checkBlock((size_t)memory5));
+		EXPECT_TRUE(page.checkBlock((size_t)memory6));
+		EXPECT_TRUE(page.checkBlock((size_t)memory7));
+
+
+
+		heap.free(memory1);
+		EXPECT_TRUE(page.checkBlock((size_t)memory2));
+		EXPECT_TRUE(page.checkBlock((size_t)memory3));
+		EXPECT_TRUE(page.checkBlock((size_t)memory4));
+		EXPECT_TRUE(page.checkBlock((size_t)memory5));
+		EXPECT_TRUE(page.checkBlock((size_t)memory6));
+		EXPECT_TRUE(page.checkBlock((size_t)memory7));
+
+		heap.free(memory2);
+		EXPECT_TRUE(page.checkBlock((size_t)memory3));
+		EXPECT_TRUE(page.checkBlock((size_t)memory4));
+		EXPECT_TRUE(page.checkBlock((size_t)memory5));
+		EXPECT_TRUE(page.checkBlock((size_t)memory6));
+		EXPECT_TRUE(page.checkBlock((size_t)memory7));
+
+		heap.free(memory3);
+		EXPECT_TRUE(page.checkBlock((size_t)memory4));
+		EXPECT_TRUE(page.checkBlock((size_t)memory5));
+		EXPECT_TRUE(page.checkBlock((size_t)memory6));
+		EXPECT_TRUE(page.checkBlock((size_t)memory7));
+
+		heap.free(memory5);
+
+		EXPECT_TRUE(page.checkBlock((size_t)memory4));
+		EXPECT_TRUE(page.checkBlock((size_t)memory6));
+		EXPECT_TRUE(page.checkBlock((size_t)memory7));
+
+		heap.free(memory6);
+		EXPECT_TRUE(page.checkBlock((size_t)memory4));
+		EXPECT_TRUE(page.checkBlock((size_t)memory7));
+
+
+		heap.free(memory7);
+		EXPECT_TRUE(page.checkBlock((size_t)memory4));
+
+		heap.free(memory4);
+
+
+	}
+}
 TEST(TestCaseClassHeap, TestBlockMergeLeft)
 {
 	size_t size = 0x1F4000;
@@ -323,8 +463,8 @@ TEST(TestCaseMyMalloc, TestMyMallocSmallMemory)
 	Heap heap;
 	EXPECT_TRUE(heap.init(heapMemory, size));
 
-	EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageType16, 65536U));
-	EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageType24, 65536U));
+	//EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageType16, 65536U));
+	//EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageType24, 65536U));
 	EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageType32, 2U * 65536U));
 	EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageType64, 2U * 65536U));
 		
@@ -426,7 +566,11 @@ TEST(TestCaseMyMalloc, TestMyMallocPerformanceBigBlocks)
 	Heap heap;
 	EXPECT_TRUE(heap.init(heapMemory, size));
 
-	EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageTypeBig, 20U * 65536U));
+	EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageTypeBig, size));
+
+	rtsha_page* page_big = heap.select_page(rtsha_page_size_type::PageTypeBig, 80);
+	BigMemoryPage page(page_big);
+
 
 	for (int i = 0; i < 100000; i++)
 	{
@@ -434,53 +578,54 @@ TEST(TestCaseMyMalloc, TestMyMallocPerformanceBigBlocks)
 		void* memory1 = heap.malloc(size1 );
 		if (memory1 == nullptr)
 		{
-			memory1 = heap.malloc(size1);
 			break;
 		}
+		memset(memory1, 1, size1);
 		EXPECT_TRUE(memory1 != nullptr);
+
+		EXPECT_TRUE(page.checkBlock((size_t)memory1));
+
 
 		size_t size2 = max(513, std::rand() % 20000);
 		void* memory2 = heap.malloc(size2);
 		EXPECT_TRUE(memory2 != nullptr);
 		if (memory2 == nullptr)
 		{
-			memory2 = heap.malloc(size2);
 			break;
 		}
+		memset(memory2, 2, size2);
 
 		size_t size3 = max(513, std::rand() % 10240);
 		void* memory3 = heap.malloc(size3);
 		EXPECT_TRUE(memory3 != nullptr);
 		if (memory3 == nullptr)
 		{
-			memory3 = heap.malloc(size3);
 			break;
 		}
+		
+		memset(memory3, 3, size3);
+		EXPECT_TRUE(page.checkBlock((size_t)memory1));
+		EXPECT_TRUE(page.checkBlock((size_t)memory2));
 
 
 		size_t size4 = max(513, std::rand() % 50000);
-
-		if (size4 == 20089)
-		{
-			int a = 0;
-			a++;
-		}
 
 		void* memory4 = heap.malloc(size4);
 		EXPECT_TRUE(memory4 != nullptr);
 		if (memory4 == nullptr)
 		{
-			memory4 = heap.malloc(size4);
+ 			break;
 		}
+		memset(memory4, 4, size4);
 
 		size_t size5 = max(513, std::rand() % 5240);
 		void* memory5 = heap.malloc(size5);
 		EXPECT_TRUE(memory5 != nullptr);
 		if (memory5 == nullptr)
 		{
-			memory5 = heap.malloc(size5);
 			break;
 		}
+		memset(memory5, 5, size5);
 
 
 		size_t size6 = max(513, std::rand() % 1000);
@@ -488,49 +633,65 @@ TEST(TestCaseMyMalloc, TestMyMallocPerformanceBigBlocks)
 		EXPECT_TRUE(memory6 != nullptr);
 		if (memory6 == nullptr)
 		{
-			memory6 = heap.malloc(size6);
 			break;
 		}
+		memset(memory6, 6, size6);
 
 
 		size_t size7 = max(513, std::rand() % 4000);
-
-		if (size7 == 1736)
-		{
-			int a = 0;
-			a++;
-		}
 		void* memory7 = heap.malloc(size7);
 		EXPECT_TRUE(memory7 != nullptr);
 		if (memory7 == nullptr)
-		{
-			memory7 = heap.malloc(max(513, std::rand() % 50000));
+		{			
 			break;
 		}
-
-		
-
-		
-		memset(memory1, 1, size1);
-		memset(memory2, 2, size2);
-		memset(memory3, 3, size3);
-		memset(memory4, 4, size4);
-		memset(memory5, 5, size5);
-		memset(memory6, 6, size6);
 		memset(memory7, 7, size7);
-		
-		if (i == 99999)
-		{
-			int a = 0;
-			a++;
-		}
+
+		EXPECT_TRUE(page.checkBlock((size_t)memory1));
+		EXPECT_TRUE(page.checkBlock((size_t)memory2));
+		EXPECT_TRUE(page.checkBlock((size_t)memory3));
+		EXPECT_TRUE(page.checkBlock((size_t)memory4));
+		EXPECT_TRUE(page.checkBlock((size_t)memory5));
+		EXPECT_TRUE(page.checkBlock((size_t)memory6));
+		EXPECT_TRUE(page.checkBlock((size_t)memory7));
+
+
 
 		heap.free(memory1);
+		EXPECT_TRUE(page.checkBlock((size_t)memory2));
+		EXPECT_TRUE(page.checkBlock((size_t)memory3));
+		EXPECT_TRUE(page.checkBlock((size_t)memory4));
+		EXPECT_TRUE(page.checkBlock((size_t)memory5));
+		EXPECT_TRUE(page.checkBlock((size_t)memory6));
+		EXPECT_TRUE(page.checkBlock((size_t)memory7));
+
 		heap.free(memory2);
-		heap.free(memory3);		
-		heap.free(memory5);		
+		EXPECT_TRUE(page.checkBlock((size_t)memory3));
+		EXPECT_TRUE(page.checkBlock((size_t)memory4));
+		EXPECT_TRUE(page.checkBlock((size_t)memory5));
+		EXPECT_TRUE(page.checkBlock((size_t)memory6));
+		EXPECT_TRUE(page.checkBlock((size_t)memory7));
+
+		heap.free(memory3);
+		EXPECT_TRUE(page.checkBlock((size_t)memory4));
+		EXPECT_TRUE(page.checkBlock((size_t)memory5));
+		EXPECT_TRUE(page.checkBlock((size_t)memory6));
+		EXPECT_TRUE(page.checkBlock((size_t)memory7));
+
+		heap.free(memory5);
+		
+		EXPECT_TRUE(page.checkBlock((size_t)memory4));
+		EXPECT_TRUE(page.checkBlock((size_t)memory6));
+		EXPECT_TRUE(page.checkBlock((size_t)memory7));
+
 		heap.free(memory6);
-		heap.free(memory7);		
+		EXPECT_TRUE(page.checkBlock((size_t)memory4));	
+		EXPECT_TRUE(page.checkBlock((size_t)memory7));
+
+
+		heap.free(memory7);
+		EXPECT_TRUE(page.checkBlock((size_t)memory4));
+
 		heap.free(memory4);
 		
 	

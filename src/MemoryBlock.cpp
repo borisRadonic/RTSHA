@@ -1,14 +1,21 @@
 #include "MemoryBlock.h"
-
+#include <cstdio>
+#include <iostream>
 
 namespace internal
 {
-	void MemoryBlock::splitt(size_t new_size)
-	{
-		bool last = this->isLast();
+	void MemoryBlock::splitt(size_t new_size, bool last)
+	{		
 		size_t osize = this->getSize();
-		rtsha_block* pNewNextRight = reinterpret_cast<rtsha_block*>((void*)((size_t)_block + new_size));
+		size_t* pNewBlock = reinterpret_cast<size_t*>((size_t)_block + new_size);
+		*pNewBlock = 0U; /*clear size*/
+		rtsha_block* pNewNextRight = reinterpret_cast<rtsha_block*>(pNewBlock);
 		MemoryBlock nextRight(pNewNextRight);
+
+		if (!this->isLast())
+		{
+			nextRight.clearIsLast();
+		}
 		nextRight.setPrev(*this);
 		nextRight.setSize(osize-new_size);
 		nextRight.setFree();
@@ -33,6 +40,10 @@ namespace internal
 		size_t nsize = osize >> 1U;
 		rtsha_block* pNewNextRight = reinterpret_cast<rtsha_block*>((void*)((size_t)_block + nsize));
 		MemoryBlock nextRight(pNewNextRight);
+		if (!last)
+		{
+			nextRight.clearIsLast();
+		}
 		nextRight.setPrev(*this);
 		nextRight.setSize(nsize);
 		nextRight.setFree();
@@ -62,6 +73,7 @@ namespace internal
 			{
 				size_t tsize = this->getSize();
 				size_t psize = prev.getSize();
+				prev.clearIsLast();
 				prev.setSize(tsize + psize);
 
 				if (!last)
@@ -70,11 +82,12 @@ namespace internal
 					MemoryBlock right(pRight);
 					if( right.isValid() && right.hasPrev() && (right.getPrev() == this->getBlock()) )
 					{
-						right.setPrev(prev.getBlock());
+						right.setPrev(prev.getBlock());						
 					}
 				}
 				else
 				{
+					//cout << "prev set last :" << (size_t)prev.getBlock() << " size " << prev.getSize() << std::endl;
 					prev.setLast();
 				}
 				/*destroy old header*/
@@ -90,22 +103,18 @@ namespace internal
 		if (!this->isLast())
 		{
 			MemoryBlock next(this->getNextBlock());
-			bool isLast = next.isLast();				
-
+			bool isLast = next.isLast();
 			if (!isLast && !next.isLast())
 			{
 				MemoryBlock nextNext(next.getNextBlock());
-
 				rtsha_block* next_next = next.getNextBlock();
-
 				if ( (next_next != nullptr) && (next_next->prev != nullptr) && ((size_t) next_next->prev == (size_t)next.getBlock()) )
 				{
 					if (nextNext.isValid())					
 					{
 						nextNext.setPrev(*this);
 					}
-
-				}				
+				}			
 			}
 			size_t tsize = this->getSize();
 			size_t nsize = next.getSize();

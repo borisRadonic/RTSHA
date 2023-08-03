@@ -23,17 +23,14 @@ namespace internal
 		if ((_ptrMap != nullptr))
 		{
 			mmap::iterator it = _ptrMap->find(key);
-			if (it != _ptrMap->end())
+			while(it != _ptrMap->end())
 			{
-				while (it->first == key)
+				if ((it->first == key) && (it->second == block))
 				{
-					if ((it->first == key) && (it->second == block))
-					{
-						_ptrMap->erase(it);
-						return true;
-					}
-					it++;
+					it = _ptrMap->erase(it);						
+					return true;
 				}
+				it++;
 			}
 		}
 		return false;
@@ -50,6 +47,22 @@ namespace internal
 			}
 		}
 		return 0U;
+	}
+
+	bool FreeMap::exists(const uint64_t key, size_t block)
+	{
+		if ((_ptrMap != nullptr))
+		{
+			mmap::iterator it = _ptrMap->find(key);
+			if (it != _ptrMap->end())
+			{
+				if ((it->first == key) && (it->second == block))
+				{					
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	size_t FreeMap::size() const

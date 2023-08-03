@@ -22,7 +22,7 @@ namespace internal
 			/*set block as allocated*/
 			MemoryBlock block(reinterpret_cast<rtsha_block*>((void*)address));
 			block.setAllocated();
-			this->decreaseFree(size);
+			//this->decreaseFree(size);
 			return block.getAllocAddress();
 		}
 		return allocate_block_at_current_pos(size);
@@ -30,7 +30,7 @@ namespace internal
 
 	void SmallFixMemoryPage::free_block(MemoryBlock& block)
 	{
-		this->increaseFree(block.getSize());
+		//this->increaseFree(block.getSize());
 
 		/*set as free*/
 		block.setFree();

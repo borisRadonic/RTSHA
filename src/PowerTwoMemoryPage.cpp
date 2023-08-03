@@ -38,7 +38,6 @@ namespace internal
 
 					/*set block as allocated*/
 					block.setAllocated();
-					this->decreaseFree(block.getSize());
 					return block.getAllocAddress();
 				}
 				return nullptr;
@@ -50,10 +49,16 @@ namespace internal
 	void PowerTwoMemoryPage::free_block(MemoryBlock& block)
 	{
 		FreeMap* ptrMap = reinterpret_cast<FreeMap*>(this->getFreeMap());
-		this->increaseFree(block.getSize());
+
 		/*set as free*/
 		block.setFree();
 
+		if (this->isLastPageBlock(block))
+		{
+			ptrMap->insert((const uint64_t)block.getSize(), (size_t)block.getBlock());
+			this->incFreeBlocks();
+			return;
+		}
 		/*merging loop left*/		
 		while (block.hasPrev() && (this->getFreeBlocks() > 0U))
 		{		
@@ -62,6 +67,7 @@ namespace internal
 			{
 				/*merge two blocks*/
 				mergeLeft(block);
+				break;
 			}
 			else
 			{
@@ -77,7 +83,8 @@ namespace internal
 			if (next.isValid() && next.isFree() && (next.getSize() == block.getSize()))
 			{
 				/*merge two blocks*/
-				mergeRight(block);
+				//mergeRight(block);
+				break;
 			}
 			else
 			{
@@ -131,7 +138,6 @@ namespace internal
 			/*decrease the number of free blocks*/
 			this->decFreeBlocks();
 		}
-	
 		block.merge_right();
 	}
 }

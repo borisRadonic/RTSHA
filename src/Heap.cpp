@@ -60,7 +60,6 @@ namespace internal
 
 		/*set this page as last page*/
 		page->flags = (uint32_t) size_type;
-		page->free = a_size - sizeof(rtsha_page);
 
 		page->end_position = _heap_current_position + a_size;
 
@@ -83,7 +82,7 @@ namespace internal
 			/*we need additional space for out map data... we can not store data in free blocks... to dangerous...not safe...*/
 			if (max_objects == 0U)
 			{
-				page->max_blocks = (page->free - 2U * INTERNAL_MAP_STORAGE_SIZE - sizeof(rtsha_page)) / (INTERNAL_MAP_STORAGE_SIZE + 512U + sizeof(rtsha_block));
+				page->max_blocks = ((a_size - sizeof(rtsha_page)) - 2U * INTERNAL_MAP_STORAGE_SIZE - sizeof(rtsha_page)) / (INTERNAL_MAP_STORAGE_SIZE + 512U + sizeof(rtsha_block));
 			}
 			else
 			{
@@ -97,8 +96,6 @@ namespace internal
 			page->map_page->free_blocks = 0U;
 
 			page->map_page->end_position = page->end_position;
-
-			page->map_page->free = page->end_position - page->start_map_data;
 
 			page->end_position = page->start_map_data;
 
@@ -127,7 +124,7 @@ namespace internal
 			if (max_objects == 0U)
 			{
 				//todo: platform 32 and 64 bit
-				page->max_blocks = (page->free - 2U * INTERNAL_MAP_STORAGE_SIZE - sizeof(rtsha_page)) / (INTERNAL_MAP_STORAGE_SIZE + 512U + sizeof(rtsha_block));
+				page->max_blocks = ( (a_size - sizeof(rtsha_page)) - 2U * INTERNAL_MAP_STORAGE_SIZE - sizeof(rtsha_page)) / (INTERNAL_MAP_STORAGE_SIZE + 512U + sizeof(rtsha_block));
 			}
 			else
 			{
@@ -145,11 +142,8 @@ namespace internal
 
 			page->map_page->end_position = page->end_position;
 
-			page->map_page->free = page->end_position - page->start_map_data;
-
 			page->end_position = page->start_map_data;
-						
-
+			
 			page->map_page->last_block = NULL;
 			page->map_page->start_map_data = 0U;
 			page->map_page->map_page = nullptr;			
@@ -240,15 +234,16 @@ namespace internal
 		{
 			return rtsha_page_size_type::PageTypeBig;
 		}
-		else if (size <= (size_t) rtsha_page_size_type::PageType16)
+		
+		else if (size <= (size_t) rtsha_page_size_type::PageType32)
 		{
-			return rtsha_page_size_type::PageType16;
+			return rtsha_page_size_type::PageType32;
 		}
-		else if ((size > (size_t)rtsha_page_size_type::PageType16) && (size <= (size_t)rtsha_page_size_type::PageType24))
-		{
-			return rtsha_page_size_type::PageType24;
-		}
-		else if ((size > (size_t)rtsha_page_size_type::PageType24) && (size <= (size_t)rtsha_page_size_type::PageType32))
+		//else if ((size > (size_t)rtsha_page_size_type::PageType16) && (size <= (size_t)rtsha_page_size_type::PageType24))
+		//{
+		//	return rtsha_page_size_type::PageType24;
+		//}
+		else if ((size > (size_t)rtsha_page_size_type::PageType32) && (size <= (size_t)rtsha_page_size_type::PageType32))
 		{
 			return rtsha_page_size_type::PageType32;
 		}
@@ -306,7 +301,7 @@ namespace internal
 		/*try to use first that fits*/
 		for (const auto& page : _pages)
 		{
-			if ( (page != nullptr) && (size < (size_t)page->flags) )
+			if ( (page != nullptr) )
 			{
 				if ( (page->flags != (uint16_t)rtsha_page_size_type::PageTypePowerTwo) &&
 					 (page->flags != (uint16_t)rtsha_page_size_type::PageTypeBig) &&
@@ -342,6 +337,8 @@ namespace internal
 			size_t a_size(size);
 			/*we have header and data*/
 			a_size += sizeof(rtsha_block);
+			/*and size2 as control block*/
+			a_size += sizeof(size_t);
 
 			if (get_big_memorypage() != nullptr)
 			{

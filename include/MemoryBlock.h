@@ -43,7 +43,7 @@ namespace internal
 
 
 		/*old block is resized (on the left side is old block)*/
-		void splitt(size_t new_size);
+		void splitt(size_t new_size, bool last);
 
 		/*old block is on the right side (last block in the chain)*/
 		void splitt_22();
@@ -89,12 +89,21 @@ namespace internal
 
 		inline bool isValid() const
 		{
-			return ((_block != nullptr) && ( _block != _block->prev) && (this->getSize() > 0U));
+			if (_block != nullptr)
+			{
+				size_t size = getSize();
+				if ((_block != _block->prev) && (size > sizeof(size_t)))
+				{
+					size_t* ptrSize2 = (size_t*)((size_t)_block + size - sizeof(size_t));
+					return (*ptrSize2 == size);
+				}
+			}
+			return false;
 		}
 
 		inline void setSize( size_t size )
 		{
-			if (_block->size != 0U)
+			if (size > sizeof(size_t))
 			{
 				bool free = isFree();
 				bool last = isLast();
@@ -107,10 +116,12 @@ namespace internal
 				{
 					setLast();
 				}
+				size_t* ptrSize2 = (size_t*) ((size_t)_block + size - sizeof(size_t));
+				*ptrSize2 = size;
 			}
 			else
 			{
-				_block->size = size;
+				_block->size = 0U;
 			}
 		}
 
@@ -124,6 +135,10 @@ namespace internal
 			if (prev.isValid())
 			{
 				_block->prev = prev.getBlock();
+			}
+			else
+			{
+				_block->prev = NULL;
 			}
 		}
 
@@ -147,14 +162,20 @@ namespace internal
 			return (_block->prev != NULL);
 		}
 
-		inline rtsha_block* getNextBlock()
+		inline rtsha_block* getNextBlock() const
 		{
 			return reinterpret_cast<rtsha_block*>((size_t)_block + this->getSize());
 		}
 
-		inline rtsha_block* getPrev()
+		inline rtsha_block* getPrev() const
 		{
 			return _block->prev;
+		}
+
+		inline void destroy()
+		{
+			_block->prev = NULL;
+			_block->size = 0;
 		}
 		
 	private:

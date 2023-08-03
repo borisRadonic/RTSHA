@@ -8,7 +8,7 @@ namespace internal
 	using namespace std;
 
 	
-	class BigMemoryPage : MemoryPage
+	class BigMemoryPage : public MemoryPage
 	{
 	public:
 		BigMemoryPage() = delete;

@@ -35,9 +35,6 @@ namespace internal
 
 		size_t						start_position			= 0U;
 		size_t						end_position			= 0U;
-
-		//size_t						size					= 0U;
-		size_t						free					= 0U;
 		
 		size_t						position				= 0U;
 		size_t						free_blocks				= 0U;
@@ -72,7 +69,9 @@ namespace internal
 		virtual ~MemoryPage()
 		{
 		}
-				
+
+		bool checkBlock(size_t address);
+
 		virtual void* allocate_block(size_t size) = 0;
 		
 		virtual void free_block(MemoryBlock& block) = 0;
@@ -86,6 +85,7 @@ namespace internal
 				_page->free_blocks++;
 			}
 		}
+				
 			
 	protected:
 
@@ -127,11 +127,22 @@ namespace internal
 			return 0U;
 		}
 
-		inline void incPosition(size_t inc_val)
+		inline void incPosition(size_t val)
 		{
 			if (_page != nullptr)
 			{
-				_page->position += inc_val;
+				_page->position += val;
+			}
+		}
+
+		inline void decPosition(size_t val)
+		{
+			if (_page != nullptr)
+			{
+				if (_page->position >= val)
+				{
+					_page->position -= val;
+				}				
 			}
 		}
 
@@ -143,31 +154,7 @@ namespace internal
 				_page->free_blocks--;
 			}
 		}
-
-		inline void setFree(size_t free)
-		{
-			_page->free = free;
-		}
 		
-		inline void increaseFree(size_t size)
-		{
-			_page->free = _page->free + size;			
-		}
-
-		inline void decreaseFree(size_t size)
-		{
-			if (size <= _page->free)
-			{
-				_page->free = _page->free - size;
-			}
-		}
-
-		inline size_t getFree() const
-		{
-			return _page->free;
-		}
-
-
 		inline size_t getEndPosition() const
 		{
 			return _page->end_position;
@@ -204,7 +191,11 @@ namespace internal
 
 		inline bool isLastPageBlock(MemoryBlock& block) const
 		{
-			return (block.getBlock() == _page->last_block);
+			if (this->getPosition() == ((size_t)block.getBlock() + block.getSize()))
+			{
+				return (block.getBlock() == _page->last_block);
+			}
+			return false;
 		}
 
 		inline rtsha_block* getLastBlock() const
@@ -212,9 +203,9 @@ namespace internal
 			return _page->last_block;
 		}
 
-		inline void setLastBlock( const MemoryBlock& block)
+		inline void setLastBlock()
 		{
-			_page->last_block = block.getBlock();
+			_page->last_block = (rtsha_block*)this->getPosition();
 		}
 
 		rtsha_page* _page;

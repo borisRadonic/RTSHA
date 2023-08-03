@@ -30,6 +30,8 @@ namespace internal
 
 		size_t find(const uint64_t key);
 
+		bool exists(const uint64_t key, size_t block);
+
 		size_t size() const;
 				
 	private:
