@@ -203,9 +203,9 @@ namespace internal
 			return _page->last_block;
 		}
 
-		inline void setLastBlock()
+		inline void setLastBlock(const MemoryBlock& block)
 		{
-			_page->last_block = (rtsha_block*)this->getPosition();
+			_page->last_block = block.getBlock();
 		}
 
 		rtsha_page* _page;

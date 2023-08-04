@@ -27,6 +27,8 @@ namespace internal
 		}
 		else
 		{
+			/*it should never happen -  the last 64B internal block can not be free*/
+			assert(false);
 			nextRight.setLast();
 			clearIsLast();
 		}
@@ -38,7 +40,11 @@ namespace internal
 		bool last = this->isLast();
 		size_t osize = this->getSize();
 		size_t nsize = osize >> 1U;
-		rtsha_block* pNewNextRight = reinterpret_cast<rtsha_block*>((void*)((size_t)_block + nsize));
+
+		size_t* pNewBlock = reinterpret_cast<size_t*>((size_t)_block + nsize);
+		*pNewBlock = 0U; /*clear size*/
+
+		rtsha_block* pNewNextRight = reinterpret_cast<rtsha_block*>(pNewBlock);
 		MemoryBlock nextRight(pNewNextRight);
 		if (!last)
 		{
@@ -56,6 +62,7 @@ namespace internal
 		else
 		{
 			/*normaly it should not be the case (last block is the smallest in Power Two Page)*/
+			assert(false);
 			nextRight.setLast();
 			clearIsLast();
 		}
@@ -87,7 +94,8 @@ namespace internal
 				}
 				else
 				{
-					//cout << "prev set last :" << (size_t)prev.getBlock() << " size " << prev.getSize() << std::endl;
+					/*it should never happen -  the last block*/
+					assert(false);
 					prev.setLast();
 				}
 				/*destroy old header*/

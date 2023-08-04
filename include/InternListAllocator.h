@@ -35,7 +35,7 @@ namespace internal
             }
             if ((_allocated_intern == 0U) && (_page->lastFreeBlockAddress == 0U))
             {
-                if (n > 1)
+                if (n > 1U)
                 {
                     return nullptr;
                 }

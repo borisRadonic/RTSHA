@@ -172,7 +172,7 @@ namespace internal
 			return _block->prev;
 		}
 
-		inline void destroy()
+		inline void prepare()
 		{
 			_block->prev = NULL;
 			_block->size = 0;

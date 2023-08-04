@@ -22,8 +22,7 @@ namespace internal
 				MemoryBlock block(reinterpret_cast<rtsha_block*>((void*)address));
 				size_t orig_size = block.getSize();
 				if (block.isValid() && (orig_size >= size))
-				{
-					
+				{					
 					/*delete used block from the map of free blocks*/
 					const uint64_t k = (const uint64_t)orig_size;
 					if (ptrMap->del(k, (size_t)block.getBlock()))
@@ -83,7 +82,7 @@ namespace internal
 			if (next.isValid() && next.isFree() && (next.getSize() == block.getSize()))
 			{
 				/*merge two blocks*/
-				//mergeRight(block);
+				mergeRight(block);
 				break;
 			}
 			else
@@ -125,8 +124,7 @@ namespace internal
 			/*decrease the number of free blocks*/
 			this->decFreeBlocks();
 		}
-		
-		block.merge_left();		
+		block.merge_left();
 	}
 
 	void PowerTwoMemoryPage::mergeRight(MemoryBlock& block)

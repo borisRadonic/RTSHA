@@ -14,7 +14,6 @@ namespace internal
 		{
 			return nullptr;
 		}
-
 		bool deleted = false;
 		FreeMap* ptrMap = reinterpret_cast<FreeMap*>(this->getFreeMap());
 		if ((this->getFreeBlocks() > 0U) || (ptrMap->size() > 0U))
@@ -34,7 +33,6 @@ namespace internal
 					{
 						/*decrease the number of free blocks*/
 						this->decFreeBlocks();
-						cout << "a-deleted  " << (size_t)block.getBlock() << " size " << block.getSize() << std::endl;
 						deleted = true;
 					}
 					
@@ -47,68 +45,38 @@ namespace internal
 					
 					/*set block as allocated*/
 					block.setAllocated();
-
-					cout << "allocated u" << (size_t)block.getBlock() << " size " << block.getSize() << std::endl;
+										
 					return block.getAllocAddress();
 				}
-				return NULL;
 			}
 		}
-		return MemoryPage::allocate_block_at_current_pos(size);
+		return NULL;
 	}
 
 	void BigMemoryPage::free_block(MemoryBlock& block)
 	{
 		FreeMap* ptrMap = reinterpret_cast<FreeMap*>(this->getFreeMap());
 	
-		cout << "free " << (size_t)block.getBlock() << " size " << block.getSize() << std::endl;
 		/*set as free*/
 		block.setFree();
-				
-		if (!block.isValid())
+						
+		if (this->isLastPageBlock(block))
 		{
+			/*it should never happen -  the last 64B internal block can not be free*/
+			assert(false);			
 			return;
 		}
-		/*
-		if (block.isLast() && this->isLastPageBlock(block))
-		{
-			size_t dec = block.getSize();
-			if (this->getPosition() == ((size_t)block.getBlock() + dec))
-			{
-				if (block.hasPrev())
-				{
-					MemoryBlock prev(block.getPrev());
-					if (prev.getNextBlock() == block.getBlock())
-					{
-						prev.setLast();												
-						this->decPosition(dec);
-						this->decPosition(prev.getSize());
-						this->setLastBlock();
-						this->incPosition(prev.getSize());
-						MemoryBlock old(block.getBlock());
-						old.destroy();
-						return;
-					}
-					else
-					{
-						return;
-					}
-				}
-			}			
-		}
-		*/
+		
 		bool merged(false);
 		/*merging loop left*/
 		while (block.hasPrev() && (this->getFreeBlocks() > 0U))
 		{
 			MemoryBlock prev(block.getPrev());
 		
-			size_t psize = this->getEndPosition() - this->getStartPosition();
-		
+			size_t psize = this->getEndPosition() - this->getStartPosition();		
 			assert(prev.getSize() <= psize);
 			
-
-			if ( /*(prev.getSize() < psize) && */prev.isValid() && prev.isFree() && (prev.getSize() > 0U))
+			if ( prev.isValid() && prev.isFree() && (prev.getSize() > 0U))
 			{
 				/*merge two blocks*/
 				mergeLeft(block);
@@ -122,32 +90,22 @@ namespace internal
 		}
 		/*merging loop right*/
 		while (!block.isLast() && !this->isLastPageBlock(block) && (this->getFreeBlocks() > 0U))
-		{
-			if (fitOnPage(block.getSize()))
-			{
-				MemoryBlock next(block.getNextBlock());
+		{			
+			MemoryBlock next(block.getNextBlock());
 
-				if (next.isValid() && next.isFree() && (next.getSize() > 0U) && next.hasPrev() && (next.getPrev() == block.getBlock()))
-				{
-					/*merge two blocks*/
-					mergeRight(block);
-					merged = true;
-					//break;
-				}
-				else
-				{
-					break;
-				}
+			if (next.isValid() && next.isFree() && !next.isLast() && next.hasPrev() && (next.getPrev() == block.getBlock()))
+			{
+				/*merge two blocks*/
+				//mergeRight(block);
+				merged = true;
+				break;
 			}
 			else
 			{
 				break;
-		 	}
+			}
 		}
-
-		assert(ptrMap->size() == this->getFreeBlocks());
-			
-		
+		assert(ptrMap->size() == this->getFreeBlocks());		
 
 		if (block.isValid() && !merged)
 		{					
@@ -156,33 +114,20 @@ namespace internal
 				ptrMap->insert((const uint64_t)block.getSize(), (size_t)block.getBlock());
 				this->incFreeBlocks();
 			}			
-		}		
-
-	
+		}
 	}
 
 	void BigMemoryPage::splitBlock(MemoryBlock& block, size_t size)
 	{
-		FreeMap* ptrMap = reinterpret_cast<FreeMap*>(this->getFreeMap());
-				
-		if (block.isLast())
-		{
-			cout << "splitt last  " << (size_t)block.getBlock() << " size " << block.getSize() << std::endl;
-		}
-
-		cout << "splitt " << (size_t)block.getBlock() << " size " << block.getSize() << std::endl;
-		
+		FreeMap* ptrMap = reinterpret_cast<FreeMap*>(this->getFreeMap());		
 			
 		block.splitt(size, this->isLastPageBlock(block));
-
-
-		cout << "splitted " << (size_t)block.getBlock() << " size " << block.getSize() << std::endl;
+				
 		if (block.isValid() && !block.isLast())
 		{
 			MemoryBlock next(block.getNextBlock());
 			if (next.isValid())
-			{
-				cout << "inserted " << (size_t)next.getBlock() << " size " << next.getSize() << std::endl;
+			{				
 				ptrMap->insert((const uint64_t)next.getSize(), (size_t)next.getBlock());
 				this->incFreeBlocks();
 			}
@@ -193,72 +138,55 @@ namespace internal
 	{
 		MemoryBlock prev(block.getPrev());
 
-
-		if (block.isLast())
-		{
-			cout << "merge last  " << (size_t)block.getBlock() << " size " << block.getSize() << std::endl;
-		}
-
 		if (((size_t)block.getBlock() - (size_t)prev.getBlock()) > prev.getSize())
 		{
 			assert(false);
 		}
 
 		if (prev.isFree())
-		{
-			cout << "block - prev  " << (size_t)block.getBlock() - (size_t) prev.getBlock() << std::endl;
-
+		{			
 			FreeMap* ptrMap = reinterpret_cast<FreeMap*>(this->getFreeMap());
 			if (ptrMap->del((const uint64_t)prev.getSize(), (size_t)prev.getBlock()))
 			{
-				cout << "m deleted prev " << (size_t)prev.getBlock() << " size " << prev.getSize() << std::endl;
 				/*decrease the number of free blocks*/
-				this->decFreeBlocks();
-
-				if (ptrMap->del((const uint64_t)block.getSize(), (size_t)block.getBlock()))
-				{
-					cout << "m deleted block " << (size_t)block.getBlock() << " size " << block.getSize() << std::endl;
-					/*decrease the number of free blocks*/
-					this->decFreeBlocks();
-				}
-						
+				this->decFreeBlocks();	
 			}
 			else
 			{
 				assert(false);
 			}
-			cout << "merge left  2 blocks " << (size_t)prev.getBlock() << " size " << prev.getSize() << " and " << (size_t)block.getBlock() << " size " << block.getSize() << std::endl;
 			block.merge_left();
-			cout << "merged left " << (size_t)block.getBlock() << " size " << block.getSize() << std::endl;
 
 			assert(block.isValid());
 
 			if (block.isValid()) 
 			{
 				ptrMap->insert((const uint64_t)block.getSize(), (size_t)block.getBlock());
-				cout << "inserted " << (size_t)block.getBlock() << " size " << block.getSize() << std::endl;
 				this->incFreeBlocks();
 			}
-
 		}
-
-		//if (block.isLast())
-		//{
-		//	cout << "set last: " << (size_t)block.getBlock() << " size " << block.getSize() << std::endl;			
-		//}
 	}
 
 	void BigMemoryPage::mergeRight(MemoryBlock& block)
 	{
 		MemoryBlock next(block.getNextBlock());
-		FreeMap* ptrMap = reinterpret_cast<FreeMap*>(this->getFreeMap());
-		if (ptrMap->del((const uint64_t)next.getSize(), (size_t)next.getBlock()))
+		if (next.isValid() && next.isFree())
 		{
-			/*decrease the number of free blocks*/
-			this->decFreeBlocks();
+			FreeMap* ptrMap = reinterpret_cast<FreeMap*>(this->getFreeMap());
+			if (ptrMap->del((const uint64_t)next.getSize(), (size_t)next.getBlock()))
+			{
+				/*decrease the number of free blocks*/
+				this->decFreeBlocks();
+			}
+			block.merge_right();
+
+			assert(block.isValid());
+
+			if (block.isValid())
+			{
+				ptrMap->insert((const uint64_t)block.getSize(), (size_t)block.getBlock());
+				this->incFreeBlocks();
+			}
 		}
-		cout << "merged right: " << (size_t)next.getBlock() << " size " << next.getSize() << " and left " << (size_t)block.getBlock() << " size " << block.getSize() << std::endl;
-		block.merge_right();
-		
 	}
 }

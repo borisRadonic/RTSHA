@@ -536,24 +536,84 @@ TEST(TestCaseMyMalloc, TestMyMallocSmallMemory)
 
 TEST(TestCaseMyMalloc, TestMallocPerformanceBigBlocks)
 {
-
 	for (int i = 0; i < 100000; i++)
 	{
-		void* memory1 = (void*)malloc(max(512, std::rand() % 1024));
-		void* memory2 = (void*)malloc(max(512, std::rand() % 1024));
-		void* memory3 = (void*)malloc(max(512, std::rand() % 10240));
-		void* memory4 = (void*)malloc(max(512, std::rand() % 50000));
-		void* memory5 = (void*)malloc(max(512, std::rand() % 5240));
-		void* memory6 = (void*)malloc(max(512, std::rand() % 1000));
-		void* memory7 = (void*)malloc(max(512, std::rand() % 4000));
+		size_t size1 = max(513, std::rand() % 10240);
+		void* memory1 = malloc(size1);
+		if (memory1 == nullptr)
+		{
+			break;
+		}
+		memset(memory1, 1, size1);
+		EXPECT_TRUE(memory1 != nullptr);
+					
 
-		free(memory5);
-		free(memory7);
-		free(memory6);
-		free(memory2);
-		free(memory4);
-		free(memory3);
+
+		size_t size2 = max(513, std::rand() % 20000);
+		void* memory2 = malloc(size2);
+		EXPECT_TRUE(memory2 != nullptr);
+		if (memory2 == nullptr)
+		{
+			break;
+		}
+		memset(memory2, 2, size2);
+
+		size_t size3 = max(513, std::rand() % 10240);
+		void* memory3 = malloc(size3);
+		EXPECT_TRUE(memory3 != nullptr);
+		if (memory3 == nullptr)
+		{
+			break;
+		}
+
+		memset(memory3, 3, size3);
+			
+		size_t size4 = max(513, std::rand() % 50000);
+
+		void* memory4 = malloc(size4);
+		EXPECT_TRUE(memory4 != nullptr);
+		if (memory4 == nullptr)
+		{
+			break;
+		}
+		memset(memory4, 4, size4);
+
+		size_t size5 = max(513, std::rand() % 5240);
+		void* memory5 = malloc(size5);
+		EXPECT_TRUE(memory5 != nullptr);
+		if (memory5 == nullptr)
+		{
+			break;
+		}
+		memset(memory5, 5, size5);
+
+
+		size_t size6 = max(513, std::rand() % 1000);
+		void* memory6 = malloc(size6);
+		EXPECT_TRUE(memory6 != nullptr);
+		if (memory6 == nullptr)
+		{
+			break;
+		}
+		memset(memory6, 6, size6);
+
+
+		size_t size7 = max(513, std::rand() % 4000);
+		void* memory7 = malloc(size7);
+		EXPECT_TRUE(memory7 != nullptr);
+		if (memory7 == nullptr)
+		{
+			break;
+		}
+		memset(memory7, 7, size7);
+				
 		free(memory1);
+		free(memory2);
+		free(memory3);
+		free(memory5);
+		free(memory6);
+		free(memory7);
+		free(memory4);		
 	}
 }
 
@@ -688,199 +748,9 @@ TEST(TestCaseMyMalloc, TestMyMallocPerformanceBigBlocks)
 		EXPECT_TRUE(page.checkBlock((size_t)memory4));	
 		EXPECT_TRUE(page.checkBlock((size_t)memory7));
 
-
 		heap.free(memory7);
 		EXPECT_TRUE(page.checkBlock((size_t)memory4));
 
 		heap.free(memory4);
-		
-	
 	}
-}
-
-TEST(TestCasePage16, TestName)
-{
-	return;
-	stringstream textStream;
-
-/*
-	rtsha_heap_t* heapPtr;
-	size_t size = 0x1F4000;
-	void* heapMemory = malloc(size);
-	EXPECT_TRUE(heapMemory != NULL);
-
-
-	
-	heapPtr = rtsha_heap_init(heapMemory, size);
-
-	size_t free_space = rtsha_get_free_space();
-
-	
-	
-	rtsha_page* pagePtr0 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_24, RTSHA_PAGE_SIZE_64K);
-	rtsha_page* pagePtr1 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_24, RTSHA_PAGE_SIZE_64K);
-	
-	VisualizePage visPage9(pagePtr0);
-	visPage9.print(textStream);
-	
-	std::vector<void*> ptrMemory;
-
-	uint32_t max = pagePtr0->free / (16U + sizeof(rtsha_block) );
-
-	for (uint32_t i = 0; i < 5000; i++)
-	{
-		void* ptr = rtsha_malloc(16U);
-		if (ptr)
-		{
-			ptrMemory.push_back(ptr);
-		}
-		else
-		{
-			EXPECT_EQ(i, 4678);
-			break;
-		}
-	}
-	*/
-	
-	/*clear first 100*/
-	for (uint32_t i = 0; i < 100; i++)
-	{
-		//heap.free(ptrMemory[i]);
-	}
-	/*
-
-	EXPECT_EQ(100U, pagePtr0->free_blocks);
-	EXPECT_EQ( 2412U, pagePtr0->free );
-
- 	for (uint32_t i = 100; i < 4678; i++)
-	{
-		heap.free(ptrMemory[i]);
-	}
-	*/
-	//visPage9.print(textStream);
-
-	//EXPECT_EQ(pagePtr0->free, 65504U);
-
-	//EXPECT_EQ(pagePtr1->free, 62496U);
-
-
-	for (uint32_t i = 0; i < 9000; i++)
-	{
-		//void* ptr = rtsha_malloc(16U);
-		//if (!ptr)
-		//{
-		//	EXPECT_EQ(i, 4094U);
-		//	break;
-		//}
-	}
-
-	//textStream << std::endl;
-	//textStream << "Page0 free:" << pagePtr0->free << std::endl;
-	//textStream << "Page1 free:" << pagePtr1->free << std::endl;
-
-	//visPage9.print(textStream);
-	//cout << textStream.str();
-}
-
-
-TEST(TestCaseName, TestName)
-{
-	/*
-	stringstream textStream;
-	
-	rtsha_heap_t* heapPtr;
-	size_t size = 0x1F4000;
-	void* heapMemory = malloc(size);
-	EXPECT_TRUE(heapMemory != NULL);
-	
-
-	heapPtr = rtsha_heap_init(heapMemory, size);
-
-	size_t free_space = rtsha_get_free_space();
-
-
-	rtsha_page* pagePtr0 = rtsha_add_page( heapPtr, RTSHA_PAGE_TYPE_24, RTSHA_PAGE_SIZE_64K );
-	free_space = rtsha_get_free_space();
-
-	rtsha_page* pagePtr1 = rtsha_add_page( heapPtr, RTSHA_PAGE_TYPE_24, RTSHA_PAGE_SIZE_64K );
-	free_space = rtsha_get_free_space();
-	
-	rtsha_page* pagePtr3 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_32, RTSHA_PAGE_SIZE_64K);
-	free_space = rtsha_get_free_space();
-
-	rtsha_page* pagePtr4 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_32, RTSHA_PAGE_SIZE_64K);
-	free_space = rtsha_get_free_space();
-
-	rtsha_page* pagePtr5 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_64, RTSHA_PAGE_SIZE_256K);
-	free_space = rtsha_get_free_space();
-
-	rtsha_page* pagePtr6 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_128, RTSHA_PAGE_SIZE_256K);
-	free_space = rtsha_get_free_space();
-
-	rtsha_page* pagePtr7 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_256, RTSHA_PAGE_SIZE_256K);
-	free_space = rtsha_get_free_space();
-
-	rtsha_page* pagePtr8 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_512, RTSHA_PAGE_SIZE_512K);
-	free_space = rtsha_get_free_space();
-
-	rtsha_page* pagePtr9 = rtsha_add_page(heapPtr, RTSHA_PAGE_TYPE_BIG, free_space);
-	free_space = rtsha_get_free_space();
-
-	void* ptr1 = rtsha_malloc(2000);
-	void* ptr2 = rtsha_malloc(1200);
-	void* ptr3 = rtsha_malloc(1300);
-	void* ptr4 = rtsha_malloc(2000);
-	void* ptr5 = rtsha_malloc(1200);
-	
-	VisualizePage visPage9(pagePtr9);
-	visPage9.print(textStream);
-	
-	textStream << "F 1200" << std::endl;
-	heap.free(ptr2);
-
-	visPage9.print(textStream);
-	
-
-	heap.free(ptr2);
-	*/
-	/*test best fit -identical*/
-	//ptr2 = rtsha_malloc(1200);
-	//textStream << "A 1200" << std::endl;
-	//visPage9.print(textStream);
-		
-	//textStream << "F 1200" << std::endl;
-	//heap.free(ptr2);
-	//visPage9.print(textStream);
-
-	/*
-	ptr2 = rtsha_malloc(1204);
-	textStream << "A 1204" << std::endl;
-	visPage9.print(textStream);
-
-	heap.free(ptr2);
-	textStream << "F 1204" << std::endl;
-	visPage9.print(textStream);
-		
-
-	textStream << "F 2000" << std::endl;
-	heap.free(ptr4);
-	visPage9.print(textStream);
-		
-	textStream << "F 1300 (should shrink left and right)" << std::endl;
-	heap.free(ptr3);
-	visPage9.print(textStream);
-	
-	textStream << "F 1200" << std::endl;
-	heap.free(ptr5);
-	visPage9.print(textStream);
-
-	textStream << "F 2000" << std::endl;
-	heap.free(ptr1);
-	visPage9.print(textStream);
-	
-	cout << textStream.str();
-	*/
-
-  EXPECT_EQ(1, 1);
-  EXPECT_TRUE(true);
 }

@@ -109,6 +109,41 @@ namespace internal
 
 			_heap_current_position += a_size;
 			page->next = (rtsha_page*)(void*)_heap_current_position;
+
+			if (page->end_position <= (page->position + 64U))
+			{
+				return false;
+			}
+
+			FreeMap* ptrMap = reinterpret_cast<FreeMap*>(page->ptr_list_map);
+			BigMemoryPage mem_page(page);
+			/*create one big block (size is page_size-64)*/
+			/*this block will be splitted...*/
+			size_t* pFirstBlock = reinterpret_cast<size_t*>(page->position);
+			*pFirstBlock = 0U;
+			MemoryBlock first(reinterpret_cast<rtsha_block*>(pFirstBlock));
+			size_t bigSize = page->end_position - page->position - 64U;
+			first.prepare();
+			first.setSize(bigSize);
+			first.setAsFirst();
+			first.setFree();
+						
+			ptrMap->insert((const uint64_t)first.getSize(), (size_t)first.getBlock());
+
+			/*create one 65B blockat the end of page*/
+			/*this block will be not used*/
+			size_t lastBlock = page->end_position - 64U;
+				
+			size_t* pLastBlock = reinterpret_cast<size_t*>(lastBlock);
+			*pLastBlock = 0U;
+			MemoryBlock block(reinterpret_cast<rtsha_block*>(pLastBlock));
+			block.setSize(64U);
+			block.setPrev(first);
+			block.setAllocated();
+			block.setLast();
+			page->last_block = block.getBlock();
+			page->position = page->end_position;
+			mem_page.incFreeBlocks();
 		}
 		else if (rtsha_page_size_type::PageTypePowerTwo == size_type)
 		{
@@ -169,7 +204,7 @@ namespace internal
 			{
 				if (rest < val)
 				{
-					val = val >> 1U; /*divide with two by shiftibg 1 bit right*/
+					val = val >> 1U; /*divide by two*/
 				}
 				else
 				{					

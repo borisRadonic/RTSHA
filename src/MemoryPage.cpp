@@ -12,7 +12,7 @@ namespace internal
 		if (this->fitOnPage(size))
 		{
 			MemoryBlock block(reinterpret_cast<rtsha_block*>((void*)this->getPosition()));
-			block.destroy(); /*memory can contain old bits*/
+			block.prepare(); /*memory can contain old bits*/
 			block.setSize(size);	
 			if (this->hasLastBlock())
 			{
@@ -25,7 +25,7 @@ namespace internal
 				block.setAsFirst();
 			}
 			block.setLast();
-			this->setLastBlock();
+			this->setLastBlock(block);
 			this->incPosition(size);
 			//cout << "new allocated " << (size_t)block.getBlock() << " size " << block.getSize() << std::endl;
 			return block.getAllocAddress();
