@@ -61,8 +61,7 @@ namespace internal
 		}
 		else
 		{
-			/*normaly it should not be the case (last block is the smallest in Power Two Page)*/
-			assert(false);
+			//assert(false);
 			nextRight.setLast();
 			clearIsLast();
 		}

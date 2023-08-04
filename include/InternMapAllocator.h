@@ -55,7 +55,7 @@ namespace internal
             {
                 SmallFixMemoryPage map_page(_page->map_page);
 
-                size_t address = (size_t)(void*)p;
+                size_t address = reinterpret_cast<size_t>(p);
                 address -= (2U * sizeof(size_t)); /*skip size and pointer to prev*/
 
                 MemoryBlock block((rtsha_block*)(void*)address);

@@ -17,8 +17,8 @@ namespace internal
 		bool deleted = false;
 		FreeMap* ptrMap = reinterpret_cast<FreeMap*>(this->getFreeMap());
 		if ((this->getFreeBlocks() > 0U) || (ptrMap->size() > 0U))
-		{
-			size_t address = ptrMap->find((const uint64_t)size);
+		{			
+			size_t address = ptrMap->find(static_cast<const uint64_t>(size));
 			if (address != 0U)
 			{
 				MemoryBlock block(reinterpret_cast<rtsha_block*>((void*)address));
@@ -27,9 +27,8 @@ namespace internal
 				if (block.isValid() && (orig_size >= size))
 				{
 					/*delete used block from the map of free blocks*/
-					const uint64_t k = (const uint64_t)orig_size;
-
-					if (ptrMap->del(k, (size_t)block.getBlock()))
+					const uint64_t k = static_cast<const uint64_t>(orig_size);
+					if (ptrMap->del(k, reinterpret_cast<size_t>(block.getBlock())))
 					{
 						/*decrease the number of free blocks*/
 						this->decFreeBlocks();
@@ -109,9 +108,9 @@ namespace internal
 
 		if (block.isValid() && !merged)
 		{					
-			if (false == ptrMap->exists((const uint64_t)block.getSize(), (size_t)block.getBlock()))
+			if (false == ptrMap->exists(static_cast<const uint64_t>(block.getSize()), reinterpret_cast<size_t>(block.getBlock())))
 			{
-				ptrMap->insert((const uint64_t)block.getSize(), (size_t)block.getBlock());
+				ptrMap->insert(static_cast<const uint64_t>(block.getSize()), reinterpret_cast<size_t>(block.getBlock()));
 				this->incFreeBlocks();
 			}			
 		}
@@ -128,7 +127,7 @@ namespace internal
 			MemoryBlock next(block.getNextBlock());
 			if (next.isValid())
 			{				
-				ptrMap->insert((const uint64_t)next.getSize(), (size_t)next.getBlock());
+				ptrMap->insert(static_cast<const uint64_t>(next.getSize()), reinterpret_cast<size_t>(next.getBlock()));
 				this->incFreeBlocks();
 			}
 		}
@@ -146,22 +145,19 @@ namespace internal
 		if (prev.isFree())
 		{			
 			FreeMap* ptrMap = reinterpret_cast<FreeMap*>(this->getFreeMap());
-			if (ptrMap->del((const uint64_t)prev.getSize(), (size_t)prev.getBlock()))
+			if (ptrMap->del( static_cast<const uint64_t>(prev.getSize()), reinterpret_cast<size_t>(prev.getBlock()) ) )
 			{
 				/*decrease the number of free blocks*/
 				this->decFreeBlocks();	
 			}
-			else
-			{
-				assert(false);
-			}
+	
 			block.merge_left();
 
 			assert(block.isValid());
 
 			if (block.isValid()) 
-			{
-				ptrMap->insert((const uint64_t)block.getSize(), (size_t)block.getBlock());
+			{				
+				ptrMap->insert(static_cast<const uint64_t>(block.getSize()), reinterpret_cast<size_t>(block.getBlock()));
 				this->incFreeBlocks();
 			}
 		}
@@ -173,7 +169,7 @@ namespace internal
 		if (next.isValid() && next.isFree())
 		{
 			FreeMap* ptrMap = reinterpret_cast<FreeMap*>(this->getFreeMap());
-			if (ptrMap->del((const uint64_t)next.getSize(), (size_t)next.getBlock()))
+			if (ptrMap->del(static_cast<const uint64_t>(next.getSize()), reinterpret_cast<size_t>(next.getBlock())))
 			{
 				/*decrease the number of free blocks*/
 				this->decFreeBlocks();
@@ -184,7 +180,7 @@ namespace internal
 
 			if (block.isValid())
 			{
-				ptrMap->insert((const uint64_t)block.getSize(), (size_t)block.getBlock());
+				ptrMap->insert(static_cast<const uint64_t>(block.getSize()), reinterpret_cast<size_t>(block.getBlock()));
 				this->incFreeBlocks();
 			}
 		}

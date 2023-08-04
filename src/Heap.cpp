@@ -59,7 +59,7 @@ namespace internal
 			
 
 		/*set this page as last page*/
-		page->flags = (uint32_t) size_type;
+		page->flags = static_cast<uint32_t>( size_type );
 
 		page->end_position = _heap_current_position + a_size;
 
@@ -92,7 +92,7 @@ namespace internal
 
 			page->map_page = reinterpret_cast<rtsha_page*>(page->start_map_data);
 
-			page->map_page->flags = (uint32_t)rtsha_page_size_type::PageType64;
+			page->map_page->flags = static_cast<uint32_t>( rtsha_page_size_type::PageType64 );
 			page->map_page->free_blocks = 0U;
 
 			page->map_page->end_position = page->end_position;
@@ -172,7 +172,7 @@ namespace internal
 			
 			page->map_page = reinterpret_cast<rtsha_page*>(page->start_map_data);
 
-			page->map_page->flags = (uint32_t)rtsha_page_size_type::PageType64;
+			page->map_page->flags = static_cast<uint32_t>(rtsha_page_size_type::PageType64);
 			page->map_page->free_blocks = 0U;
 
 			page->map_page->end_position = page->end_position;
@@ -242,7 +242,7 @@ namespace internal
 		{
 			page->start_map_data = 0U;
 			page->map_page = nullptr;
-			page->ptr_list_map = reinterpret_cast<size_t> (reinterpret_cast<void*>(createFreeList(page)));
+			page->ptr_list_map = reinterpret_cast<size_t> (static_cast<void*>(createFreeList(page)));
 			page->free_blocks = 0U;
 			_heap_current_position += a_size;
 			page->next = (rtsha_page*)(void*)_heap_current_position;
@@ -310,7 +310,7 @@ namespace internal
 		{
 			for (const auto& page : _pages)
 			{
-				if ((page != nullptr) && (page->flags == (uint16_t)ideal_page))
+				if ((page != nullptr) && (page->flags == static_cast<uint32_t>( ideal_page) ))
 				{
 					return page;
 				}
@@ -325,7 +325,7 @@ namespace internal
 				/*use big page*/
 				for (const auto& page : _pages)
 				{
-					if ((page != nullptr) && (page->flags == (uint16_t)rtsha_page_size_type::PageTypeBig))
+					if ((page != nullptr) && (page->flags == static_cast<uint32_t>( rtsha_page_size_type::PageTypeBig)))
 					{
 						return page;
 					}
@@ -338,13 +338,13 @@ namespace internal
 		{
 			if ( (page != nullptr) )
 			{
-				if ( (page->flags != (uint16_t)rtsha_page_size_type::PageTypePowerTwo) &&
-					 (page->flags != (uint16_t)rtsha_page_size_type::PageTypeBig) &&
-					 (size <= (size_t) page->flags))
+				if ( (page->flags != static_cast<uint32_t>( rtsha_page_size_type::PageTypePowerTwo)) &&
+					 (page->flags != static_cast<uint32_t>( rtsha_page_size_type::PageTypeBig)) &&
+					 (size <= static_cast<size_t>(page->flags)) )
 				{
 					return page;
 				}
-				else if (page->flags == (uint16_t)rtsha_page_size_type::PageTypePowerTwo)
+				else if (page->flags == static_cast<uint32_t>(rtsha_page_size_type::PageTypePowerTwo))
 				{
 					return page;
 				}
@@ -357,7 +357,7 @@ namespace internal
 	{
 		for (const auto& page : _pages)
 		{
-			if ((page != nullptr) && (page->flags == (uint16_t)rtsha_page_size_type::PageTypeBig))
+			if ((page != nullptr) && (page->flags == static_cast<uint32_t>(rtsha_page_size_type::PageTypeBig)))
 			{
 				return page;
 			}
@@ -387,9 +387,9 @@ namespace internal
 						return NULL;
 					}
 
-					if (page->flags != (uint16_t)rtsha_page_size_type::PageTypeBig)
+					if (page->flags != static_cast<uint32_t>(rtsha_page_size_type::PageTypeBig))
 					{
-						a_size = (size_t)page->flags;
+						a_size = page->flags;
 						SmallFixMemoryPage memory_page(page);
 						return memory_page.allocate_block(a_size);
 					}
@@ -410,14 +410,14 @@ namespace internal
 					_last_heap_error = RTSHA_NoFreePage;
 					return NULL;
 				}
-				if (page->flags == (uint16_t)rtsha_page_size_type::PageTypePowerTwo)
+				if (page->flags == static_cast<uint32_t>(rtsha_page_size_type::PageTypePowerTwo))
 				{
 					PowerTwoMemoryPage memory_page(page);
 					return memory_page.allocate_block(a_size);
 				}
 				else
 				{
-					a_size = (size_t)page->flags;
+					a_size = page->flags;
 					SmallFixMemoryPage memory_page(page);
 					return memory_page.allocate_block(a_size);
 				}
@@ -445,12 +445,12 @@ namespace internal
 
 					if ( (page != nullptr) && (!block.isFree()) )
 					{
-						if (page->flags == (uint16_t)rtsha_page_size_type::PageTypeBig)
+						if (page->flags == static_cast<uint32_t>(rtsha_page_size_type::PageTypeBig))
 						{
 							BigMemoryPage memory_page(page);
 							memory_page.free_block(block);
 						}
-						else if (page->flags == (uint16_t)rtsha_page_size_type::PageTypePowerTwo)
+						else if (page->flags == static_cast<uint32_t>(rtsha_page_size_type::PageTypePowerTwo))
 						{
 							PowerTwoMemoryPage memory_page(page);
 							memory_page.free_block(block);

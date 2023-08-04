@@ -62,7 +62,7 @@ namespace internal
 
 		MemoryPage() = delete;
 
-		MemoryPage(rtsha_page* page ) : _page(page)
+		explicit MemoryPage(rtsha_page* page ) noexcept : _page(page)
 		{			
 		}
 

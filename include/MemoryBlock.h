@@ -93,8 +93,8 @@ namespace internal
 			{
 				size_t size = getSize();
 				if ((_block != _block->prev) && (size > sizeof(size_t)))
-				{
-					size_t* ptrSize2 = (size_t*)((size_t)_block + size - sizeof(size_t));
+				{					
+					size_t* ptrSize2 = reinterpret_cast<size_t*>((size_t)_block + size - sizeof(size_t));
 					return (*ptrSize2 == size);
 				}
 			}
@@ -116,7 +116,7 @@ namespace internal
 				{
 					setLast();
 				}
-				size_t* ptrSize2 = (size_t*) ((size_t)_block + size - sizeof(size_t));
+				size_t* ptrSize2 = reinterpret_cast<size_t*>((size_t)_block + size - sizeof(size_t));
 				*ptrSize2 = size;
 			}
 			else

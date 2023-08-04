@@ -11,7 +11,7 @@ namespace internal
     {
         typedef T value_type;
 
-        InternListAllocator(rtsha_page* page, size_t* _ptrSmallStorage)
+        explicit InternListAllocator(rtsha_page* page, size_t* _ptrSmallStorage)
             : _page(page),
             _allocated_intern(0U),
             _ptrInternalSmallStorage(_ptrSmallStorage)
