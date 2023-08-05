@@ -7,6 +7,7 @@
 namespace internal
 {
 	using namespace std;
+	using namespace rtsha;
 
 	using mmap_allocator = InternMapAllocator<std::pair<const uint64_t, size_t>>;
 	

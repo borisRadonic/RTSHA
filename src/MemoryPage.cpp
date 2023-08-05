@@ -5,7 +5,7 @@
 #include "internal.h"
 #include "errors.h"
 
-namespace internal
+namespace rtsha
 {
 	void* MemoryPage::allocate_block_at_current_pos(size_t size)
 	{
@@ -35,7 +35,7 @@ namespace internal
 
 	bool MemoryPage::checkBlock(size_t address)
 	{
-		size_t address2 = address - (2U * sizeof(size_t)); /*skip size and pointer to prev*/
+		size_t address2 = address - sizeof(rtsha_block); /*skip size and pointer to prev*/
 		MemoryBlock block((rtsha_block*)(void*)address2);
 		return block.isValid();
 	}

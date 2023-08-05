@@ -6,8 +6,10 @@
 #include "errors.h"
 #include <cstdio>
 
-namespace internal
+namespace rtsha
 {
+	using namespace internal;
+
 	void* BigMemoryPage::allocate_block(size_t size)
 	{
 		if ((0U == size) || (nullptr == _page))
@@ -71,10 +73,7 @@ namespace internal
 		while (block.hasPrev() && (this->getFreeBlocks() > 0U))
 		{
 			MemoryBlock prev(block.getPrev());
-		
-			size_t psize = this->getEndPosition() - this->getStartPosition();		
-			assert(prev.getSize() <= psize);
-			
+	
 			if ( prev.isValid() && prev.isFree() && (prev.getSize() > 0U))
 			{
 				/*merge two blocks*/
@@ -184,5 +183,37 @@ namespace internal
 				this->incFreeBlocks();
 			}
 		}
+	}
+
+	void BigMemoryPage::createInitialFreeBlocks()
+	{
+		FreeMap* ptrMap = reinterpret_cast<FreeMap*>(this->getFreeMap());
+		/*create one big block (size is page_size-64)*/
+		/*this block will be splitted...*/
+		size_t* pFirstBlock = reinterpret_cast<size_t*>(this->getPosition());
+		*pFirstBlock = 0U;
+		MemoryBlock first(reinterpret_cast<rtsha_block*>(pFirstBlock));
+		size_t bigSize = this->getEndPosition() - this->getPosition() - 64U;
+		first.prepare();
+		first.setSize(bigSize);
+		first.setAsFirst();
+		first.setFree();
+
+		ptrMap->insert((const uint64_t)first.getSize(), (size_t)first.getBlock());
+
+		/*create one 65B blockat the end of page*/
+		/*this block will be not used*/
+		size_t lastBlock = this->getEndPosition() - 64U;
+
+		size_t* pLastBlock = reinterpret_cast<size_t*>(lastBlock);
+		*pLastBlock = 0U;
+		MemoryBlock block(reinterpret_cast<rtsha_block*>(pLastBlock));
+		block.setSize(64U);
+		block.setPrev(first);
+		block.setAllocated();
+		block.setLast();
+		this->setLastBlock(block.getBlock());
+		this->setPosition( this->getEndPosition() );
+		this->incFreeBlocks();
 	}
 }

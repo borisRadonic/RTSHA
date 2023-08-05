@@ -5,7 +5,7 @@
 #include "SmallFixMemoryPage.h"
 #include "PowerTwoMemoryPage.h"
 
-namespace internal
+namespace rtsha
 {
 	Heap::Heap()
 	{
@@ -22,7 +22,7 @@ namespace internal
 
 	bool Heap::init(void* start, size_t size)
 	{
-		uintptr_t a_start = rtsha_align((uintptr_t)start);
+		address_t a_start = rtsha_align( reinterpret_cast<address_t>(start) );
 		size_t a_size = rtsha_align(size);
 
 		if (a_size == 0U)
@@ -31,15 +31,15 @@ namespace internal
 			return false;
 		}
 		_heap_start = a_start;
-		_heap_top = (size_t)_heap_start + a_size;
-		_heap_current_position = (size_t)_heap_start;
+		_heap_top = _heap_start + a_size;
+
+		_heap_current_position = _heap_start;
 		_heap_size = a_size;
 		_number_pages = 0U;
 		_heap_init = true;
 
 		/*zero memory*/
-		size_t* ptrMem;
-		for (ptrMem = (size_t*)(void*)_heap_current_position; ptrMem < (size_t*)(void*)_heap_top; ptrMem++)
+		for (address_t* ptrMem = reinterpret_cast<address_t*>(_heap_current_position); ptrMem < reinterpret_cast<address_t*>(_heap_top); ptrMem++)
 		{
 			*ptrMem = 0U;
 		}
@@ -55,8 +55,8 @@ namespace internal
 			_last_heap_error = RTSHA_ErrorInitOutOfHeap;
 			return false;
 		}
-		rtsha_page* page = (rtsha_page*)(void*)_heap_current_position;
-			
+				
+		rtsha_page* page = reinterpret_cast<rtsha_page*>(_heap_current_position);
 
 		/*set this page as last page*/
 		page->flags = static_cast<uint32_t>( size_type );
@@ -74,184 +74,121 @@ namespace internal
 
 		if (rtsha_page_size_type::PageTypeBig == size_type)
 		{
-			
-			if (a_size < (size_t) rtsha_page_size_type::PageType512)
-			{
-				return false;
-			}
-			/*we need additional space for out map data... we can not store data in free blocks... to dangerous...not safe...*/
-			if (max_objects == 0U)
-			{
-				page->max_blocks = ((a_size - sizeof(rtsha_page)) - 2U * INTERNAL_MAP_STORAGE_SIZE - sizeof(rtsha_page)) / (INTERNAL_MAP_STORAGE_SIZE + 512U + sizeof(rtsha_block));
-			}
-			else
-			{
-				page->max_blocks = max_objects;
-			}
-			page->start_map_data = (page->end_position - page->max_blocks * (INTERNAL_MAP_STORAGE_SIZE * 2U)); /*fixed blocks 64 bytes on 32 bit platform*/
-
-			page->map_page = reinterpret_cast<rtsha_page*>(page->start_map_data);
-
-			page->map_page->flags = static_cast<uint32_t>( rtsha_page_size_type::PageType64 );
-			page->map_page->free_blocks = 0U;
-
-			page->map_page->end_position = page->end_position;
-
-			page->end_position = page->start_map_data;
-
-			page->map_page->last_block = NULL;
-			page->map_page->start_map_data = 0U;
-			page->map_page->map_page = nullptr;
-			page->map_page->position = page->start_map_data + sizeof(rtsha_page);
-
-			page->map_page->ptr_list_map = reinterpret_cast<size_t> (reinterpret_cast<void*>(createFreeList(page->map_page)));
-			page->ptr_list_map = reinterpret_cast<size_t> (reinterpret_cast<void*>(createFreeMap(page)));
-
-			_heap_current_position += a_size;
-			page->next = (rtsha_page*)(void*)_heap_current_position;
-
 			if (page->end_position <= (page->position + 64U))
 			{
 				return false;
 			}
-
-			FreeMap* ptrMap = reinterpret_cast<FreeMap*>(page->ptr_list_map);
-			BigMemoryPage mem_page(page);
-			/*create one big block (size is page_size-64)*/
-			/*this block will be splitted...*/
-			size_t* pFirstBlock = reinterpret_cast<size_t*>(page->position);
-			*pFirstBlock = 0U;
-			MemoryBlock first(reinterpret_cast<rtsha_block*>(pFirstBlock));
-			size_t bigSize = page->end_position - page->position - 64U;
-			first.prepare();
-			first.setSize(bigSize);
-			first.setAsFirst();
-			first.setFree();
-						
-			ptrMap->insert((const uint64_t)first.getSize(), (size_t)first.getBlock());
-
-			/*create one 65B blockat the end of page*/
-			/*this block will be not used*/
-			size_t lastBlock = page->end_position - 64U;
-				
-			size_t* pLastBlock = reinterpret_cast<size_t*>(lastBlock);
-			*pLastBlock = 0U;
-			MemoryBlock block(reinterpret_cast<rtsha_block*>(pLastBlock));
-			block.setSize(64U);
-			block.setPrev(first);
-			block.setAllocated();
-			block.setLast();
-			page->last_block = block.getBlock();
-			page->position = page->end_position;
-			mem_page.incFreeBlocks();
+			init_big_block_page( page, a_size, max_objects);
 		}
 		else if (rtsha_page_size_type::PageTypePowerTwo == size_type)
 		{
-			/*we need additional space for out map data... we can not store data in free blocks... to dangerous...not safe...*/
-
 			if (min_block_size == 0U || max_block_size == 0U)
 			{
 				return false;
 			}
-			page->min_block_size = std::max( 32U, ExpandToPowerOf2(min_block_size) );
-			page->max_block_size = std::max(64U, ExpandToPowerOf2(max_block_size) );
-
-			if (max_objects == 0U)
-			{
-				//todo: platform 32 and 64 bit
-				page->max_blocks = ( (a_size - sizeof(rtsha_page)) - 2U * INTERNAL_MAP_STORAGE_SIZE - sizeof(rtsha_page)) / (INTERNAL_MAP_STORAGE_SIZE + 512U + sizeof(rtsha_block));
-			}
-			else
-			{
-				page->max_blocks = max_objects;
-			}
-			
-			//todo: platform 32 and 64 bit
-			page->start_map_data = (page->end_position - page->max_blocks * (INTERNAL_MAP_STORAGE_SIZE * 2U)); /*fixed blocks 64 bytes on 32 bit platform*/
-			
-			
-			page->map_page = reinterpret_cast<rtsha_page*>(page->start_map_data);
-
-			page->map_page->flags = static_cast<uint32_t>(rtsha_page_size_type::PageType64);
-			page->map_page->free_blocks = 0U;
-
-			page->map_page->end_position = page->end_position;
-
-			page->end_position = page->start_map_data;
-			
-			page->map_page->last_block = NULL;
-			page->map_page->start_map_data = 0U;
-			page->map_page->map_page = nullptr;			
-			page->map_page->position = page->start_map_data + sizeof(rtsha_page);
-			page->map_page->start_position = page->start_map_data;
-			
-			page->map_page->ptr_list_map = reinterpret_cast<size_t> (reinterpret_cast<void*>(createFreeList(page->map_page)));
-			page->ptr_list_map = reinterpret_cast<size_t> (reinterpret_cast<void*>(createFreeMap(page)));
-
-			/*create initial free blocks*/
-			size_t data_size = page->end_position - page->start_position;
-			size_t last_lbit = sizeof( SIZE_MAX ) * 8U - 1U;
-			size_t val = 1U << last_lbit;
-			size_t rest = data_size;
-			rtsha_block* prev = nullptr;
-			FreeMap* ptrMap = reinterpret_cast<FreeMap*>(page->ptr_list_map);
-
-			PowerTwoMemoryPage mem_page(page);
-			
-			bool first = false;
-			bool condition = (rest > page->min_block_size) && (page->position < page->end_position);
-			while( condition )
-			{
-				if (rest < val)
-				{
-					val = val >> 1U; /*divide by two*/
-				}
-				else
-				{					
-					MemoryBlock block(reinterpret_cast<rtsha_block*>(page->position));
-					block.setSize(val);
-					block.setPrev(prev);
-
-					if (!first)
-					{
-						block.setAsFirst();
-						first = true;
-					}					
-					
-					page->position += val;
-					rest = rest - val;
-					prev = block.getBlock();
-					block.setFree();
-					ptrMap->insert((const uint64_t)block.getSize(), (size_t)block.getBlock());
-					page->last_block = block.getBlock();
-					mem_page.incFreeBlocks();
-
-					condition = (rest > page->min_block_size) && (page->position < page->end_position);
-					if (!condition)
-					{
-						block.setLast();
-						break;
-					}
-
-				}
-			}
-			_heap_current_position += a_size;
-			page->next = (rtsha_page*)(void*)_heap_current_position;
+			init_power_two_page(page, a_size, max_objects, min_block_size, max_block_size);
 		}
 		else
 		{
-			page->start_map_data = 0U;
-			page->map_page = nullptr;
-			page->ptr_list_map = reinterpret_cast<size_t> (static_cast<void*>(createFreeList(page)));
-			page->free_blocks = 0U;
-			_heap_current_position += a_size;
-			page->next = (rtsha_page*)(void*)_heap_current_position;
+			init_small_fix_page(page, a_size);
 		}
-		
-		
 		_pages[_number_pages] = page;
 		_number_pages++;
 		return true;
+	}
+
+	void Heap::init_small_fix_page(rtsha_page* page, size_t a_size)
+	{
+		page->start_map_data = 0U;
+		page->map_page = nullptr;
+		page->ptr_list_map = reinterpret_cast<size_t> (static_cast<void*>(createFreeList(page)));
+		page->free_blocks = 0U;
+		_heap_current_position += a_size;
+		page->next = reinterpret_cast<rtsha_page*>(_heap_current_position);
+	}
+
+	void Heap::init_power_two_page(rtsha_page* page, size_t a_size, size_t max_objects, size_t min_block_size, size_t max_block_size)
+	{
+		/*we need additional space for out map data... we can not store data in free blocks... to dangerous...not safe...*/
+				
+		page->min_block_size = std::max(32U, ExpandToPowerOf2(min_block_size));
+		page->max_block_size = std::max(64U, ExpandToPowerOf2(max_block_size));
+
+		if (max_objects == 0U)
+		{
+			//todo: platform 32 and 64 bit
+			page->max_blocks = ((a_size - sizeof(rtsha_page)) - 2U * INTERNAL_MAP_STORAGE_SIZE - sizeof(rtsha_page)) / (INTERNAL_MAP_STORAGE_SIZE + 512U + sizeof(rtsha_block));
+		}
+		else
+		{
+			page->max_blocks = max_objects;
+		}
+
+		//todo: platform 32 and 64 bit
+		page->start_map_data = (page->end_position - page->max_blocks * (INTERNAL_MAP_STORAGE_SIZE * 2U)); /*fixed blocks 64 bytes on 32 bit platform*/
+
+
+		page->map_page = reinterpret_cast<rtsha_page*>(page->start_map_data);
+
+		page->map_page->flags = static_cast<uint32_t>(rtsha_page_size_type::PageType64);
+		page->map_page->free_blocks = 0U;
+
+		page->map_page->end_position = page->end_position;
+
+		page->end_position = page->start_map_data;
+
+		page->map_page->last_block = NULL;
+		page->map_page->start_map_data = 0U;
+		page->map_page->map_page = nullptr;
+		page->map_page->position = page->start_map_data + sizeof(rtsha_page);
+		page->map_page->start_position = page->start_map_data;
+
+		page->map_page->ptr_list_map = reinterpret_cast<size_t> (reinterpret_cast<void*>(createFreeList(page->map_page)));
+		page->ptr_list_map = reinterpret_cast<size_t> (reinterpret_cast<void*>(createFreeMap(page)));
+
+		PowerTwoMemoryPage mem_page(page);
+		mem_page.createInitialFreeBlocks();
+				
+		_heap_current_position += a_size;
+		page->next = reinterpret_cast<rtsha_page*>(_heap_current_position);
+	}
+
+	void Heap::init_big_block_page(rtsha_page* page, size_t a_size, size_t max_objects)
+	{
+		/*we need additional space for out map data... we can not store data in free blocks... to dangerous...not safe...*/
+		if (max_objects == 0U)
+		{
+			page->max_blocks = ((a_size - sizeof(rtsha_page)) - 2U * INTERNAL_MAP_STORAGE_SIZE - sizeof(rtsha_page)) / (INTERNAL_MAP_STORAGE_SIZE + 512U + sizeof(rtsha_block));
+		}
+		else
+		{
+			page->max_blocks = max_objects;
+		}
+		page->start_map_data = (page->end_position - page->max_blocks * (INTERNAL_MAP_STORAGE_SIZE * 2U)); /*fixed blocks 64 bytes on 32 bit platform*/
+
+		page->map_page = reinterpret_cast<rtsha_page*>(page->start_map_data);
+
+		page->map_page->flags = static_cast<uint32_t>(rtsha_page_size_type::PageType64);
+		page->map_page->free_blocks = 0U;
+
+		page->map_page->end_position = page->end_position;
+
+		page->end_position = page->start_map_data;
+
+		page->map_page->last_block = NULL;
+		page->map_page->start_map_data = 0U;
+		page->map_page->map_page = nullptr;
+		page->map_page->position = page->start_map_data + sizeof(rtsha_page);
+
+		page->map_page->ptr_list_map = reinterpret_cast<size_t> (reinterpret_cast<void*>(createFreeList(page->map_page)));
+		page->ptr_list_map = reinterpret_cast<size_t> (reinterpret_cast<void*>(createFreeMap(page)));
+
+		_heap_current_position += a_size;
+
+		page->next = reinterpret_cast<rtsha_page*>(_heap_current_position);
+				
+		BigMemoryPage mem_page(page);
+		mem_page.createInitialFreeBlocks();		
 	}
 
 	size_t Heap::get_free_space() const
@@ -260,7 +197,7 @@ namespace internal
 		{
 			return 0U;
 		}
-		return (_heap_top - _heap_current_position);
+		return (static_cast<size_t>(_heap_top - _heap_current_position));
 	}
 
 	rtsha_page_size_type Heap::get_ideal_page(size_t size) const
@@ -273,11 +210,7 @@ namespace internal
 		else if (size <= (size_t) rtsha_page_size_type::PageType32)
 		{
 			return rtsha_page_size_type::PageType32;
-		}
-		//else if ((size > (size_t)rtsha_page_size_type::PageType16) && (size <= (size_t)rtsha_page_size_type::PageType24))
-		//{
-		//	return rtsha_page_size_type::PageType24;
-		//}
+		}		
 		else if ((size > (size_t)rtsha_page_size_type::PageType32) && (size <= (size_t)rtsha_page_size_type::PageType32))
 		{
 			return rtsha_page_size_type::PageType32;
@@ -365,6 +298,21 @@ namespace internal
 		return nullptr;
 	}
 
+	rtsha_page* Heap::get_block_page(address_t block_address) const
+	{
+		for (const auto& page : _pages)
+		{
+			if ((page != nullptr))
+			{
+				if ((block_address >= page->start_position) && (block_address < page->end_position))
+				{
+					return page;
+				}
+			}
+		}
+		return nullptr;
+	}
+
 	void* Heap::malloc(size_t size)
 	{
 		if (size > 0U)
@@ -423,7 +371,7 @@ namespace internal
 				}
 			}			
 		}
-		return NULL;
+		return nullptr;
 	}
 
 	void Heap::free(void* ptr)
@@ -431,36 +379,30 @@ namespace internal
 		if (ptr != nullptr)
 		{
 			size_t address = (size_t)ptr;
-			address -= (2U * sizeof(size_t)); /*skip size and pointer to prev*/
-
-			MemoryBlock block((rtsha_block*)(void*)address);
+			address -= sizeof(rtsha_block); /*skip size and pointer to prev*/
+			MemoryBlock block( reinterpret_cast<rtsha_block*>(address) );
 			
 			if (block.isValid())
 			{
-				size_t size = block.getSize();
-				rtsha_page_size_type ideal_page = get_ideal_page(size);
-				if (ideal_page != rtsha_page_size_type::PageTypeNotDefined)
+				rtsha_page* page = get_block_page(static_cast<address_t>(address));
+				
+				if ( (page != nullptr) && (!block.isFree()) )
 				{
-					rtsha_page* page = select_page(ideal_page, size);
-
-					if ( (page != nullptr) && (!block.isFree()) )
+					if (page->flags == static_cast<uint32_t>(rtsha_page_size_type::PageTypeBig))
 					{
-						if (page->flags == static_cast<uint32_t>(rtsha_page_size_type::PageTypeBig))
-						{
-							BigMemoryPage memory_page(page);
-							memory_page.free_block(block);
-						}
-						else if (page->flags == static_cast<uint32_t>(rtsha_page_size_type::PageTypePowerTwo))
-						{
-							PowerTwoMemoryPage memory_page(page);
-							memory_page.free_block(block);
-						}
-						else
-						{
-							SmallFixMemoryPage memory_page(page);
-							memory_page.free_block(block);
-						}
-					}					
+						BigMemoryPage memory_page(page);
+						memory_page.free_block(block);
+					}
+					else if (page->flags == static_cast<uint32_t>(rtsha_page_size_type::PageTypePowerTwo))
+					{
+						PowerTwoMemoryPage memory_page(page);
+						memory_page.free_block(block);
+					}
+					else
+					{
+						SmallFixMemoryPage memory_page(page);
+						memory_page.free_block(block);
+					}
 				}
 			}
 		}
@@ -491,7 +433,7 @@ namespace internal
 		}
 
 		size_t address = (size_t)ptr;
-		address -= (2U * sizeof(size_t)); /*skip size and pointer to prev*/
+		address -= sizeof(rtsha_block); /*skip size and pointer to prev*/
 
 		MemoryBlock block((rtsha_block*)(void*)address);
 

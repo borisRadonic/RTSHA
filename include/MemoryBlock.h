@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include "internal.h"
 
-namespace internal
+namespace rtsha
 {
 	using namespace std;
 

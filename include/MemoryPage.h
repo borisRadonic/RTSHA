@@ -1,11 +1,13 @@
 #pragma once
+#include "internal.h"
 #include <stdint.h>
 #include "MemoryBlock.h"
 
 
-namespace internal
+namespace rtsha
 {
 	using namespace std;
+	using namespace internal;
 
 	enum struct rtsha_page_size_type : uint16_t
 	{
@@ -29,21 +31,21 @@ namespace internal
 		{
 		}
 
-		size_t						ptr_list_map			= 0U;
+		address_t					ptr_list_map			= 0U;
 		
 		uint32_t					flags					= 0U;
 
-		size_t						start_position			= 0U;
-		size_t						end_position			= 0U;
+		address_t					start_position			= 0U;
+		address_t					end_position			= 0U;
 		
-		size_t						position				= 0U;
+		address_t					position				= 0U;
 		size_t						free_blocks				= 0U;
 		
 		rtsha_block*				last_block				= NULL;
 
-		size_t						lastFreeBlockAddress	= 0U;
+		address_t					lastFreeBlockAddress	= 0U;
 
-		size_t						start_map_data			= 0U;
+		address_t					start_map_data			= 0U;
 		
 		rtsha_page*					map_page				= 0U;
 
@@ -118,13 +120,30 @@ namespace internal
 			return 0U;
 		}
 
-		inline size_t getPosition() const
+		inline size_t getMinBlockSize() const
+		{
+			if (_page != nullptr)
+			{
+				return _page->min_block_size;
+			}
+			return 0U;			
+		}
+
+		inline address_t getPosition() const
 		{
 			if (_page != nullptr)
 			{
 				return _page->position;
 			}
 			return 0U;
+		}
+
+		inline void setPosition(address_t pos)
+		{
+			if (_page != nullptr)
+			{
+				_page->position = pos;
+			}
 		}
 
 		inline void incPosition(size_t val)
@@ -155,12 +174,12 @@ namespace internal
 			}
 		}
 		
-		inline size_t getEndPosition() const
+		inline address_t getEndPosition() const
 		{
 			return _page->end_position;
 		}
 
-		inline size_t getStartPosition() const
+		inline address_t getStartPosition() const
 		{
 			return _page->start_position;
 		}

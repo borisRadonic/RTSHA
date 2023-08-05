@@ -5,8 +5,10 @@
 #include "internal.h"
 #include "errors.h"
 
-namespace internal
+namespace rtsha
 {
+	using namespace internal;
+
 	void* SmallFixMemoryPage::allocate_block(size_t size)
 	{
 		if ((0U == size) || (nullptr == _page))

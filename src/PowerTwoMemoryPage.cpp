@@ -4,8 +4,10 @@
 #include "internal.h"
 #include "errors.h"
 
-namespace internal
+namespace rtsha
 {
+	using namespace internal;
+
 	void* PowerTwoMemoryPage::allocate_block(size_t size)
 	{
 		if ((0U == size) || (nullptr == _page))
@@ -100,7 +102,6 @@ namespace internal
 		/*create initial free blocks*/
 		size_t data_size = block.getSize();
 		FreeMap* ptrMap = reinterpret_cast<FreeMap*>(this->getFreeMap());
-
 		while (data_size > end_size)
 		{
 			block.splitt_22();
@@ -137,5 +138,52 @@ namespace internal
 			this->decFreeBlocks();
 		}
 		block.merge_right();
+	}
+
+	void PowerTwoMemoryPage::createInitialFreeBlocks()
+	{
+		/*create initial free blocks*/
+		size_t data_size = this->getEndPosition() - this->getStartPosition();
+		size_t last_lbit = sizeof(SIZE_MAX) * 8U - 1U;
+		size_t val = 1U << last_lbit;
+		size_t rest = data_size;
+		rtsha_block* prev = nullptr;
+		FreeMap* ptrMap = reinterpret_cast<FreeMap*>(this->getFreeMap());
+
+		bool first(false);
+		bool condition = (rest > this->getMinBlockSize()) && (this->getPosition() < this->getEndPosition());
+		while (condition)
+		{
+			if (rest < val)
+			{
+				val = val >> 1U; /*divide by two*/
+			}
+			else
+			{
+				MemoryBlock block(reinterpret_cast<rtsha_block*>(this->getPosition()));
+				block.setSize(val);
+				block.setPrev(prev);
+
+				if (!first)
+				{
+					block.setAsFirst();
+					first = true;
+				}
+				this->incPosition(val);
+				rest = rest - val;
+				prev = block.getBlock();
+				block.setFree();
+				ptrMap->insert((const uint64_t)block.getSize(), (size_t)block.getBlock());
+				this->setLastBlock(block);
+				this->incFreeBlocks();
+
+				condition = (rest > this->getMinBlockSize() && (this->getPosition() < this->getEndPosition()) );
+				if (!condition)
+				{
+					block.setLast();
+					break;
+				}
+			}
+		}
 	}
 }

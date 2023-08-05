@@ -2,7 +2,7 @@
 #include <cstdio>
 #include <iostream>
 
-namespace internal
+namespace rtsha
 {
 	void MemoryBlock::splitt(size_t new_size, bool last)
 	{		

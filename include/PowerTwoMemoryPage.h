@@ -3,7 +3,7 @@
 #include "internal.h"
 #include "MemoryPage.h"
 
-namespace internal
+namespace rtsha
 {
 	using namespace std;
 
@@ -24,6 +24,9 @@ namespace internal
 
 		virtual void free_block(MemoryBlock& block) final;
 
+		void createInitialFreeBlocks();
+
+	protected:
 		void splitBlockPowerTwo(MemoryBlock& block, size_t end_size);
 
 		void mergeLeft(MemoryBlock& block);

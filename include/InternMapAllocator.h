@@ -12,6 +12,7 @@ namespace internal
         #define INTERNAL_MAP_STORAGE_SIZE	32U
     #endif
       
+    using namespace rtsha;
 
     template<class T>
     struct InternMapAllocator
@@ -49,7 +50,7 @@ namespace internal
             return NULL;
         }
 
-        void deallocate(T*p, std::size_t n) noexcept
+        void deallocate(T*p, std::size_t /*n*/) noexcept
         {
             if (_page->map_page != nullptr)
             {

@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include "MemoryPage.h"
 
-namespace internal
+namespace rtsha
 {
 	using namespace std;
 

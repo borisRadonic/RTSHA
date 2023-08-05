@@ -6,6 +6,7 @@
 
 namespace internal
 {
+    using namespace rtsha;
     template<class T>
     struct InternListAllocator
     {

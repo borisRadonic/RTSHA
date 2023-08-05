@@ -4,7 +4,8 @@
 #include <sstream>
 #include <string>
 
-using namespace internal;
+
+using namespace rtsha;
 
 class VisualizePage
 {
