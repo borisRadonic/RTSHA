@@ -34,23 +34,17 @@ While each of these memory management implementations has its advantages, they a
 ## Table of Contents
 
 1. [About RTSHA](#about-rtsha)
-2. [The main requirements for RTSHA](#The-main-requirements-for-RTSHA)
-3. [Small Fix Memory Pages](#Small-Fix-Memory-Pages)
-4. [Power Two Memory Pages](#Power-Two-Memory-Pages)
-6. [Big Memory Pages](#Big-Memory-Pages)
-7. [Modern C++ and STL](#Modern-C++-and-STL)
-8. [Project Status](#project-status)
-9. [Configuration](#configuration)
-10. [Building](#building)
-11. [Documentation](#documentation)
-
+2. [Project Status](#project-status)
+3. [Configuration](#configuration)
+4. [Building](#building)
+5. [Documentation](#documentation)
 
 
 ## About RTSHA
 
 When we talk about 'functional safety'in RTSHA, we are not referring to 'security'. "Functional safety" refers to the aspect of a system's design that ensures it operates correctly in response to its inputs and failures, minimizing risk of physical harm, while "security" refers to the measures taken to protect a system from unauthorized access, disruption, or damage.
 
-## The main requirements for RTSHA
+### The main requirements for RTSHA
 
 Predictable Execution Time: The worst-case execution time for the 'malloc, free' and 'new delete C++' functions must be deterministic and independent of application data.
 
@@ -76,7 +70,7 @@ Compatibility: The allocator should be compatible with the system it is designed
 
 There are several different algorithms that can be used for heap allocation supported by RTSHA:
 
-## Small Fix Memory Pages
+### Small Fix Memory Pages
 
 This algorithm is an approach to memory management that is often used in specific situations where objects of a certain size are frequently allocated and deallocated. By using of uses 'Fixed chunk size' algorithm greatly simplies the memory allocation process and reduce fragmentation.
 
