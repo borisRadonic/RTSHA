@@ -46,27 +46,27 @@ When we talk about 'functional safety'in RTSHA, we are not referring to 'securit
 
 ### The main requirements for RTSHA
 
-**Predictable Execution Time:** The worst-case execution time for the 'malloc, free' and 'new delete C++' functions must be deterministic and independent of application data.
+**Predictable Execution Time**: The worst-case execution time for the 'malloc, free' and 'new delete C++' functions must be deterministic and independent of application data.
 
-**Memory Pool Preservation:** The algorithm must strive to minimize the likelihood of exhausting the memory pool. This can be achieved by reducing fragmentation and minimizing memory waste.
+**Memory Pool Preservation**: The algorithm must strive to minimize the likelihood of exhausting the memory pool. This can be achieved by reducing fragmentation and minimizing memory waste.
 
-**Fragmentation Management:** The algorithms should effectively manage and reduce external fragmentation, which can limit the amount of available free memory.
+**Fragmentation Management**: The algorithms should effectively manage and reduce external fragmentation, which can limit the amount of available free memory.
 
-**Defined Behavior:** The allocator must aim to eliminate any undefined behavior to ensure consistency and reliability in its operations.
+**Defined Behavior**: The allocator must aim to eliminate any undefined behavior to ensure consistency and reliability in its operations.
 
-**Functional Safety:** The allocator must adhere to the principles of functional safety. It should consistently perform its intended function during normal and abnormal conditions. Its design must consider and mitigate possible failure modes, errors, and faults.
+**Functional Safety**; The allocator must adhere to the principles of functional safety. It should consistently perform its intended function during normal and abnormal conditions. Its design must consider and mitigate possible failure modes, errors, and faults.
 
-**Error Detection and Handling:** The allocator should have mechanisms to detect and handle memory allocation errors or failures. This can include robust error reporting, and fallback or recovery strategies in case of allocation failures.
+**Error Detection and Handling**: The allocator should have mechanisms to detect and handle memory allocation errors or failures. This can include robust error reporting, and fallback or recovery strategies in case of allocation failures.
 
-**Support for Different Algorithms:** The allocator should be flexible enough to support different memory allocation algorithms, allowing it to be adapted to the specific needs of different applications.
+**Support for Different Algorithms**: The allocator should be flexible enough to support different memory allocation algorithms, allowing it to be adapted to the specific needs of different applications.
 
-**Configurability:** The allocator should be configurable to suit the requirements of specific platforms and applications. This includes adjusting parameters like the size of the memory pool, the size of allocation blocks, and the allocation strategy.
+**Configurability**: The allocator should be configurable to suit the requirements of specific platforms and applications. This includes adjusting parameters like the size of the memory pool, the size of allocation blocks, and the allocation strategy.
 
-**Efficiency:** The allocator should be efficient, in terms of both time and space. It should aim for minimal overhead and quick allocation and deallocation times.
+**Efficiency**: The allocator should be efficient, in terms of both time and space. It should aim for minimal overhead and quick allocation and deallocation times.
 
-**Readability and Maintainability:** The code for the allocator should be clear, well-documented, and easy to maintain. This includes adhering to good coding practices, such as using meaningful variable names and including comments that explain the code.
+**Readability and Maintainability**: The code for the allocator should be clear, well-documented, and easy to maintain. This includes adhering to good coding practices, such as using meaningful variable names and including comments that explain the code.
 
-**Compatibility:** The allocator should be compatible with the system it is designed for and work well with other components of the system. 
+**Compatibility**: The allocator should be compatible with the system it is designed for and work well with other components of the system. 
 
 There are several different algorithms that can be used for heap allocation supported by RTSHA:
 
