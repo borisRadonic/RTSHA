@@ -16,7 +16,7 @@ While each of these memory management implementations has its advantages, they a
 
   1. **Memory Management**: Heap algorithms are responsible for managing dynamic memory allocation and deallocation in a system.
      On platforms, where the operating system is absent or minimal, managing memory becomes crucial.
-     HRT-SHA algorithm ensures efficient allocation and deallocation of memory resources, minimizes fragmentation issues, or undefined behavior.
+     RTSHA algorithm ensures efficient allocation and deallocation of memory resources, minimizes fragmentation issues, or undefined behavior.
 
   2. **Deterministic Behavior**: Platforms often require real-time or safety-critical applications where predictability and determinism are vital. RTSHA algorithms provide guarantees on the worst-case execution time for memory allocation and deallocation operations. This predictability ensures that the system can meet its timing constraints consistently.
 
@@ -33,11 +33,16 @@ While each of these memory management implementations has its advantages, they a
 
 ## Table of Contents
 
-1. [About RTSHA](#about-hrt-sha)
-2. [Project Status](#project-status)
-3. [Configuration](#configuration)
-4. [Building](#building)
-5. [Documentation](#documentation)
+1. [About RTSHA](#about-rtsha)
+2. [The main requirements for RTSHA](#The-main-requirements-for-RTSHA)
+3. [Small Fix Memory Pages](#Small-Fix-Memory-Pages)
+4. [Power Two Memory Pages](#Power-Two-Memory-Pages)
+6. [Big Memory Pages](#Big-Memory-Pages)
+7. [Modern C++ and STL](#Modern-C++-and-STL)
+8. [Project Status](#project-status)
+9. [Configuration](#configuration)
+10. [Building](#building)
+11. [Documentation](#documentation)
 
 
 
@@ -45,18 +50,35 @@ While each of these memory management implementations has its advantages, they a
 
 When we talk about 'functional safety'in RTSHA, we are not referring to 'security'. "Functional safety" refers to the aspect of a system's design that ensures it operates correctly in response to its inputs and failures, minimizing risk of physical harm, while "security" refers to the measures taken to protect a system from unauthorized access, disruption, or damage.
 
-Real Time Safety Heap Allocator:
+## The main requirements for RTSHA
 
-- prevents fragmentation of physical memory when memory is allocated and de-allocated dynamically
-- helps to achive deterministic performance and timing constraints
-- it supports a different algorithams
-- possibility to configure for specific platforms and applications
+Predictable Execution Time: The worst-case execution time for the 'malloc, free' and 'new delete C++' functions must be deterministic and independent of application data.
+
+Memory Pool Preservation: The algorithm must strive to minimize the likelihood of exhausting the memory pool. This can be achieved by reducing fragmentation and minimizing memory waste.
+
+Fragmentation Management: The algorithm should effectively manage and reduce external fragmentation, which can limit the amount of available free memory.
+
+Defined Behavior: The allocator must aim to eliminate any undefined behavior to ensure consistency and reliability in its operations.
+
+Functional Safety: The allocator must adhere to the principles of functional safety. It should consistently perform its intended function during normal and abnormal conditions. Its design must consider and mitigate possible failure modes, errors, and faults.
+
+Error Detection and Handling: The allocator should have mechanisms to detect and handle memory allocation errors or failures. This can include robust error reporting, and fallback or recovery strategies in case of allocation failures.
+
+Support for Different Algorithms: The allocator should be flexible enough to support different memory allocation algorithms, allowing it to be adapted to the specific needs of different applications.
+
+Configurability: The allocator should be configurable to suit the requirements of specific platforms and applications. This includes adjusting parameters like the size of the memory pool, the size of allocation blocks, and the allocation strategy.
+
+Efficiency: The allocator should be efficient, in terms of both time and space. It should aim for minimal overhead and quick allocation and deallocation times.
+
+Readability and Maintainability: The code for the allocator should be clear, well-documented, and easy to maintain. This includes adhering to good coding practices, such as using meaningful variable names and including comments that explain the code.
+
+Compatibility: The allocator should be compatible with the system it is designed for and work well with other components of the system. 
 
 There are several different algorithms that can be used for heap allocation supported by RTSHA:
 
-# Small Fix Memory Pages
+## Small Fix Memory Pages
 
-This algorithm is anoThis approach to memory management that is often used in specific situations where objects of a certain size are frequently allocated and deallocated. By using of uses 'Fixed chunk size' algorithm greatly simplies the memory allocation process and reduce fragmentation.
+This algorithm is an approach to memory management that is often used in specific situations where objects of a certain size are frequently allocated and deallocated. By using of uses 'Fixed chunk size' algorithm greatly simplies the memory allocation process and reduce fragmentation.
 
 The memory is divided into pages of chunks(blocks) of a fixed size (32, 64, 128, 256 and 512 bytes).
 When an allocation request comes in, it can simply be given one of these blocks. This means that the allocator doesn't have to search through the heap to find a block of the right size, which can improve performance.
@@ -68,7 +90,7 @@ However, fixed chunk size allocation is not a good fit for all scenarios. It wor
 
 Small Fix Memory Page is also used internaly by "Power Two Memory Page" and "Big Memory Page" algorithms.
 
-# Power Two Memory Pages
+## Power Two Memory Pages
 
 This is a more complex system, which only allows blocks of sizes that are powers of two. This makes merging free blocks back together easier and reduces fragmentation.
 A specialised binary search tree data structures (red-black tree) for fast storage and retrieval of ordered information are stored at the end of the page using fixed size Small Fix Memory Page.
@@ -80,7 +102,7 @@ Furthermore, this system is resistant to breakdowns due to its algorithmic appro
 Coalescing relies on having free blocks of the same size available, which is not always the case, and so this system does not completely eliminate fragmentation but rather aims to minimize it.
 
 
-# Big Memory Page
+## Big Memory Pages
 
 "Similar to the 'Power Two Memory Page', this algorithm employs the 'Best Fit' algorithm, in conjunction with a 'Red-Black' balanced tree, which offers worst-case guarantees for insertion, deletion, and search times. The only distinction between the 'Power Two Memory Page' and this system is that the memory need not be divided into power-of-two blocks; variable block sizes are permitted.
 It promptly merges or coalesces memory blocks larger than 512 bytes after they are released.
@@ -88,16 +110,17 @@ It promptly merges or coalesces memory blocks larger than 512 bytes after they a
 
 The use of 'Small Fixed Memory Pages' in combination with 'Power Two Memory Pages' is recommended for all real time systems.
 
+## Modern C++ and STL
 
-- enables configuration that uses fixed memory chunk sizes 16, 32, 64, 128, 512 ... bytes and big standard variable chunk sizes
+Writing a correct and efficient memory allocator is a non-trivial task.
+STL provides many algorithms for sorting, searching, manipulating and processing data. These algorithms can be useful for managing metadata about memory blocks, such as free and used blocks. 
+Using existing algorithms and data structures from the C++ Standard Template Library (STL) has several advantages over developing your own, such as:
 
-
-The main requirements that need to be fulfilled are:
-
-- The worst-case execution time of the malloc and free functions has to be known and not dependable of application data.
-	The algorithm enables minimizing the likelihood of depleting the memory pool by reducing fragmentation and minimizing wasted memory.
-- Efficient allocation and deallocation of memory resources, minimizes fragmentation issues, or undefined behavior.
-
+- Efficiency: The STL is designed by experts who have fine-tuned the algorithms and data structures for performance. They generally offer excellent time and space complexity, and have been optimized over many years of use and improvement.
+- Reliability: STL components have been thoroughly tested and are widely used. This means they are reliable and less likely to contain bugs compared to new, untested code.
+- Readability and Maintainability: Using standard algorithms and data structures makes code more readable and easier to understand for other developers familiar with C++.
+- Productivity: It's usually faster to use an existing STL component than to write a new one from scratch. 
+- Compatibility: STL components are designed to work together seamlessly, and using them can help ensure compatibility with other C++ code and libraries.
 
 
 ## Project Status
@@ -108,14 +131,13 @@ The main requirements that need to be fulfilled are:
 ## Configuration
 
 
-##Building
-
+## Building
 
 Building
+
 Windows
 
 Open ide/vs2022/RTSHALibrary.sln in Visual Studio 2022 and build.
-
 
 
 ## Documentation
