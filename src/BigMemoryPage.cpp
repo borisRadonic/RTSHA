@@ -12,19 +12,31 @@ namespace rtsha
 
 	void* BigMemoryPage::allocate_block(size_t size)
 	{
+		void* ret = NULL;
 		if ((0U == size) || (nullptr == _page))
 		{
 			return nullptr;
 		}
+
+		this->lock();
+
 		bool deleted = false;
 		FreeMap* ptrMap = reinterpret_cast<FreeMap*>(this->getFreeMap());
 		if ((this->getFreeBlocks() > 0U) || (ptrMap->size() > 0U))
-		{			
-			size_t address = ptrMap->find(static_cast<const uint64_t>(size));
+		{
+			size_t address = ptrMap->find(static_cast<const uint64_t>(size));			
 			if (address != 0U)
 			{
 				MemoryBlock block(reinterpret_cast<rtsha_block*>((void*)address));
 				size_t orig_size = block.getSize();
+
+				if (!block.isValid())
+				{
+					assert(false);
+					this->reportError(RTSHA_InvalidBlock);
+					this->unlock();
+					return ret;
+				}
 
 				if (block.isValid() && (orig_size >= size))
 				{
@@ -42,20 +54,28 @@ namespace rtsha
 					{						
 						this->splitBlock(block, size);
 					}
-					assert(block.isValid());
-					
+
+					if (!block.isValid())
+					{
+						assert(false);
+						this->reportError(RTSHA_InvalidBlock);
+						this->unlock();
+						return ret;						
+					}										
 					/*set block as allocated*/
 					block.setAllocated();
-										
-					return block.getAllocAddress();
+					ret = block.getAllocAddress();
 				}
 			}
 		}
-		return NULL;
+		this->unlock();
+		return ret;
 	}
 
 	void BigMemoryPage::free_block(MemoryBlock& block)
 	{
+		this->lock();
+
 		FreeMap* ptrMap = reinterpret_cast<FreeMap*>(this->getFreeMap());
 	
 		/*set as free*/
@@ -64,14 +84,15 @@ namespace rtsha
 		if (this->isLastPageBlock(block))
 		{
 			/*it should never happen -  the last 64B internal block can not be free*/
-			assert(false);			
+			assert(false);
+			this->unlock();
 			return;
 		}
 		
 		bool merged(false);
 		/*merging loop left*/
 		while (block.hasPrev() && (this->getFreeBlocks() > 0U))
-		{
+		{			
 			MemoryBlock prev(block.getPrev());
 	
 			if ( prev.isValid() && prev.isFree() && (prev.getSize() > 0U))
@@ -103,7 +124,11 @@ namespace rtsha
 				break;
 			}
 		}
-		assert(ptrMap->size() == this->getFreeBlocks());		
+		if ( ptrMap->size() != this->getFreeBlocks() )
+		{
+			assert(false);
+			this->reportError(RTSHA_InvalidNumberOfFreeBlocks);
+		}
 
 		if (block.isValid() && !merged)
 		{					
@@ -113,6 +138,12 @@ namespace rtsha
 				this->incFreeBlocks();
 			}			
 		}
+		else
+		{
+			assert(false);
+			this->reportError(RTSHA_InvalidBlock);
+		}
+		this->unlock();
 	}
 
 	void BigMemoryPage::splitBlock(MemoryBlock& block, size_t size)
@@ -139,6 +170,8 @@ namespace rtsha
 		if (((size_t)block.getBlock() - (size_t)prev.getBlock()) > prev.getSize())
 		{
 			assert(false);
+			this->reportError(RTSHA_InvalidBlockDistance);
+			return;			
 		}
 
 		if (prev.isFree())
@@ -151,13 +184,16 @@ namespace rtsha
 			}
 	
 			block.merge_left();
-
-			assert(block.isValid());
-
+			
 			if (block.isValid()) 
 			{				
 				ptrMap->insert(static_cast<const uint64_t>(block.getSize()), reinterpret_cast<size_t>(block.getBlock()));
 				this->incFreeBlocks();
+			}
+			else
+			{
+				assert(false);
+				this->reportError(RTSHA_InvalidBlock);
 			}
 		}
 	}
@@ -181,6 +217,11 @@ namespace rtsha
 			{
 				ptrMap->insert(static_cast<const uint64_t>(block.getSize()), reinterpret_cast<size_t>(block.getBlock()));
 				this->incFreeBlocks();
+			}
+			else
+			{
+				assert(false);
+				this->reportError(RTSHA_InvalidBlock);
 			}
 		}
 	}

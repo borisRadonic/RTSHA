@@ -4,6 +4,7 @@
 #include "BigMemoryPage.h"
 #include "SmallFixMemoryPage.h"
 #include "PowerTwoMemoryPage.h"
+#include "HeapCallbacks.h"
 
 namespace rtsha
 {
@@ -47,7 +48,7 @@ namespace rtsha
 		return true;
 	}
 
-	bool Heap::add_page(rtsha_page_size_type size_type, size_t size, size_t max_objects, size_t min_block_size, size_t max_block_size)
+	bool Heap::add_page(HeapCallbacksStruct* callbacks, rtsha_page_size_type size_type, size_t size, size_t max_objects, size_t min_block_size, size_t max_block_size)
 	{
 		size_t a_size = rtsha_align(size);
 		if (_heap_top < (_heap_current_position + (a_size - sizeof(rtsha_page))))
@@ -57,6 +58,8 @@ namespace rtsha
 		}
 				
 		rtsha_page* page = reinterpret_cast<rtsha_page*>(_heap_current_position);
+
+		page->callbacks = callbacks;
 
 		/*set this page as last page*/
 		page->flags = static_cast<uint32_t>( size_type );
@@ -77,8 +80,8 @@ namespace rtsha
 			if (page->end_position <= (page->position + 64U))
 			{
 				return false;
-			}
-			init_big_block_page( page, a_size, max_objects);
+			}			
+			init_big_block_page(page, a_size, max_objects);
 		}
 		else if (rtsha_page_size_type::PageTypePowerTwo == size_type)
 		{
@@ -145,7 +148,7 @@ namespace rtsha
 
 		page->map_page->ptr_list_map = reinterpret_cast<size_t> (reinterpret_cast<void*>(createFreeList(page->map_page)));
 		page->ptr_list_map = reinterpret_cast<size_t> (reinterpret_cast<void*>(createFreeMap(page)));
-
+		
 		PowerTwoMemoryPage mem_page(page);
 		mem_page.createInitialFreeBlocks();
 				
@@ -298,7 +301,7 @@ namespace rtsha
 		return nullptr;
 	}
 
-	rtsha_page* Heap::get_block_page(address_t block_address) const
+	rtsha_page* Heap::get_block_page(address_t block_address)
 	{
 		for (const auto& page : _pages)
 		{
@@ -315,6 +318,7 @@ namespace rtsha
 
 	void* Heap::malloc(size_t size)
 	{
+		void* ret = NULL;
 		if (size > 0U)
 		{
 			size_t a_size(size);
@@ -332,20 +336,20 @@ namespace rtsha
 					if (NULL == page)
 					{
 						_last_heap_error = RTSHA_NoFreePage;
-						return NULL;
-					}
+						return ret;
+					}										
 
 					if (page->flags != static_cast<uint32_t>(rtsha_page_size_type::PageTypeBig))
 					{
 						a_size = page->flags;
 						SmallFixMemoryPage memory_page(page);
-						return memory_page.allocate_block(a_size);
+						ret = memory_page.allocate_block(a_size);
 					}
 					else
 					{
 						a_size = rtsha_align(a_size);
 						BigMemoryPage memory_page(page);
-						return memory_page.allocate_block(a_size);
+						ret = memory_page.allocate_block(a_size);
 					}
 				}
 			}
@@ -356,22 +360,23 @@ namespace rtsha
 				if (NULL == page)
 				{
 					_last_heap_error = RTSHA_NoFreePage;
-					return NULL;
+					return ret;
 				}
+				
 				if (page->flags == static_cast<uint32_t>(rtsha_page_size_type::PageTypePowerTwo))
 				{
 					PowerTwoMemoryPage memory_page(page);
-					return memory_page.allocate_block(a_size);
+					ret = memory_page.allocate_block(a_size);
 				}
 				else
 				{
 					a_size = page->flags;
 					SmallFixMemoryPage memory_page(page);
-					return memory_page.allocate_block(a_size);
-				}
-			}			
+					ret = memory_page.allocate_block(a_size);
+				}				
+			}
 		}
-		return nullptr;
+		return ret;
 	}
 
 	void Heap::free(void* ptr)

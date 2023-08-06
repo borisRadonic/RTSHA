@@ -10,10 +10,14 @@ namespace rtsha
 
 	void* PowerTwoMemoryPage::allocate_block(size_t size)
 	{
+		void* ret = NULL;
+
 		if ((0U == size) || (nullptr == _page))
 		{
 			return nullptr;
 		}
+
+		this->lock();
 
 		FreeMap* ptrMap = reinterpret_cast<FreeMap*>(this->getFreeMap());
 		if ((this->getFreeBlocks() > 0U) || (ptrMap->size() > 0U))
@@ -23,6 +27,15 @@ namespace rtsha
 			{
 				MemoryBlock block(reinterpret_cast<rtsha_block*>((void*)address));
 				size_t orig_size = block.getSize();
+
+				if (!block.isValid())
+				{
+					assert(false);
+					this->reportError(RTSHA_InvalidBlock);
+					this->unlock();
+					return ret;
+				}
+
 				if (block.isValid() && (orig_size >= size))
 				{					
 					/*delete used block from the map of free blocks*/
@@ -39,17 +52,29 @@ namespace rtsha
 
 					/*set block as allocated*/
 					block.setAllocated();
-					return block.getAllocAddress();
+					ret = block.getAllocAddress();
+					
+					if (!block.isValid())
+					{
+						assert(false);
+						this->reportError(RTSHA_InvalidBlock);
+						this->unlock();
+						return NULL;
+					}
 				}
-				return nullptr;
 			}
 		}
-		return nullptr;
+
+		this->unlock();
+		
+		return ret;
 	}
 
 	void PowerTwoMemoryPage::free_block(MemoryBlock& block)
 	{
 		FreeMap* ptrMap = reinterpret_cast<FreeMap*>(this->getFreeMap());
+
+		this->lock();
 
 		/*set as free*/
 		block.setFree();
@@ -58,6 +83,7 @@ namespace rtsha
 		{
 			ptrMap->insert(static_cast<const uint64_t>(block.getSize()), reinterpret_cast<size_t>(block.getBlock()));
 			this->incFreeBlocks();
+			this->unlock();
 			return;
 		}
 		/*merging loop left*/		
@@ -92,9 +118,18 @@ namespace rtsha
 				break;
 			}
 		}
-
-		ptrMap->insert(static_cast<const uint64_t>(block.getSize()), reinterpret_cast<size_t>(block.getBlock()));
-		this->incFreeBlocks();
+		if (block.isValid())
+		{
+			ptrMap->insert(static_cast<const uint64_t>(block.getSize()), reinterpret_cast<size_t>(block.getBlock()));
+			this->incFreeBlocks();
+		}
+		else
+		{
+			assert(false);
+			this->reportError(RTSHA_InvalidBlock);
+		}		
+		
+		this->unlock();
 	}
 
 	void PowerTwoMemoryPage::splitBlockPowerTwo(MemoryBlock& block, size_t end_size)

@@ -11,10 +11,13 @@ namespace rtsha
 
 	void* SmallFixMemoryPage::allocate_block(size_t size)
 	{
+		void* ret = nullptr;
+
 		if ((0U == size) || (nullptr == _page))
 		{
 			return nullptr;
 		}
+		this->lock();
 		/*try to use next free block*/
 		FreeList* ptrList = reinterpret_cast<FreeList*>(this->getFreeList());
 		size_t address = ptrList->pop();
@@ -25,14 +28,18 @@ namespace rtsha
 			MemoryBlock block(reinterpret_cast<rtsha_block*>((void*)address));
 			block.setAllocated();
 			//this->decreaseFree(size);
-			return block.getAllocAddress();
+			ret = block.getAllocAddress();
+			this->unlock();
+			return ret;
 		}
-		return allocate_block_at_current_pos(size);
+		ret = allocate_block_at_current_pos(size);
+		this->unlock();
+		return ret;
 	}
 
 	void SmallFixMemoryPage::free_block(MemoryBlock& block)
 	{
-		//this->increaseFree(block.getSize());
+		this->lock();
 
 		/*set as free*/
 		block.setFree();
@@ -55,5 +62,7 @@ namespace rtsha
 		this->setFreeBlockAllocatorsAddress(block.getFreeBlockAddress());
 		ptrList->push(reinterpret_cast<size_t>(reinterpret_cast<void*>(block.getBlock())));
 		this->incFreeBlocks();
+
+		this->unlock();
 	}
 }

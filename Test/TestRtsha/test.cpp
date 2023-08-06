@@ -23,12 +23,12 @@ TEST(TestCaseClassHeap, TestHeap)
 	Heap heap;
 	EXPECT_TRUE(heap.init(heapMemory, size) );
 
-	EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageType32, 65536U));
-	EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageType64, 65536U));
-	EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageType128, 65536U));
-	EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageType256, 65536U));
-	EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageType512, 65536U));
-	EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageTypeBig, 4U * 65536U));
+	EXPECT_TRUE(heap.add_page(NULL, rtsha_page_size_type::PageType32, 65536U));
+	EXPECT_TRUE(heap.add_page(NULL, rtsha_page_size_type::PageType64, 65536U));
+	EXPECT_TRUE(heap.add_page(NULL, rtsha_page_size_type::PageType128, 65536U));
+	EXPECT_TRUE(heap.add_page(NULL, rtsha_page_size_type::PageType256, 65536U));
+	EXPECT_TRUE(heap.add_page(NULL, rtsha_page_size_type::PageType512, 65536U));
+	EXPECT_TRUE(heap.add_page(NULL, rtsha_page_size_type::PageTypeBig, 4U * 65536U));
 
 	size_t free = heap.get_free_space();
 	//EXPECT_EQ(free, 1327104);
@@ -46,10 +46,10 @@ TEST(TestCaseClassHeap, TestHeap)
 	EXPECT_EQ(rtsha_page_size_type::PageType512, heap.get_ideal_page(512U));
 	EXPECT_EQ(rtsha_page_size_type::PageTypeBig, heap.get_ideal_page(513U));
 
-	EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageType24, 65536U));
-	EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageType32, 65536U));
-	EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageType64, 65536U));
-	EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageType128, 65536U));
+	EXPECT_TRUE(heap.add_page(NULL, rtsha_page_size_type::PageType24, 65536U));
+	EXPECT_TRUE(heap.add_page(NULL, rtsha_page_size_type::PageType32, 65536U));
+	EXPECT_TRUE(heap.add_page(NULL, rtsha_page_size_type::PageType64, 65536U));
+	EXPECT_TRUE(heap.add_page(NULL, rtsha_page_size_type::PageType128, 65536U));
 
 
 	
@@ -130,7 +130,7 @@ TEST(TestCaseClassHeap, TestHeapCreatePowerTwoPage)
 
 
 	
-	EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageTypePowerTwo, 4U * 65536U, 100U, 32U, 2048U ));
+	EXPECT_TRUE(heap.add_page(NULL, rtsha_page_size_type::PageTypePowerTwo, 4U * 65536U, 100U, 32U, 2048U ));
 
 	size_t free = heap.get_free_space();
 	
@@ -210,7 +210,7 @@ TEST(TestCaseMyMalloc, TestMyMallocPerformancePowerTwo)
 	Heap heap;
 	EXPECT_TRUE(heap.init(heapMemory, size));
 
-	EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageTypePowerTwo, size, 0U, 32U, 2048U));
+	EXPECT_TRUE(heap.add_page(NULL, rtsha_page_size_type::PageTypePowerTwo, size, 0U, 32U, 2048U));
 
 	rtsha_page* page_big = heap.select_page(rtsha_page_size_type::PageTypePowerTwo, 64, true);
 
@@ -352,7 +352,7 @@ TEST(TestCaseClassHeap, TestBlockMergeLeft)
 	EXPECT_TRUE(heap.init(heapMemory, size));
 
 	
-	EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageTypeBig, 16U * 65536U));
+	EXPECT_TRUE(heap.add_page(NULL, rtsha_page_size_type::PageTypeBig, 16U * 65536U));
 		
 
 	rtsha_page* page_big = heap.select_page(rtsha_page_size_type::PageTypeBig, 80);
@@ -465,8 +465,8 @@ TEST(TestCaseMyMalloc, TestMyMallocSmallMemory)
 
 	//EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageType16, 65536U));
 	//EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageType24, 65536U));
-	EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageType32, 2U * 65536U));
-	EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageType64, 2U * 65536U));
+	EXPECT_TRUE(heap.add_page(NULL, rtsha_page_size_type::PageType32, 2U * 65536U));
+	EXPECT_TRUE(heap.add_page(NULL, rtsha_page_size_type::PageType64, 2U * 65536U));
 		
 	auto start = high_resolution_clock::now();
 	
@@ -626,7 +626,7 @@ TEST(TestCaseMyMalloc, TestMyMallocPerformanceBigBlocks)
 	Heap heap;
 	EXPECT_TRUE(heap.init(heapMemory, size));
 
-	EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageTypeBig, size));
+	EXPECT_TRUE(heap.add_page(NULL, rtsha_page_size_type::PageTypeBig, size));
 
 	rtsha_page* page_big = heap.select_page(rtsha_page_size_type::PageTypeBig, 80);
 	BigMemoryPage page(page_big);
@@ -636,6 +636,7 @@ TEST(TestCaseMyMalloc, TestMyMallocPerformanceBigBlocks)
 	{
 		size_t size1 = max(513, std::rand() % 10240);
 		void* memory1 = heap.malloc(size1 );
+		prefetch(memory1);
 		if (memory1 == nullptr)
 		{
 			break;

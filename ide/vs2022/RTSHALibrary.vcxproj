@@ -26,6 +26,7 @@
     <ClInclude Include="..\..\include\FreeList.h" />
     <ClInclude Include="..\..\include\FreeMap.h" />
     <ClInclude Include="..\..\include\Heap.h" />
+    <ClInclude Include="..\..\include\HeapCallbacks.h" />
     <ClInclude Include="..\..\include\internal.h" />
     <ClInclude Include="..\..\include\InternListAllocator.h" />
     <ClInclude Include="..\..\include\InternMapAllocator.h" />

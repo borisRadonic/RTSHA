@@ -13,7 +13,7 @@ TEST(TestFreeList, TestCreatePushPop)
 
 	Heap heap;
 	EXPECT_TRUE(heap.init(heapMemory, size));
-	EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageType32, 65536U));
+	EXPECT_TRUE(heap.add_page(NULL, rtsha_page_size_type::PageType32, 65536U));
 	rtsha_page* page = heap.select_page(rtsha_page_size_type::PageType32, 32);
 	heap.free(heap.malloc(20));
 		
@@ -26,7 +26,7 @@ TEST(TestFreeMap, TestCreateInsertDeleteFind)
 	
 	Heap heap;
 	EXPECT_TRUE(heap.init(heapMemory, size));
-	EXPECT_TRUE(heap.add_page(rtsha_page_size_type::PageTypeBig, 4U * 65536U));
+	EXPECT_TRUE(heap.add_page(NULL, rtsha_page_size_type::PageTypeBig, 4U * 65536U));
 	rtsha_page* page = heap.select_page(rtsha_page_size_type::PageTypeBig, 1024);
 
 	heap.free(heap.malloc(2100));

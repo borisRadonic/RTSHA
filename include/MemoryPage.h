@@ -2,6 +2,7 @@
 #include "internal.h"
 #include <stdint.h>
 #include "MemoryBlock.h"
+#include "HeapCallbacks.h"
 
 
 namespace rtsha
@@ -54,6 +55,8 @@ namespace rtsha
 		size_t						min_block_size			= 0U; /*used with PowerTwo Pages*/
 		size_t						max_block_size			= 0U; /*used with PowerTwo Pages*/
 
+		HeapCallbacksStruct*		callbacks				= NULL;
+
 		rtsha_page*					next					= NULL;
 
 	};
@@ -62,9 +65,14 @@ namespace rtsha
 	{
 	public:
 
+		void (*lockPagePtr)		(void);
+		void (*unLockPagePtr)	(void);
+
+
 		MemoryPage() = delete;
 
-		explicit MemoryPage(rtsha_page* page ) noexcept : _page(page)
+		explicit MemoryPage(rtsha_page* page) noexcept
+			: _page(page)
 		{			
 		}
 
@@ -90,6 +98,34 @@ namespace rtsha
 				
 			
 	protected:
+
+		inline void lock()
+		{
+			#ifdef MULTITHREADING_SUPPORT
+			if ((nullptr != this->_page->callbacks) && (nullptr != this->_page->callbacks->ptrLockFunction))
+			{
+				this->_page->callbacks->ptrLockFunction();
+			}
+			#endif
+		}
+
+		inline void unlock()
+		{
+			#ifdef MULTITHREADING_SUPPORT
+			if ((nullptr != this->_page->callbacks) && (nullptr != this->_page->callbacks->ptrUnLockFunction))
+			{
+				this->_page->callbacks->ptrUnLockFunction();
+			}
+			#endif
+		}
+
+		inline void reportError(uint32_t error)
+		{
+			if ((nullptr != this->_page->callbacks) && (nullptr != this->_page->callbacks->ptrErrorFunction))
+			{
+				this->_page->callbacks->ptrErrorFunction(error);
+			}
+		}
 
 		inline void setFreeBlockAllocatorsAddress(size_t address)
 		{
@@ -164,7 +200,6 @@ namespace rtsha
 				}				
 			}
 		}
-
 		
 		inline void decFreeBlocks()
 		{
@@ -228,6 +263,7 @@ namespace rtsha
 		}
 
 		rtsha_page* _page;
+
 	};
 }
 

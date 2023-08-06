@@ -33,10 +33,10 @@ extern "C"
 {
 #endif
 
-	rtsha_decl_export void* rtsha_malloc(size_t size);
-	rtsha_decl_export void rtsha_free(void* ptr);
-	rtsha_decl_export void* rtsha_calloc(size_t nitems, size_t size);
-	rtsha_decl_export void* rtsha_realloc(void* ptr, size_t size);
+	rtsha_decl_nodiscard rtsha_decl_export	void* rtsha_malloc(size_t size);
+	rtsha_decl_export						void rtsha_free(void* ptr);
+	rtsha_decl_nodiscard rtsha_decl_export	void* rtsha_calloc(size_t nitems, size_t size);
+	rtsha_decl_nodiscard rtsha_decl_export	void* rtsha_realloc(void* ptr, size_t size);
 
 #ifdef __cplusplus
 }

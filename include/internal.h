@@ -5,6 +5,43 @@
 #include <cstring>
 #include <bit>
 
+
+#ifdef _MSC_VER
+#  include <immintrin.h>
+#  include <intrin.h>
+#else
+#  include <cpuid.h>
+#  include <emmintrin.h>
+#endif
+
+
+#define MULTITHREADING_SUPPORT
+
+
+#ifdef __cplusplus
+#if (__cplusplus >= 201103L) || (_MSC_VER >= 1930)
+#define rtsha_attr_noexcept   noexcept
+#else
+#define rtsha_attr_noexcept   throw()
+#endif
+#else
+#define rtsha_attr_noexcept
+#endif
+
+
+#if (__cplusplus >= 201103L) || (_MSC_VER >= 1930)
+#define rtsha_decl_nodiscard    [[nodiscard]]
+#elif (defined(__GNUC__) && (__GNUC__ >= 4)) || defined(__clang__)
+#define rtsha_decl_nodiscard    __attribute__((warn_unused_result))
+#elif defined(_HAS_NODISCARD)
+#else
+#define rtsha_decl_nodiscard
+#endif
+
+
+
+
+
 #define RTSHA_ALIGMENT			sizeof(size_t)	/*4U or 8U*/
 
 #define is_bit(val,n) ( (val >> n) & 0x01U )
@@ -112,6 +149,11 @@ namespace internal
             return ((ptr + mask) & ~mask);
         }
         return (((ptr + mask) / RTSHA_ALIGMENT) * RTSHA_ALIGMENT);
+    }
+
+    static inline void prefetch(void* ptr)
+    {
+        _mm_prefetch(reinterpret_cast<const char*>(ptr), _MM_HINT_T0);
     }
 
 }

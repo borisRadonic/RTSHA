@@ -22,13 +22,13 @@ namespace rtsha
 
 		bool init(void* start, size_t size);
 
-		bool add_page(rtsha_page_size_type size_type, size_t size, size_t max_objects = 0U, size_t min_block_size = 0U, size_t max_block_size = 0U);
+		bool add_page(HeapCallbacksStruct* callbacks, rtsha_page_size_type size_type, size_t size, size_t max_objects = 0U, size_t min_block_size = 0U, size_t max_block_size = 0U);
 		
 		size_t get_free_space() const;
 		
 		rtsha_page* get_big_memorypage() const;
 
-		rtsha_page* get_block_page(address_t block_address) const;
+		rtsha_page* get_block_page(address_t block_address);
 				
 		void* malloc(size_t size);
 
@@ -56,6 +56,7 @@ namespace rtsha
 		RTSHA_Error _last_heap_error = RTSHA_OK;
 				
 		std::array<rtsha_page*, MAX_PAGES>	_pages; 
+		
 	
 	private:
 		void init_small_fix_page(rtsha_page* page, size_t a_size);

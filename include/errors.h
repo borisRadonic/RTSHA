@@ -15,5 +15,9 @@
 #define RTSHA_FreeListInsertError			(132U)
 #define RTSHA_FreeListError					(133U)
 #define RTSHA_FreeListInvalidHandle			(134U)
+
+#define RTSHA_InvalidBlock					(256U)
+#define RTSHA_InvalidBlockDistance			(257U)
+#define RTSHA_InvalidNumberOfFreeBlocks		(258U)
 	
 
