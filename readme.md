@@ -43,12 +43,52 @@ While each of these memory management implementations has its advantages, they a
 
 ## About RTSHA
 
-Real Time Safety Heap Allocator:
+When we talk about 'functional safety'in RTSHA, we are not referring to 'security'. "Functional safety" refers to the aspect of a system's design that ensures it operates correctly in response to its inputs and failures, minimizing risk of physical harm, while "security" refers to the measures taken to protect a system from unauthorized access, disruption, or damage.
 
+Real Time Safety Heap Allocator:
 
 - prevents fragmentation of physical memory when memory is allocated and de-allocated dynamically
 - helps to achive deterministic performance and timing constraints
+- it supports a different algorithams
 - possibility to configure for specific platforms and applications
+
+There are several different algorithms that can be used for heap allocation supported by RTSHA:
+
+# Small Fix Memory Pages
+
+This algorithm is anoThis approach to memory management that is often used in specific situations where objects of a certain size are frequently allocated and deallocated. By using of uses 'Fixed chunk size' algorithm greatly simplies the memory allocation process and reduce fragmentation.
+
+The memory is divided into pages of chunks(blocks) of a fixed size (32, 64, 128, 256 and 512 bytes).
+When an allocation request comes in, it can simply be given one of these blocks. This means that the allocator doesn't have to search through the heap to find a block of the right size, which can improve performance.
+The free blocks memory is used as 'free list' storage.
+
+Deallocations are also straightforward, as the block is added back to the list of available chunks. There's no need to merge adjacent free blocks, as there is with some other allocation strategies, which can also improve performance.
+
+However, fixed chunk size allocation is not a good fit for all scenarios. It works best when the majority of allocations are of the same size, or a small number of different sizes. If allocations requests are of widely varying sizes, then this approach can lead to a lot of wasted memory, as small allocations take up an entire chunk, and large allocations require multiple chunks.
+
+Small Fix Memory Page is also used internaly by "Power Two Memory Page" and "Big Memory Page" algorithms.
+
+# Power Two Memory Pages
+
+This is a more complex system, which only allows blocks of sizes that are powers of two. This makes merging free blocks back together easier and reduces fragmentation.
+A specialised binary search tree data structures (red-black tree) for fast storage and retrieval of ordered information are stored at the end of the page using fixed size Small Fix Memory Page.
+
+This is a fairly efficient method of allocating memory, particularly useful for systems where memory fragmentation is an important concern. The algorithm divides memory into partitions to try to minimize fragmentation and the 'Best Fit' algorithm searches the page to find the smallest block that is large enough to satisfy the allocation. 
+
+Furthermore, this system is resistant to breakdowns due to its algorithmic approach to allocating and deallocating memory. The coalescing operation helps ensure that large contiguous blocks of memory can be reformed after they are freed, reducing the likelihood of fragmentation over time.
+
+Coalescing relies on having free blocks of the same size available, which is not always the case, and so this system does not completely eliminate fragmentation but rather aims to minimize it.
+
+
+# Big Memory Page
+
+"Similar to the 'Power Two Memory Page', this algorithm employs the 'Best Fit' algorithm, in conjunction with a 'Red-Black' balanced tree, which offers worst-case guarantees for insertion, deletion, and search times. The only distinction between the 'Power Two Memory Page' and this system is that the memory need not be divided into power-of-two blocks; variable block sizes are permitted.
+It promptly merges or coalesces memory blocks larger than 512 bytes after they are released.
+
+
+The use of 'Small Fixed Memory Pages' in combination with 'Power Two Memory Pages' is recommended for all real time systems.
+
+
 - enables configuration that uses fixed memory chunk sizes 16, 32, 64, 128, 512 ... bytes and big standard variable chunk sizes
 
 
@@ -58,13 +98,6 @@ The main requirements that need to be fulfilled are:
 	The algorithm enables minimizing the likelihood of depleting the memory pool by reducing fragmentation and minimizing wasted memory.
 - Efficient allocation and deallocation of memory resources, minimizes fragmentation issues, or undefined behavior.
 
-The algorithm:
-
-- promptly merges or coalesces the big memory blocks (>512 bytes) after their release. This is a standard part of memory management in which two adjacent free blocks of memory are merged.
-- expects user memory devided in pages defined by user. The page contains the memory blocks of the same size ( for example 32, 64, 128, 512 bytes and the pages for 'big blocks' )
-  The smallest allocatable memory block is 32 bytes and the biggest allocatable block is user defined.
-- Almost-Best-Fit strategy is employed to minimize fragmentation of big blocks (blocks greater than 512 bytes)
-- reuses recently released memory blocks over those that were released further in the past
 
 
 ## Project Status
