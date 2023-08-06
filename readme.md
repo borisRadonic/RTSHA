@@ -46,27 +46,27 @@ When we talk about 'functional safety'in RTSHA, we are not referring to 'securit
 
 ### The main requirements for RTSHA
 
-Predictable Execution Time: The worst-case execution time for the 'malloc, free' and 'new delete C++' functions must be deterministic and independent of application data.
+**Predictable Execution Time:** The worst-case execution time for the 'malloc, free' and 'new delete C++' functions must be deterministic and independent of application data.
 
-Memory Pool Preservation: The algorithm must strive to minimize the likelihood of exhausting the memory pool. This can be achieved by reducing fragmentation and minimizing memory waste.
+**Memory Pool Preservation:** The algorithm must strive to minimize the likelihood of exhausting the memory pool. This can be achieved by reducing fragmentation and minimizing memory waste.
 
-Fragmentation Management: The algorithm should effectively manage and reduce external fragmentation, which can limit the amount of available free memory.
+**Fragmentation Management:** The algorithms should effectively manage and reduce external fragmentation, which can limit the amount of available free memory.
 
-Defined Behavior: The allocator must aim to eliminate any undefined behavior to ensure consistency and reliability in its operations.
+**Defined Behavior:** The allocator must aim to eliminate any undefined behavior to ensure consistency and reliability in its operations.
 
-Functional Safety: The allocator must adhere to the principles of functional safety. It should consistently perform its intended function during normal and abnormal conditions. Its design must consider and mitigate possible failure modes, errors, and faults.
+**Functional Safety:** The allocator must adhere to the principles of functional safety. It should consistently perform its intended function during normal and abnormal conditions. Its design must consider and mitigate possible failure modes, errors, and faults.
 
-Error Detection and Handling: The allocator should have mechanisms to detect and handle memory allocation errors or failures. This can include robust error reporting, and fallback or recovery strategies in case of allocation failures.
+**Error Detection and Handling:** The allocator should have mechanisms to detect and handle memory allocation errors or failures. This can include robust error reporting, and fallback or recovery strategies in case of allocation failures.
 
-Support for Different Algorithms: The allocator should be flexible enough to support different memory allocation algorithms, allowing it to be adapted to the specific needs of different applications.
+**Support for Different Algorithms:** The allocator should be flexible enough to support different memory allocation algorithms, allowing it to be adapted to the specific needs of different applications.
 
-Configurability: The allocator should be configurable to suit the requirements of specific platforms and applications. This includes adjusting parameters like the size of the memory pool, the size of allocation blocks, and the allocation strategy.
+**Configurability:** The allocator should be configurable to suit the requirements of specific platforms and applications. This includes adjusting parameters like the size of the memory pool, the size of allocation blocks, and the allocation strategy.
 
-Efficiency: The allocator should be efficient, in terms of both time and space. It should aim for minimal overhead and quick allocation and deallocation times.
+**Efficiency:** The allocator should be efficient, in terms of both time and space. It should aim for minimal overhead and quick allocation and deallocation times.
 
-Readability and Maintainability: The code for the allocator should be clear, well-documented, and easy to maintain. This includes adhering to good coding practices, such as using meaningful variable names and including comments that explain the code.
+**Readability and Maintainability:** The code for the allocator should be clear, well-documented, and easy to maintain. This includes adhering to good coding practices, such as using meaningful variable names and including comments that explain the code.
 
-Compatibility: The allocator should be compatible with the system it is designed for and work well with other components of the system. 
+**Compatibility:** The allocator should be compatible with the system it is designed for and work well with other components of the system. 
 
 There are several different algorithms that can be used for heap allocation supported by RTSHA:
 
@@ -84,7 +84,7 @@ However, fixed chunk size allocation is not a good fit for all scenarios. It wor
 
 Small Fix Memory Page is also used internaly by "Power Two Memory Page" and "Big Memory Page" algorithms.
 
-## Power Two Memory Pages
+**Power Two Memory Pages**
 
 This is a more complex system, which only allows blocks of sizes that are powers of two. This makes merging free blocks back together easier and reduces fragmentation.
 A specialised binary search tree data structures (red-black tree) for fast storage and retrieval of ordered information are stored at the end of the page using fixed size Small Fix Memory Page.
@@ -96,7 +96,7 @@ Furthermore, this system is resistant to breakdowns due to its algorithmic appro
 Coalescing relies on having free blocks of the same size available, which is not always the case, and so this system does not completely eliminate fragmentation but rather aims to minimize it.
 
 
-## Big Memory Pages
+**Big Memory Pages**
 
 "Similar to the 'Power Two Memory Page', this algorithm employs the 'Best Fit' algorithm, in conjunction with a 'Red-Black' balanced tree, which offers worst-case guarantees for insertion, deletion, and search times. The only distinction between the 'Power Two Memory Page' and this system is that the memory need not be divided into power-of-two blocks; variable block sizes are permitted.
 It promptly merges or coalesces memory blocks larger than 512 bytes after they are released.
@@ -104,7 +104,7 @@ It promptly merges or coalesces memory blocks larger than 512 bytes after they a
 
 The use of 'Small Fixed Memory Pages' in combination with 'Power Two Memory Pages' is recommended for all real time systems.
 
-## Modern C++ and STL
+**Modern C++ and STL**
 
 Writing a correct and efficient memory allocator is a non-trivial task.
 STL provides many algorithms for sorting, searching, manipulating and processing data. These algorithms can be useful for managing metadata about memory blocks, such as free and used blocks. 
