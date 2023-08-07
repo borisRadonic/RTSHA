@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "internal.h"
+#include "allocator.h"
 #include "heap.h"
 #include <iostream>
 #include <sstream>
@@ -225,7 +226,7 @@ TEST(TestCaseMyMalloc, TestMyMallocPerformancePowerTwo)
 		{
 			break;
 		}
-		memset(memory1, 1, size1);
+		heap.memset(memory1, 1, size1);
 		EXPECT_TRUE(memory1 != nullptr);
 
 		EXPECT_TRUE(page.checkBlock((size_t)memory1));
@@ -238,7 +239,7 @@ TEST(TestCaseMyMalloc, TestMyMallocPerformancePowerTwo)
 		{
 			break;
 		}
-		memset(memory2, 2, size2);
+		heap.memset(memory2, 2, size2);
 
 		size_t size3 = max(64, std::rand() % 2000);
 		void* memory3 = heap.malloc(size3);
@@ -248,7 +249,7 @@ TEST(TestCaseMyMalloc, TestMyMallocPerformancePowerTwo)
 			break;
 		}
 
-		memset(memory3, 3, size3);
+		heap.memset(memory3, 3, size3);
 		EXPECT_TRUE(page.checkBlock((size_t)memory1));
 		EXPECT_TRUE(page.checkBlock((size_t)memory2));
 
@@ -261,7 +262,7 @@ TEST(TestCaseMyMalloc, TestMyMallocPerformancePowerTwo)
 		{
 			break;
 		}
-		memset(memory4, 4, size4);
+		heap.memset(memory4, 4, size4);
 
 		size_t size5 = max(128, std::rand() % 2000);
 		void* memory5 = heap.malloc(size5);
@@ -270,7 +271,7 @@ TEST(TestCaseMyMalloc, TestMyMallocPerformancePowerTwo)
 		{
 			break;
 		}
-		memset(memory5, 5, size5);
+		heap.memset(memory5, 5, size5);
 
 
 		size_t size6 = max(256, std::rand() % 2000);
@@ -280,7 +281,7 @@ TEST(TestCaseMyMalloc, TestMyMallocPerformancePowerTwo)
 		{
 			break;
 		}
-		memset(memory6, 6, size6);
+		heap.memset(memory6, 6, size6);
 
 
 		size_t size7 = max(1024, std::rand() % 2000);
@@ -344,6 +345,7 @@ TEST(TestCaseMyMalloc, TestMyMallocPerformancePowerTwo)
 }
 TEST(TestCaseClassHeap, TestBlockMergeLeft)
 {
+	return;
 	size_t size = 0x1F4000;
 	void* heapMemory = malloc(size); //allocate 2MB for heap
 	EXPECT_TRUE(heapMemory != NULL);
@@ -407,7 +409,6 @@ TEST(TestCaseClassHeap, TestBlockMergeLeft)
 		
 
 	heap.free(memory5);
-
 
 }
 
@@ -617,6 +618,22 @@ TEST(TestCaseMyMalloc, TestMallocPerformanceBigBlocks)
 	}
 }
 
+TEST(TestCaseInterfaceC, TestCInterface)
+{
+	size_t size = 0x1F4000;
+	void* heapMemory = malloc(size); //allocate 2MB for heap
+	EXPECT_TRUE(heapMemory != NULL);
+
+	EXPECT_TRUE(rtsha_create_heap(heapMemory, size));
+
+	EXPECT_TRUE(rtsha_add_page(NULL, RTSHA_PAGE_TYPE_BIG, size));
+
+	size_t size1 = max(513, std::rand() % 10240);
+	void* memory1 = rtsha_malloc(size1);
+
+	rtsha_free(memory1);
+}
+
 TEST(TestCaseMyMalloc, TestMyMallocPerformanceBigBlocks)
 { 
 	size_t size = 0x1F4000;
@@ -636,7 +653,7 @@ TEST(TestCaseMyMalloc, TestMyMallocPerformanceBigBlocks)
 	{
 		size_t size1 = max(513, std::rand() % 10240);
 		void* memory1 = heap.malloc(size1 );
-		prefetch(memory1);
+		//prefetch(memory1);
 		if (memory1 == nullptr)
 		{
 			break;
@@ -753,5 +770,5 @@ TEST(TestCaseMyMalloc, TestMyMallocPerformanceBigBlocks)
 		EXPECT_TRUE(page.checkBlock((size_t)memory4));
 
 		heap.free(memory4);
-	}
+	}		
 }

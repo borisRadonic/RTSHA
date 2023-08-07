@@ -1,6 +1,7 @@
 #pragma once
 
 #include "internal.h"
+#include "HeapCallbacks.h"
 
 
 #if defined(_MSC_VER) || defined(__MINGW32__)
@@ -26,6 +27,16 @@
 #define rtsha_decl_export
 #endif
 
+ 
+
+#define RTSHA_PAGE_TYPE_32			32U
+#define RTSHA_PAGE_TYPE_64			64U
+#define RTSHA_PAGE_TYPE_128			128U	
+#define RTSHA_PAGE_TYPE_256			256U
+#define RTSHA_PAGE_TYPE_512			512U
+#define RTSHA_PAGE_TYPE_BIG			613U
+#define RTSHA_PAGE_TYPE_POWER_TWO	713U
+
 
 
 #ifdef __cplusplus
@@ -33,10 +44,14 @@ extern "C"
 {
 #endif
 
+	rtsha_decl_nodiscard rtsha_decl_export	bool  rtsha_create_heap(void* start, size_t size);
+	rtsha_decl_export						bool  rtsha_add_page(HeapCallbacksStruct* callbacks, uint16_t page_type, size_t size, size_t max_objects = 0U, size_t min_block_size = 0U, size_t max_block_size = 0U);
 	rtsha_decl_nodiscard rtsha_decl_export	void* rtsha_malloc(size_t size);
-	rtsha_decl_export						void rtsha_free(void* ptr);
+	rtsha_decl_export						void  rtsha_free(void* ptr);
 	rtsha_decl_nodiscard rtsha_decl_export	void* rtsha_calloc(size_t nitems, size_t size);
 	rtsha_decl_nodiscard rtsha_decl_export	void* rtsha_realloc(void* ptr, size_t size);
+	rtsha_decl_export						void* rtsha_memcpy(void* _Dst, void const* _Src, size_t _Size);
+	rtsha_decl_export						void* rtsha_memset(void* _Dst, int _Val, size_t _Size);
 
 #ifdef __cplusplus
 }

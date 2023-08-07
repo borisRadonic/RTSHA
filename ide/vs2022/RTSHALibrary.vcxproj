@@ -37,6 +37,7 @@
     <ClInclude Include="..\..\include\structures.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\src\allocator.cpp" />
     <ClCompile Include="..\..\src\BigMemoryPage.cpp" />
     <ClCompile Include="..\..\src\FreeList.cpp" />
     <ClCompile Include="..\..\src\FreeMap.cpp" />

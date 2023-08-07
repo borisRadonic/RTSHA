@@ -130,13 +130,16 @@ namespace rtsha
 			this->reportError(RTSHA_InvalidNumberOfFreeBlocks);
 		}
 
-		if (block.isValid() && !merged)
+		if (block.isValid())
 		{					
-			if (false == ptrMap->exists(static_cast<const uint64_t>(block.getSize()), reinterpret_cast<size_t>(block.getBlock())))
+			if (!merged)
 			{
-				ptrMap->insert(static_cast<const uint64_t>(block.getSize()), reinterpret_cast<size_t>(block.getBlock()));
-				this->incFreeBlocks();
-			}			
+				if (false == ptrMap->exists(static_cast<const uint64_t>(block.getSize()), reinterpret_cast<size_t>(block.getBlock())))
+				{
+					ptrMap->insert(static_cast<const uint64_t>(block.getSize()), reinterpret_cast<size_t>(block.getBlock()));
+					this->incFreeBlocks();
+				}
+			}
 		}
 		else
 		{

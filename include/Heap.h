@@ -38,6 +38,10 @@ namespace rtsha
 		
 		void* realloc(void* ptr, size_t size);
 
+		void* memcpy(void* _Dst, void const* _Src, size_t _Size);
+
+		void* memset(void* _Dst, int _Val, size_t _Size);
+			
 		rtsha_page_size_type get_ideal_page(size_t size) const;
 
 		rtsha_page* select_page(rtsha_page_size_type ideal_page, size_t size, bool no_big = false) const;

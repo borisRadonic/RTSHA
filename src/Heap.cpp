@@ -490,6 +490,64 @@ namespace rtsha
 		return nullptr;
 	}
 
+	void* Heap::memcpy(void* _Dst, void const* _Src, size_t _Size)
+	{
+		if ((_Src != nullptr) && (_Dst != nullptr) && (_Size > 0U))
+		{
+			size_t dst = reinterpret_cast<size_t>(_Dst);
+			size_t src = reinterpret_cast<size_t>(_Dst);
+
+			rtsha_page* dstPage = get_block_page(static_cast<address_t>(dst));
+			rtsha_page* srcPage = get_block_page(static_cast<address_t>(dst));
+
+			if (dstPage != nullptr)
+			{
+				/*check destination block*/
+				address_t dstAddress = static_cast<address_t>(dst - sizeof(rtsha_block)); /*skip size and pointer to prev*/
+				MemoryBlock dstBlock(reinterpret_cast<rtsha_block*>(dstAddress));
+				if (!dstBlock.isValid() || (dstBlock.getSize() < _Size) || dstBlock.isFree())
+				{
+					return nullptr;
+				}
+			}
+
+			if (srcPage != nullptr)
+			{
+				/*check source block*/
+				address_t srcAddress = static_cast<address_t>(src - sizeof(rtsha_block)); /*skip size and pointer to prev*/
+				MemoryBlock srcBlock(reinterpret_cast<rtsha_block*>(srcAddress));
+				if (!srcBlock.isValid() || (srcBlock.getSize() < _Size) || srcBlock.isFree() )
+				{
+					return nullptr;
+				}
+			}
+			return ::memcpy(_Dst, _Src, _Size);
+		}
+		return nullptr;
+	}
+
+	void* Heap::memset(void* _Dst, int _Val, size_t _Size)
+	{
+		if ((_Dst != nullptr) && (_Size > 0U))
+		{
+			size_t dst = reinterpret_cast<size_t>(_Dst);
+			rtsha_page* dstPage = get_block_page(static_cast<address_t>(dst));
+
+			if (dstPage != nullptr)
+			{
+				/*check destination block*/
+				address_t dstAddress = static_cast<address_t>(dst - sizeof(rtsha_block)); /*skip size and pointer to prev*/
+				MemoryBlock dstBlock(reinterpret_cast<rtsha_block*>(dstAddress));
+				if (!dstBlock.isValid() || (dstBlock.getSize() < _Size) || dstBlock.isFree())
+				{
+					return nullptr;
+				}
+			}
+			return ::memset(_Dst, _Val, _Size);
+		}
+		return nullptr;
+	}
+
 	FreeMap* Heap::createFreeMap(rtsha_page* page)
 	{
 		void* ptrMap = _storage_free_maps.get_next_ptr();
