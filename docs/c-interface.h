@@ -127,7 +127,7 @@ void* rtsha_calloc(size_t nitems, size_t size);
 
 
 /**
-* \brief This function reallocares the block of memory on the heap. 
+* \brief This function reallocates the block of memory on the heap. 
 *
 * The heap page will be automatically selected based on criteria such as size and availability.
 * The function may move the memory block to a new location.
