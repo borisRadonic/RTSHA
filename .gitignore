@@ -45,6 +45,9 @@ Generated\ Files/
 [Tt]est[Rr]esult*/
 [Bb]uild[Ll]og.*
 
+# doxygen latex output directory
+generated-docs
+
 # NUnit
 *.VisualState.xml
 TestResult.xml
