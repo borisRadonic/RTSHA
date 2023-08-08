@@ -47,6 +47,7 @@ Generated\ Files/
 
 # doxygen latex output directory
 generated-docs
+generated-docs-c
 
 # NUnit
 *.VisualState.xml
