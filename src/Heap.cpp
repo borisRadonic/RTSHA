@@ -521,7 +521,7 @@ namespace rtsha
 					return nullptr;
 				}
 			}
-			return ::memcpy(_Dst, _Src, _Size);
+			return memcpy(_Dst, _Src, _Size);
 		}
 		return nullptr;
 	}
