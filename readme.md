@@ -143,3 +143,5 @@ Open ide/vs2022/RTSHALibrary.sln in Visual Studio 2022 and build.
 
 
 ## Documentation
+
+[View RTSH Documentation in PDF](https://github.com/borisRadonic/RTSHA/blob/master/docs/RTSHA/Documentation.pdf)
