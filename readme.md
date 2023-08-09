@@ -1,16 +1,18 @@
 # Real Time Safety Heap Allocator (RTSHA)
 
-**WARNING:** This project is currently a work in progress. The release of the initial version is tentatively scheduled for December. Please consider this before using the code.
+[!WARNING] This project is currently a work in progress. The release of the initial version is tentatively scheduled for December. Please consider this before using the code.
 
-Good programming practices for real time emmbedded applications includes the rule that all values must allocated on the stack if possible. There are some situations where is this not possible like when the size of the value is unknown or the vectors are growing in size over time. In those situations memory from the heap must be dinamically usig heap allocator functions like **malloc**() and **free**().
+Good programming practices for real time emmbedded applications includes the rule that all values must allocated on the stack if possible. There are some situations where is this not possible like when the size of the value is unknown or the vectors are growing in size over time.
+In those situations memory from the heap must be dinamically usig heap allocator functions like **malloc**() and **free**().
 
 There are various implementations of heap allocation algorithms used on different platforms. Some notable examples include:
   - Dlmalloc: Doug Lea's Memory Allocator.
   - Phkmalloc: Originally developed by Poul-Henning Kamp for FreeBSD in 1995-1996, later adapted by several operating systems.
-   - ptmalloc: A memory-efficient implementation derived from Dlmalloc, commonly used on Unix systems.
-   - jemalloc: A SMP-scalable allocator primarily used in FreeBSD's libc.
-   - Google Chrome's PartitionAlloc: An optimized memory allocator focused on space efficiency, allocation latency, and security.
-   - glibc heap allocator: Derived from ptmalloc and commonly used in the GNU C Library.
+  - ptmalloc: A memory-efficient implementation derived from Dlmalloc, commonly used on Unix systems.
+  - jemalloc: A SMP-scalable allocator primarily used in FreeBSD's libc.
+  - Google Chrome's PartitionAlloc: An optimized memory allocator focused on space efficiency, allocation latency, and security.
+  - glibc heap allocator: Derived from ptmalloc and commonly used in the GNU C Library.
+  ...
 
 While each of these memory management implementations has its advantages, they are not specifically designed for use in hard real-time environments, where speed, determinism, elimination of fragmentation, and memory safety are the primary goals.
 
@@ -26,7 +28,7 @@ While each of these memory management implementations has its advantages, they a
     These standards emphasize the need for certified software components, including memory management. High code quality, good documentation, and standards used during the development of HR-SHA, such as MISRA, etc., 
     can meet the certification requirements, accelerate and streamline the certification process and demonstrate the reliability and robustness of their systems.
   
-  4. **Resource Optimization**: Bare metal platforms typically have limited resources, including memory. HRT-SHA optimizes memory utilization by minimizing fragmentation and efficiently managing memory allocation requests.
+  4. **Resource Optimization**: Bare metal platforms typically have limited resources, including memory. RTSHA optimizes memory utilization by minimizing fragmentation and efficiently managing memory allocation requests.
     This optimization is crucial for maximizing the available resources and ensuring the system operates within its limitations.
       
  Overall, using the RTSHA on bare metal platforms enhances memory management, promotes determinism, ensures memory safety, meets some important safety certification requirements, and optimizes resource utilization.
@@ -44,8 +46,6 @@ While each of these memory management implementations has its advantages, they a
 
 ## About RTSHA
 
-When we talk about 'functional safety'in RTSHA, we are not referring to 'security'. "Functional safety" refers to the aspect of a system's design that ensures it operates correctly in response to its inputs and failures, minimizing risk of physical harm, while "security" refers to the measures taken to protect a system from unauthorized access, disruption, or damage.
-
 ### The main requirements for RTSHA
 
 **Predictable Execution Time**: The worst-case execution time for the 'malloc, free' and 'new delete C++' functions must be deterministic and independent of application data.
@@ -57,6 +57,8 @@ When we talk about 'functional safety'in RTSHA, we are not referring to 'securit
 **Defined Behavior**: The allocator must aim to eliminate any undefined behavior to ensure consistency and reliability in its operations.
 
 **Functional Safety**; The allocator must adhere to the principles of functional safety. It should consistently perform its intended function during normal and abnormal conditions. Its design must consider and mitigate possible failure modes, errors, and faults.
+* When we talk about 'functional safety'in RTSHA, we are not referring to 'security'. "Functional safety" refers to the aspect of a system's design that ensures it operates correctly in response to its inputs and failures, minimizing risk of physical harm,  while "security" refers to the measures taken to protect a system from unauthorized access, disruption, or damage. *
+
 
 **Error Detection and Handling**: The allocator should have mechanisms to detect and handle memory allocation errors or failures. This can include robust error reporting, and fallback or recovery strategies in case of allocation failures.
 
@@ -69,6 +71,9 @@ When we talk about 'functional safety'in RTSHA, we are not referring to 'securit
 **Readability and Maintainability**: The code for the allocator should be clear, well-documented, and easy to maintain. This includes adhering to good coding practices, such as using meaningful variable names and including comments that explain the code.
 
 **Compatibility**: The allocator should be compatible with the system it is designed for and work well with other components of the system. 
+
+
+**RTSHA Algorithms**
 
 There are several different algorithms that can be used for heap allocation supported by RTSHA:
 
@@ -121,7 +126,7 @@ Using existing algorithms and data structures from the C++ Standard Template Lib
 
 ## Project Status
 
-* Work in progress...
+This project is currently a work in progress. The release of the initial version is tentatively scheduled for December. Please consider this before using the code.
 
 
 ## Configuration
