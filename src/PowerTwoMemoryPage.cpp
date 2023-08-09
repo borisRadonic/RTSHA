@@ -1,6 +1,5 @@
 #include "PowerTwoMemoryPage.h"
 #include "FreeMap.h"
-#include "structures.h"
 #include "internal.h"
 #include "errors.h"
 
@@ -197,7 +196,8 @@ namespace rtsha
 			{
 				MemoryBlock block(reinterpret_cast<rtsha_block*>(this->getPosition()));
 				block.setSize(val);
-				block.setPrev(prev);
+				MemoryBlock prev_block(prev);
+				block.setPrev(prev_block);
 
 				if (!first)
 				{

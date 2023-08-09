@@ -34,7 +34,6 @@
     <ClInclude Include="..\..\include\MemoryPage.h" />
     <ClInclude Include="..\..\include\PowerTwoMemoryPage.h" />
     <ClInclude Include="..\..\include\SmallFixMemoryPage.h" />
-    <ClInclude Include="..\..\include\structures.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\allocator.cpp" />

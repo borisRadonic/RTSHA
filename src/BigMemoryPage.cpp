@@ -1,7 +1,6 @@
 #include "BigMemoryPage.h"
 #include "FreeList.h"
 #include "FreeMap.h"
-#include "structures.h"
 #include "internal.h"
 #include "errors.h"
 #include <cstdio>
@@ -214,8 +213,6 @@ namespace rtsha
 			}
 			block.merge_right();
 
-			assert(block.isValid());
-
 			if (block.isValid())
 			{
 				ptrMap->insert(static_cast<const uint64_t>(block.getSize()), reinterpret_cast<size_t>(block.getBlock()));
@@ -245,8 +242,8 @@ namespace rtsha
 
 		ptrMap->insert((const uint64_t)first.getSize(), (size_t)first.getBlock());
 
-		/*create one 65B blockat the end of page*/
-		/*this block will be not used*/
+		/*create one 64B blockat the end of page*/
+		/*this block will be not used, but will ensure that the page has an appropriate end block*/
 		size_t lastBlock = this->getEndPosition() - 64U;
 
 		size_t* pLastBlock = reinterpret_cast<size_t*>(lastBlock);
@@ -256,7 +253,9 @@ namespace rtsha
 		block.setPrev(first);
 		block.setAllocated();
 		block.setLast();
-		this->setLastBlock(block.getBlock());
+
+		MemoryBlock last_block(block.getBlock());
+		this->setLastBlock(last_block);
 		this->setPosition( this->getEndPosition() );
 		this->incFreeBlocks();
 	}

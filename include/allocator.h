@@ -1,5 +1,10 @@
 #pragma once
 
+/** \cond */
+
+// This entire file will not be documented by Doxygen.
+
+
 #include "internal.h"
 #include "HeapCallbacks.h"
 
@@ -62,3 +67,5 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif
+
+/** \endcond */

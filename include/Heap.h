@@ -2,7 +2,6 @@
 #include <stdint.h>
 #include <array>
 #include "MemoryPage.h"
-#include "structures.h"
 #include "errors.h"
 #include "FreeList.h"
 #include "FreeMap.h"
@@ -11,6 +10,17 @@ namespace internal
 {
 	using namespace std;
 
+	/*! \class HeapInternal
+	* \brief This class encapsulates Heap
+	*
+	*/
+
+
+	/**
+	* @class HeapInternal
+	* @brief This class encapsulates HeapInternal in RTSHA
+	*
+	*/
 	class HeapInternal
 	{
 	public:
@@ -67,35 +77,120 @@ namespace internal
 
 	protected:
 				
+		/**
+		* @brief Initialize a small fixed-sized page.
+		*
+		* @param page Pointer to the `rtsha_page` structure to be initialized.
+		* @param a_size Size of each fixed-sized memory block in the page.
+		*/
 		void init_small_fix_page(rtsha_page* page, size_t a_size);
+
+		/**
+		* @brief Initialize a page for handling power-of-two sized memory blocks.
+		*
+		* This method sets up the provided page for managing memory blocks that
+		* are sized as powers of two. The page can handle a range of block sizes
+		* between a specified minimum and maximum.
+		*
+		* @param page Pointer to the `rtsha_page` structure to be initialized.
+		* @param a_size Total size of the memory that the page will manage.
+		* @param max_objects Maximum number of memory blocks that the page can handle.
+		* @param min_block_size Minimum size (inclusive) for memory blocks in this page.
+		* @param max_block_size Maximum size (inclusive) for memory blocks in this page.
+		 */
 		void init_power_two_page(rtsha_page* page, size_t a_size, size_t max_objects, size_t min_block_size, size_t max_block_size);
+
+		/**
+		 * @brief Initialize a page for handling large memory blocks.
+		 *
+		 * This method sets up the provided page for managing memory blocks that
+		 * are considered 'large' or 'big'. The specifics of what constitutes 'large'
+		 * would be based on the context in which this function is used.
+		 *
+		 * @param page Pointer to the `rtsha_page` structure to be initialized.
+		 * @param a_size Total size of the memory that the page will manage.
+		 * @param max_objects Maximum number of large memory blocks that the page can handle.
+		 */
 		void init_big_block_page(rtsha_page* page, size_t a_size, size_t max_objects);
 
 	protected:
 
+		/**
+		* @brief An array of pointers to manage the pages.
+		*
+		* This array keeps track of all the memory pages managed by the heap.
+		*/
 		std::array<rtsha_page*, MAX_PAGES>	_pages;
 
+		/**
+		* @brief Current number of pages managed by the heap.
+		*/
 		size_t		_number_pages = 0U;
+
+		/**
+		* @brief Starting address of the heap.
+		*/
 		address_t	_heap_start = NULL;
+
+		/**
+		* @brief Total size of the heap in bytes.
+		*/
 		size_t		_heap_size = 0U;
+
+		/**
+		* @brief Current position (or pointer) within the heap.
+		*
+		* Typically indicates where the next memory allocation will take place.
+		*/
 		address_t	_heap_current_position = NULL;
+
+		/**
+		* @brief The address marking the end of the heap.
+		*/
 		address_t	_heap_top = NULL;
+
+		/**
+		*@brief Flag indicating if the heap has been initialized.
+		*/
 		bool		_heap_init = false;
-		RTSHA_Error _last_heap_error = RTSHA_OK;
+
+		/**
+		* @brief Last error code related to heap operations.
+		*
+		* It's set to `RTSHA_OK` by default, indicating no errors.
+		*/
+		uint32_t	_last_heap_error = RTSHA_OK;
 
 
-		/*bytes on stack to store map and list objects created with new inplace*/
+		/**
+		 * @brief Reserved storage on the stack for `FreeList` objects.
+		 *
+		 * These area is reserver for objects that will be created with placement new operator, and this storage
+		 * ensures there's space for them on the stack.
+		 */
 		PREALLOC_MEMORY<FreeList, (MAX_SMALL_PAGES + MAX_BIG_PAGES)>	_storage_free_lists = 0U;
+
+
+		/**
+		* @brief Reserved storage on the stack for `FreeMap` objects.
+		*
+		* These area is reserver for objects that will be created with placement new operator, and this storage
+		* ensures there's space for them on the stack.
+		*/
 		PREALLOC_MEMORY<FreeMap, MAX_BIG_PAGES>		_storage_free_maps = 0U;
 	};
 }
-
 
 namespace rtsha
 {
 	using namespace std;
 	using namespace internal;
 
+	/**
+	* @class Heap
+	* @brief This class encapsulates Heap in RTSHA
+	*
+	*/
 	class Heap : HeapInternal
 	{
 	public:
@@ -132,7 +227,7 @@ namespace rtsha
 		*
 		* \param size The size of the page.
 		*
-		* \param page_type The type of the memory page.
+		* \param size_type The type of the memory page.
 		*
 		* \param max_objects The maximum number of blocks that can exist on the page. This parameter is used exclusively for 'Big Memory Page' and 'Power of Two Memory Page'. For 'Small Fixed Memory Page', this value can be set to 0.
 		*
@@ -174,8 +269,11 @@ namespace rtsha
 		*
 		* The heap page will be automatically selected based on criteria such as size and availability.
 		*
+		* This method, depending on used memory page type, may allocate more than the number of bytes requested.
+		* If the block address is not so aligned, it will be rounded up to the next allocation granularity boundary.
+		* 
 		* \param size Size of the memory block, in bytes. If the size is zero, a null pointer will be returned.
-		*
+		* 		*
 		* \return On success, a pointer to the memory block allocated by the function.
 		* The type of this pointer is always void*, which can be cast to the desired type of data pointer in order to be dereferenceable.
 		* If the function failed to allocate the requested block of memory, a null pointer is returned.
@@ -186,6 +284,7 @@ namespace rtsha
 		* \brief This function deallocates memory block.
 		*
 		* A block of memory previously allocated by a call to rtsha_malloc, rtsha_calloc or rtsha_realloc is deallocated.
+		* It should not be used to release any memory block allocated any other way.
 		*
 		* \param ptr Pointer to a previously allocated memory block. If ptr does not point to a valid block of memory allocated with rtsha_malloc, rtsha_calloc or rtsha_realloc,
 		* function does nothing.
@@ -210,9 +309,13 @@ namespace rtsha
 		* \brief This function reallocates the block of memory on the heap.
 		*
 		* The heap page will be automatically selected based on criteria such as size and availability.
+		*
+		* 
 		* The function may move the memory block to a new location.
 		* The content of the memory block is preserved up to the lesser of the new and old sizes. If the new size is larger, the value of the newly allocated portion is indeterminate.
 		*
+		* This method, depending on used memory page type, may allocate more than the number of bytes requested.
+		* If the block address is not so aligned, it will be rounded up to the next allocation granularity boundary.
 		*
 		* \param ptr Pointer to the memory allocated with 'rtsha_malloc' or 'rtsha_calloc'
 		*

@@ -4,7 +4,7 @@
 
 extern uintptr_t	_heap_start;
 extern size_t		_heap_top;
-extern RTSHA_Error	_last_heap_error;
+extern uint32_t		_last_heap_error;
 
 void VisualizePage::print(std::stringstream& textStream)
 {

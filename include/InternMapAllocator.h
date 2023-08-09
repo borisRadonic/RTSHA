@@ -14,24 +14,62 @@ namespace internal
       
     using namespace rtsha;
 
+    /**
+    * @brief Allocator designed to handle internal memory allocations used with FreeMap classthat is used to manage key-value pairs in memory.
+    *
+    * This custom allocator is optimized for managing memory in a specific
+    * context where memory is provided by an instance of `rtsha_page`.
+    *
+    * @tparam T The type of elements being allocated.
+    */
     template<class T>
     struct InternMapAllocator
     {
+        /**
+        * @brief Defines the type of elements managed by the allocator.
+        */
         typedef T value_type;
 
+        /**
+        * @brief Construct a new Intern Map Allocator object.
+        *
+        * @param page The memory page context in which the allocator will operate.
+        */
         InternMapAllocator(rtsha_page* page)
-            :_page(page),
-            _allocated_intern(0U)
+            :_page(page)
         {
         }
 
+        /**
+        * @brief Copy constructor.
+        *
+        * This constructor allows for the creation of an allocator of one type
+        * from another type, provided they have the same base template.
+        *
+        * * called from 'std::multimap'
+        * 
+        * @tparam U The source type for the allocator.
+        * @param rhs The source allocator.
+        */
         template<class U>
         constexpr InternMapAllocator(const InternMapAllocator <U>& rhs) noexcept
         {
             this->_page              = rhs._page;
-            this->_allocated_intern  = rhs._allocated_intern;
         }
 
+        /**
+        * @brief Allocate memory.
+        *
+        * Attempt to allocate memory for `n` items of type `T`.
+        * 
+        * Memory in predefined  'map_page' which is page of memory page will be used as storage.
+        * Allocator uses SmallFixMemoryPage together with 64 bytes blocks.
+        * 
+        * * It is called from 'std::multimap' every time when 'insert' method is called.
+        * 
+        * @param n Number of items of type `T` to allocate memory for.
+        * @return T* Pointer to the allocated memory, or nullptr if allocation failed.
+        */
         [[nodiscard]] T* allocate(std::size_t n)   noexcept
         {
             if (_page->map_page != nullptr)
@@ -50,6 +88,13 @@ namespace internal
             return NULL;
         }
 
+        /**
+        * @brief Deallocate memory.
+        *
+        * Release previously allocated memory back to the 'map_page' pool.
+        *
+        * @param p Pointer to the memory to be deallocated.
+        */
         void deallocate(T*p, std::size_t /*n*/) noexcept
         {
             if (_page->map_page != nullptr)
@@ -69,10 +114,19 @@ namespace internal
             }
         }
 
-        rtsha_page* _page;
-        size_t _allocated_intern = 0U;
-
+        rtsha_page* _page;              ///< Memory page context.
+       
     private:
+
+        /**
+        * @brief Report memory allocation or deallocation details.
+        *
+        * Utility function to output information about memory operations.
+        *
+        * @param p Pointer to the memory block being reported.
+        * @param n Number of items of type `T` in the memory block.
+        * @param alloc Flag indicating whether the operation is an allocation (true) or deallocation (false).
+        */
         void report(T* p, std::size_t n, bool alloc = true) const
         {
             std::cout << (alloc ? "MAlloc: " : "MDealloc: ") << sizeof(T) * n
@@ -81,12 +135,24 @@ namespace internal
         }
     };
 
-   
+    /**
+    * @brief Equality operator for InternMapAllocator.
+    *
+    * @tparam T Type parameter for the left-hand side allocator.
+    * @tparam U Type parameter for the right-hand side allocator.
+    * @return true Always returns true, indicating allocators are stateless.
+    */
     template<class T, class U>
     bool operator==(const InternMapAllocator <T>&, const InternMapAllocator <U>&) { return true; }
 
+    /**
+    * @brief Inequality operator for InternMapAllocator.
+    *
+    * @tparam T Type parameter for the left-hand side allocator.
+    * @tparam U Type parameter for the right-hand side allocator.
+    * @return false Always returns false, indicating allocators are stateless.
+    */
     template<class T, class U>
     bool operator!=(const InternMapAllocator <T>&, const InternMapAllocator <U>&) { return false; }
 
 }
-

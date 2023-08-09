@@ -47,14 +47,12 @@ TEST(TestCaseClassHeap, TestHeap)
 	EXPECT_EQ(rtsha_page_size_type::PageType512, heap.get_ideal_page(512U));
 	EXPECT_EQ(rtsha_page_size_type::PageTypeBig, heap.get_ideal_page(513U));
 
-	EXPECT_TRUE(heap.add_page(NULL, rtsha_page_size_type::PageType24, 65536U));
 	EXPECT_TRUE(heap.add_page(NULL, rtsha_page_size_type::PageType32, 65536U));
 	EXPECT_TRUE(heap.add_page(NULL, rtsha_page_size_type::PageType64, 65536U));
 	EXPECT_TRUE(heap.add_page(NULL, rtsha_page_size_type::PageType128, 65536U));
 
 
-	
-	rtsha_page* page24 = heap.select_page(rtsha_page_size_type::PageType24, 15);
+
 	rtsha_page* page32 = heap.select_page(rtsha_page_size_type::PageType32, 25);
 	rtsha_page* page64 = heap.select_page(rtsha_page_size_type::PageType64, 50);
 	rtsha_page* page128 = heap.select_page(rtsha_page_size_type::PageType128, 80);

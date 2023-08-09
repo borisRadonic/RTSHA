@@ -88,7 +88,7 @@ namespace rtsha
 					MemoryBlock right(pRight);
 					if( right.isValid() && right.hasPrev() && (right.getPrev() == this->getBlock()) )
 					{
-						right.setPrev(prev.getBlock());						
+						right.setPrev(prev);						
 					}
 				}
 				else
