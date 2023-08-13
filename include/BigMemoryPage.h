@@ -13,7 +13,7 @@ namespace rtsha
 	*
 	*Similar to the 'Power Two Memory Page', this algorithm employs the 'Best Fit' algorithm, in conjunction with a 'Red-Black' balanced tree,
 	*which offers worst-case guarantees for insertion, deletion, and search times. 
-	*It romptly merges or coalesces memory blocks larger than 'MIN_BLOCK_SIZE_FOR_SPLIT' bytes after they are released.
+	*It promptly merges or coalesces memory blocks larger than 'MIN_BLOCK_SIZE_FOR_SPLIT' bytes after they are released.
 	*/
 	class BigMemoryPage : public MemoryPage
 	{

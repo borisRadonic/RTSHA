@@ -1,8 +1,9 @@
 #pragma once
 #include "SmallFixMemoryPage.h"
 #include <cstdlib>
-#include <new>
+#ifdef _RTSHA_DIAGNOSTIK
 #include <iostream>
+#endif
 
 namespace internal
 {   
@@ -117,7 +118,7 @@ namespace internal
         rtsha_page* _page;              ///< Memory page context.
        
     private:
-
+#ifdef _RTSHA_DIAGNOSTIK
         /**
         * @brief Report memory allocation or deallocation details.
         *
@@ -133,6 +134,7 @@ namespace internal
                 << " bytes at " << std::hex << std::showbase
                 << reinterpret_cast<void*>(p) << std::dec << '\n';
         }
+#endif
     };
 
     /**

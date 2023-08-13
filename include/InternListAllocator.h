@@ -1,8 +1,10 @@
 #pragma once
 #include "MemoryPage.h"
 #include <cstdlib>
-#include <new>
+
+#ifdef _RTSHA_DIAGNOSTIK
 #include <iostream>
+#endif
 
 namespace internal
 {
@@ -100,6 +102,7 @@ namespace internal
 
     private:
 
+#ifdef _RTSHA_DIAGNOSTIK
         /**
          * @brief Reports allocation or deallocation events. Useful for debugging.
          *
@@ -113,6 +116,7 @@ namespace internal
                 << " bytes at " << std::hex << std::showbase
                 << reinterpret_cast<void*>(p) << std::dec << '\n';
         }
+#endif
     };
        
     /**

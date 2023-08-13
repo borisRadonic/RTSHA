@@ -1,10 +1,10 @@
 #pragma once
 #include <stdint.h>
-#include <array>
 #include "MemoryPage.h"
 #include "errors.h"
 #include "FreeList.h"
 #include "FreeMap.h"
+#include <array>
 
 namespace internal
 {
@@ -130,7 +130,7 @@ namespace internal
 		/**
 		* @brief Starting address of the heap.
 		*/
-		address_t	_heap_start = NULL;
+		address_t	_heap_start = 0U;
 
 		/**
 		* @brief Total size of the heap in bytes.
@@ -142,12 +142,12 @@ namespace internal
 		*
 		* Typically indicates where the next memory allocation will take place.
 		*/
-		address_t	_heap_current_position = NULL;
+		address_t	_heap_current_position = 0U;
 
 		/**
 		* @brief The address marking the end of the heap.
 		*/
-		address_t	_heap_top = NULL;
+		address_t	_heap_top = 0U;
 
 		/**
 		*@brief Flag indicating if the heap has been initialized.

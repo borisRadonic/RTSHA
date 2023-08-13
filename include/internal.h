@@ -8,8 +8,7 @@
 #  include <immintrin.h>
 #  include <intrin.h>
 #else
-#  include <cpuid.h>
-#  include <emmintrin.h>
+
 #endif
 
 
@@ -138,12 +137,24 @@ namespace internal
     }
 #else
 
+
+#ifdef __arm__ //ARM architecture
+
+    inline uint32_t ExpandToPowerOf2(uint32_t Value)
+    {
+    	unsigned long Index;
+        Index = __builtin_clz(~(Value - 1));
+        return (1U << (Index + 1));
+    }
+
+#else
     inline uint32_t ExpandToPowerOf2(uint32_t Value)
     {
         unsigned long Index;
         _BitScanReverse(&Index, Value - 1);
         return (1U << (Index + 1));
     }
+#endif
 #endif
 
 
@@ -219,17 +230,15 @@ namespace internal
      * @param ptr Pointer to be aligned.
      * @return An aligned uintptr_t.
      */
-    static inline uintptr_t rtsha_align(uintptr_t ptr)
+    static inline uintptr_t rtsha_align(uintptr_t ptr, size_t aligment)
     {
-        static_assert(RTSHA_ALIGMENT > 0);
-       
-        uintptr_t mask = RTSHA_ALIGMENT - 1U;
+        uintptr_t mask = aligment - 1U;
 
-        if ((RTSHA_ALIGMENT & mask) == 0U)
+        if ((aligment & mask) == 0U)
         {
             return ((ptr + mask) & ~mask);
         }
-        return (((ptr + mask) / RTSHA_ALIGMENT) * RTSHA_ALIGMENT);
+        return (((ptr + mask) / aligment) * aligment);
     }
 
 }

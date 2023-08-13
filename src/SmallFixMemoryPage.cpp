@@ -36,6 +36,7 @@ namespace rtsha
 		return ret;
 	}
 
+
 	void SmallFixMemoryPage::free_block(MemoryBlock& block)
 	{
 		this->lock();

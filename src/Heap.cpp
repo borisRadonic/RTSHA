@@ -6,7 +6,6 @@
 #include "PowerTwoMemoryPage.h"
 #include "HeapCallbacks.h"
 
-
 namespace internal
 {
 	void HeapInternal::init_small_fix_page(rtsha_page* page, size_t a_size)
@@ -23,8 +22,32 @@ namespace internal
 	{
 		/*we need additional space for out map data... we can not store data in free blocks... to dangerous...not safe...*/
 
-		page->min_block_size = std::max(32U, ExpandToPowerOf2(min_block_size));
-		page->max_block_size = std::max(64U, ExpandToPowerOf2(max_block_size));
+
+#ifdef __arm__ //ARM architecture
+    	size_t minb = ExpandToPowerOf2(min_block_size);
+    	if( minb > 32 )
+    	{
+    		page->min_block_size = minb;
+    	}
+    	else
+    	{
+    		page->min_block_size = 32U;
+    	}
+
+    	size_t maxb = ExpandToPowerOf2(max_block_size);
+    	if( maxb > 32 )
+		{
+			page->max_block_size = maxb;
+		}
+		else
+		{
+			page->max_block_size = 64U;
+		}
+#else
+    page->min_block_size = std::max(32U, ExpandToPowerOf2(min_block_size) );
+    page->max_block_size = std::max(64U, ExpandToPowerOf2(max_block_size));
+#endif
+
 
 		if (max_objects == 0U)
 		{
@@ -140,8 +163,8 @@ namespace rtsha
 
 	bool Heap::init(void* start, size_t size)
 	{
-		address_t a_start = rtsha_align( reinterpret_cast<address_t>(start) );
-		size_t a_size = rtsha_align(size);
+		address_t a_start = rtsha_align( reinterpret_cast<address_t>(start), RTSHA_ALIGMENT);
+		size_t a_size = rtsha_align(size, RTSHA_ALIGMENT);
 
 		if (a_size == 0U)
 		{
@@ -167,7 +190,7 @@ namespace rtsha
 
 	bool Heap::add_page(HeapCallbacksStruct* callbacks, rtsha_page_size_type size_type, size_t size, size_t max_objects, size_t min_block_size, size_t max_block_size)
 	{
-		size_t a_size = rtsha_align(size);
+		size_t a_size = rtsha_align(size, RTSHA_ALIGMENT);
 		if (_heap_top < (_heap_current_position + (a_size - sizeof(rtsha_page))))
 		{
 			_last_heap_error = RTSHA_ErrorInitOutOfHeap;
@@ -370,7 +393,7 @@ namespace rtsha
 					}
 					else
 					{
-						a_size = rtsha_align(a_size);
+						a_size = rtsha_align(a_size, RTSHA_ALIGMENT);
 						BigMemoryPage memory_page(page);
 						ret = memory_page.allocate_block(a_size);
 					}
@@ -450,7 +473,7 @@ namespace rtsha
 		size_t a_size;
 		size_t count = 0U;
 
-		a_size = rtsha_align(size);
+		a_size = rtsha_align(size, RTSHA_ALIGMENT);
 
 		ptr_old = (size_t*)ptr;
 
@@ -534,10 +557,16 @@ namespace rtsha
 					return nullptr;
 				}
 			}
+
+
+
+
+
 			return memcpy(_Dst, _Src, _Size);
 		}
 		return nullptr;
 	}
+		
 
 	void* Heap::memset(void* _Dst, int _Val, size_t _Size)
 	{
@@ -556,7 +585,12 @@ namespace rtsha
 					return nullptr;
 				}
 			}
+#ifdef __arm__
+			return arm_wide64_memcpy(_Dst, _Val, _Size);
+#else
 			return ::memset(_Dst, _Val, _Size);
+#endif
+			
 		}
 		return nullptr;
 	}

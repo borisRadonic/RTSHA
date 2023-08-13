@@ -18,8 +18,6 @@ namespace rtsha
 		}
 
 		this->lock();
-
-		bool deleted = false;
 		FreeMap* ptrMap = reinterpret_cast<FreeMap*>(this->getFreeMap());
 		if ((this->getFreeBlocks() > 0U) || (ptrMap->size() > 0U))
 		{
@@ -45,7 +43,6 @@ namespace rtsha
 					{
 						/*decrease the number of free blocks*/
 						this->decFreeBlocks();
-						deleted = true;
 					}
 					
 					size_t diff = orig_size - size;
