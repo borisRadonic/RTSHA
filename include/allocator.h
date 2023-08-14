@@ -48,7 +48,7 @@
 extern "C"
 {
 #endif	
-	rtsha_decl_nodiscard rtsha_decl_export	bool  rtsha_create_heap(void* start, size_t size);
+	/*rtsha_decl_nodiscard rtsha_decl_export*/	bool  rtsha_create_heap(void* start, size_t size);
 	
 	rtsha_decl_export						bool  rtsha_add_page(HeapCallbacksStruct* callbacks, uint16_t page_type, size_t size, size_t max_objects = 0U, size_t min_block_size = 0U, size_t max_block_size = 0U);
 	

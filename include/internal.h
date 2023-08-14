@@ -142,9 +142,8 @@ namespace internal
 
     inline uint32_t ExpandToPowerOf2(uint32_t Value)
     {
-    	unsigned long Index;
-        Index = __builtin_clz(~(Value - 1));
-        return (1U << (Index + 1));
+    	unsigned long leading_zeros = __builtin_clz(Value);
+        return (1U << (32U - leading_zeros));
     }
 
 #else

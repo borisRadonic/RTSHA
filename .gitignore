@@ -180,6 +180,10 @@ DocProject/Help/*.hhp
 DocProject/Help/Html2
 DocProject/Help/html
 
+#eclipse
+.metadata/
+.settings/
+
 # Click-Once directory
 publish/
 

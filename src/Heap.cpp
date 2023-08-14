@@ -5,6 +5,9 @@
 #include "SmallFixMemoryPage.h"
 #include "PowerTwoMemoryPage.h"
 #include "HeapCallbacks.h"
+#ifdef __arm__ //ARM architecture
+#include "arm_spec_functions.h"
+#endif
 
 namespace internal
 {
@@ -23,25 +26,33 @@ namespace internal
 		/*we need additional space for out map data... we can not store data in free blocks... to dangerous...not safe...*/
 
 
-#ifdef __arm__ //ARM architecture
-    	size_t minb = ExpandToPowerOf2(min_block_size);
-    	if( minb > 32 )
-    	{
-    		page->min_block_size = minb;
-    	}
-    	else
-    	{
-    		page->min_block_size = 32U;
-    	}
 
-    	size_t maxb = ExpandToPowerOf2(max_block_size);
-    	if( maxb > 32 )
+
+#ifdef __arm__ //ARM architecture
+		if( min_block_size > 0U )
 		{
-			page->max_block_size = maxb;
+			size_t minb = ExpandToPowerOf2(min_block_size-1);
+			if( minb > 32 )
+			{
+				page->min_block_size = minb;
+			}
+			else
+			{
+				page->min_block_size = 32U;
+			}
 		}
-		else
+
+		if( max_block_size > 0U )
 		{
-			page->max_block_size = 64U;
+			size_t maxb = ExpandToPowerOf2(max_block_size-1);
+			if( maxb > 64 )
+			{
+				page->max_block_size = maxb;
+			}
+			else
+			{
+				page->max_block_size = 64U;
+			}
 		}
 #else
     page->min_block_size = std::max(32U, ExpandToPowerOf2(min_block_size) );
@@ -179,11 +190,10 @@ namespace rtsha
 		_number_pages = 0U;
 		_heap_init = true;
 
-		/*zero memory*/
-		for (address_t* ptrMem = reinterpret_cast<address_t*>(_heap_current_position); ptrMem < reinterpret_cast<address_t*>(_heap_top); ptrMem++)
-		{
-			*ptrMem = 0U;
-		}
+		void* mem = reinterpret_cast<void*>(_heap_current_position);
+
+		memset( mem, 0U, a_size  );
+
 		_last_heap_error = RTSHA_OK;
 		return true;
 	}
@@ -559,10 +569,12 @@ namespace rtsha
 			}
 
 
-
-
+#ifdef __arm__
+			return arm_wide64_memcpy(_Dst, _Src, _Size);
+#else
 
 			return memcpy(_Dst, _Src, _Size);
+#endif
 		}
 		return nullptr;
 	}
@@ -585,12 +597,8 @@ namespace rtsha
 					return nullptr;
 				}
 			}
-#ifdef __arm__
-			return arm_wide64_memcpy(_Dst, _Val, _Size);
-#else
 			return ::memset(_Dst, _Val, _Size);
-#endif
-			
+
 		}
 		return nullptr;
 	}
