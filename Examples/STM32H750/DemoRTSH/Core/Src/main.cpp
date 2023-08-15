@@ -20,7 +20,7 @@
 #include "main.h"
 #include "string.h"
 #include <list>
-
+#include "stdio.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -112,6 +112,34 @@ void onHeapError( uint32_t errorCode )
 {
 	heapOk = false;
 }
+
+
+
+// Define DWT register addresses
+#define DWT_CTRL (*(volatile uint32_t*)0xE0001000)
+#define DWT_CYCCNT (*(volatile uint32_t*)0xE0001004)
+#define DWT_LAR (*(volatile uint32_t*)0xE0001FB0)
+
+
+void DWT_Init(void)
+{
+    // Unlock the DWT registers (in case of ITM_TCR.Busy is set)
+    DWT_LAR = 0xC5ACCE55;
+
+    // Reset the cycle counter
+    DWT_CYCCNT = 0;
+
+    // Enable the cycle counter
+    DWT_CTRL |= (1 << 0);
+}
+
+uint32_t DWT_GetCycles(void)
+{
+    return DWT_CYCCNT;
+}
+
+
+
 /**
   * @brief  The application entry point.
   * @retval int
@@ -158,6 +186,17 @@ int main(void)
 
   /* USER CODE END 2 */
 
+  SCB_EnableICache();
+  SCB_EnableDCache();
+
+
+  /*Initialize DWT to measure performance of RTSHA*/
+  DWT_Init();
+  uint32_t start_cycles = 0U;
+  uint32_t end_cycles = 0U;
+  uint32_t total_cycles_malloc = 0U;
+  uint32_t total_cycles_free = 0U;
+
 
   HeapCallbacksStruct callbacks;
 
@@ -200,8 +239,11 @@ int main(void)
 
   //if heapOk, all heap functions like rtsha_malloc, rtsha_free, rtsha_memset ... rtsha_memcpy can be used
 
+  start_cycles = DWT_GetCycles();
   /* for the next 3 allocations the Power2 page will be used automatically*/
   void* memory1 = rtsha_malloc(1000U);
+  end_cycles = DWT_GetCycles();
+
   rtsha_memset(memory1, 1, 1000);
 
   void* memory2 = rtsha_malloc(500U);
@@ -235,8 +277,109 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
+  char data[256];
+
+  uint32_t counter = 0U;
+  uint32_t val = 0U;
+  uint32_t val32m = 0U;
+  uint32_t val32f = 0U;
+
   while (heapOk)
   {
+	  total_cycles_malloc = 0U;
+	  start_cycles = DWT_GetCycles();
+	  memory1 = rtsha_malloc(100U);
+	  end_cycles = DWT_GetCycles();
+	  total_cycles_malloc = end_cycles - start_cycles;
+
+	  start_cycles = DWT_GetCycles();
+	  memory2 = rtsha_malloc(100U);
+	  end_cycles = DWT_GetCycles();
+	  val =  end_cycles - start_cycles;
+	  if( val > total_cycles_malloc )
+	  {
+		  total_cycles_malloc = val;
+	  }
+
+	  start_cycles = DWT_GetCycles();
+	  memory3 = rtsha_malloc(100U);
+	  end_cycles = DWT_GetCycles();
+	  val =  end_cycles - start_cycles;
+	  if( val > total_cycles_malloc )
+	  {
+		  total_cycles_malloc = val;
+	  }
+
+
+	  start_cycles = DWT_GetCycles();
+	  rtsha_free(memory1);
+	  end_cycles = DWT_GetCycles();
+	  total_cycles_free = end_cycles - start_cycles;
+
+	  start_cycles = DWT_GetCycles();
+	  rtsha_free(memory1);
+	  end_cycles = DWT_GetCycles();
+	  val =  end_cycles - start_cycles;
+	  if( val > total_cycles_free )
+	  {
+		  total_cycles_free = val;
+	  }
+
+	  start_cycles = DWT_GetCycles();
+	  rtsha_free(memory1);
+	  end_cycles = DWT_GetCycles();
+	  val =  end_cycles - start_cycles;
+	  if( val > total_cycles_free )
+	  {
+		  total_cycles_free = val;
+	  }
+
+
+	  /*The small RTSHA_PAGE_TYPE_32 will be used automatically*/
+	  start_cycles = DWT_GetCycles();
+	  memory32 = rtsha_malloc(10U);
+	  end_cycles = DWT_GetCycles();
+	  val32m = end_cycles - start_cycles;
+
+	  start_cycles = DWT_GetCycles();
+	  rtsha_free(memory32);
+	  end_cycles = DWT_GetCycles();
+	  val32f = end_cycles - start_cycles;
+
+
+
+	  if( counter == 10000U)
+	  {
+		  if( memory1 != NULL )
+		  {
+			  sprintf(  (char*) data, (const char*) "Power2 Page rtsha_malloc: %u cycles, rtsha_free: %u cycles\n\r", (int) total_cycles_malloc, total_cycles_free);
+		  }
+		  else
+		  {
+		  	  sprintf(  (char*) data, (const char*) "Power2 Page rtsha_malloc: error\n\r");
+		  }
+		  if(HAL_UART_Transmit( &huart3, (const uint8_t*) data, strlen(data), 100U) != HAL_OK)
+		  {
+		  }
+
+		  if( memory32 != NULL)
+	  	  {
+			  sprintf(  (char*) data, (const char*) "Small Fix Page rtsha_malloc: %u cycles, rtsha_free: %u cycles\n\r", (int) val32m, val32f);
+		  }
+		  else
+		  {
+			  sprintf(  (char*) data, (const char*) "Small Fix Page rtsha_malloc: error\n\r");
+		  }
+		  if(HAL_UART_Transmit( &huart3, (const uint8_t*) data, strlen(data), 100U) != HAL_OK)
+		  {
+		  }
+		  counter = 0U;
+	  }
+	  counter++;
+
+
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

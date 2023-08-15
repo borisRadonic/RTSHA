@@ -11,6 +11,7 @@
 #include "InternMapAllocator.h"
 #include "errors.h"
 #include "BigMemoryPage.h"
+#include "time.h"
 
 using namespace std;
 using namespace std::chrono;
@@ -527,9 +528,11 @@ TEST(TestCaseMyMalloc, TestMyMallocSmallMemory)
 		heap.free(memory8);
 	}
 	
+	
 	auto stop = high_resolution_clock::now();
 	auto duration = duration_cast<microseconds>(stop - start);
 	cout << "TestMyMallocSmallMemory took " << duration.count() << " microseconds\n";
+
 }
 
 
