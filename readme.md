@@ -43,7 +43,7 @@ While each of these memory management implementations has its advantages, they a
 3. [Configuration](#configuration)
 4. [Building](#building)
 5. [Documentation](#documentation)
-6. [Examples] (#examples)
+6. [Examples](#examples)
 
 
 ## About RTSHA
@@ -141,7 +141,6 @@ Building
 Windows
 
 	Open ide/vs2022/RTSHALibrary.sln in Visual Studio 2022 and build.
-
 
 
 
