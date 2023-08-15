@@ -80,6 +80,8 @@ which type of page to use for different allocation needs.
 
 ## Potential Improvements
 
-Error handling: While the code checks for memory allocation errors, robust applications might require more comprehensive error handling and recovery mechanisms.
-Code Modularization: Depending on the project's size, consider splitting the memory management, performance measurement, and reporting functionalities into separate modules or functions for better code organization.
-Performance: Try to use optimization flags, like -O2 or -O3 when building your project and investigate other compiler flags that might be specific to your toolchain and beneficial to your application.
+**Error handling:** While the code checks for memory allocation errors, robust applications might require more comprehensive error handling and recovery mechanisms.
+
+**Code Modularization:** Depending on the project's size, consider splitting the memory management, performance measurement, and reporting functionalities into separate modules or functions for better code organization.
+
+**Performance:** Try to use optimization flags, like -O2 or -O3 when building your project and investigate other compiler flags that might be specific to your toolchain and beneficial to your application.
