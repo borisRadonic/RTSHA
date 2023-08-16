@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>DemoRTSH</name>
-	<comment></comment>
+	<name>DemoRTSHA</name>
+	<comment>Created by SDK v2019.1. DemoRTSHA_bsp0 - ps7_cortexa9_0</comment>
 	<projects>
-		<project>RTSHALib</project>
+		<project>DemoRTSHA_bsp0</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
 			<name>org.eclipse.cdt.managedbuilder.core.genmakebuilder</name>
-			<triggers>clean,full,incremental,</triggers>
 			<arguments>
 			</arguments>
 		</buildCommand>
@@ -20,142 +19,142 @@
 		</buildCommand>
 	</buildSpec>
 	<natures>
-		<nature>com.st.stm32cube.ide.mcu.MCUProjectNature</nature>
-		<nature>com.st.stm32cube.ide.mcu.MCUCubeProjectNature</nature>
 		<nature>org.eclipse.cdt.core.cnature</nature>
-		<nature>org.eclipse.cdt.core.ccnature</nature>
-		<nature>com.st.stm32cube.ide.mcu.MCUCubeIdeServicesRevAev2ProjectNature</nature>
-		<nature>com.st.stm32cube.ide.mcu.MCUAdvancedStructureProjectNature</nature>
-		<nature>com.st.stm32cube.ide.mcu.MCUSingleCpuProjectNature</nature>
-		<nature>com.st.stm32cube.ide.mcu.MCURootProjectNature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.managedBuildNature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
+		<nature>org.eclipse.cdt.core.ccnature</nature>
 	</natures>
 	<linkedResources>
 		<link>
-			<name>Core/Inc/BigMemoryPage.h</name>
+			<name>src/BigMemoryPage.h</name>
 			<type>1</type>
 			<location>RSHA_LOC/include/BigMemoryPage.h</location>
 		</link>
 		<link>
-			<name>Core/Inc/FreeList.h</name>
+			<name>src/FreeList.h</name>
 			<type>1</type>
 			<location>RSHA_LOC/include/FreeList.h</location>
 		</link>
 		<link>
-			<name>Core/Inc/FreeMap.h</name>
+			<name>src/FreeMap.h</name>
 			<type>1</type>
 			<location>RSHA_LOC/include/FreeMap.h</location>
 		</link>
 		<link>
-			<name>Core/Inc/Heap.h</name>
+			<name>src/Heap.h</name>
 			<type>1</type>
 			<location>RSHA_LOC/include/Heap.h</location>
 		</link>
 		<link>
-			<name>Core/Inc/HeapCallbacks.h</name>
+			<name>src/HeapCallbacks.h</name>
 			<type>1</type>
 			<location>RSHA_LOC/include/HeapCallbacks.h</location>
 		</link>
 		<link>
-			<name>Core/Inc/InternListAllocator.h</name>
+			<name>src/InternListAllocator.h</name>
 			<type>1</type>
 			<location>RSHA_LOC/include/InternListAllocator.h</location>
 		</link>
 		<link>
-			<name>Core/Inc/InternMapAllocator.h</name>
+			<name>src/InternMapAllocator.h</name>
 			<type>1</type>
 			<location>RSHA_LOC/include/InternMapAllocator.h</location>
 		</link>
 		<link>
-			<name>Core/Inc/MemoryBlock.h</name>
+			<name>src/MemoryBlock.h</name>
 			<type>1</type>
 			<location>RSHA_LOC/include/MemoryBlock.h</location>
 		</link>
 		<link>
-			<name>Core/Inc/MemoryPage.h</name>
+			<name>src/MemoryPage.h</name>
 			<type>1</type>
 			<location>RSHA_LOC/include/MemoryPage.h</location>
 		</link>
 		<link>
-			<name>Core/Inc/PowerTwoMemoryPage.h</name>
+			<name>src/PowerTwoMemoryPage.h</name>
 			<type>1</type>
 			<location>RSHA_LOC/include/PowerTwoMemoryPage.h</location>
 		</link>
 		<link>
-			<name>Core/Inc/SmallFixMemoryPage.h</name>
+			<name>src/SmallFixMemoryPage.h</name>
 			<type>1</type>
 			<location>RSHA_LOC/include/SmallFixMemoryPage.h</location>
 		</link>
 		<link>
-			<name>Core/Inc/allocator.h</name>
+			<name>src/allocator.h</name>
 			<type>1</type>
 			<location>RSHA_LOC/include/allocator.h</location>
 		</link>
 		<link>
-			<name>Core/Inc/arm_spec_functions.h</name>
+			<name>src/arm_spec_functions.h</name>
 			<type>1</type>
 			<location>RSHA_LOC/include/arm_spec_functions.h</location>
 		</link>
 		<link>
-			<name>Core/Inc/errors.h</name>
+			<name>src/errors.h</name>
 			<type>1</type>
 			<location>RSHA_LOC/include/errors.h</location>
 		</link>
 		<link>
-			<name>Core/Inc/internal.h</name>
+			<name>src/internal.h</name>
 			<type>1</type>
 			<location>RSHA_LOC/include/internal.h</location>
 		</link>
 		<link>
-			<name>Core/Src/BigMemoryPage.cpp</name>
+			<name>src/BigMemoryPage.cpp</name>
 			<type>1</type>
 			<location>RSHA_LOC/src/BigMemoryPage.cpp</location>
 		</link>
 		<link>
-			<name>Core/Src/FreeList.cpp</name>
+			<name>src/FreeList.cpp</name>
 			<type>1</type>
 			<location>RSHA_LOC/src/FreeList.cpp</location>
 		</link>
 		<link>
-			<name>Core/Src/FreeMap.cpp</name>
+			<name>src/FreeMap.cpp</name>
 			<type>1</type>
 			<location>RSHA_LOC/src/FreeMap.cpp</location>
 		</link>
 		<link>
-			<name>Core/Src/Heap.cpp</name>
+			<name>src/Heap.cpp</name>
 			<type>1</type>
 			<location>RSHA_LOC/src/Heap.cpp</location>
 		</link>
 		<link>
-			<name>Core/Src/MemoryBlock.cpp</name>
+			<name>src/MemoryBlock.cpp</name>
 			<type>1</type>
 			<location>RSHA_LOC/src/MemoryBlock.cpp</location>
 		</link>
 		<link>
-			<name>Core/Src/MemoryPage.cpp</name>
+			<name>src/MemoryPage.cpp</name>
 			<type>1</type>
 			<location>RSHA_LOC/src/MemoryPage.cpp</location>
 		</link>
 		<link>
-			<name>Core/Src/PowerTwoMemoryPage.cpp</name>
+			<name>src/PowerTwoMemoryPage.cpp</name>
 			<type>1</type>
 			<location>RSHA_LOC/src/PowerTwoMemoryPage.cpp</location>
 		</link>
 		<link>
-			<name>Core/Src/SmallFixMemoryPage.cpp</name>
+			<name>src/SmallFixMemoryPage.cpp</name>
 			<type>1</type>
 			<location>RSHA_LOC/src/SmallFixMemoryPage.cpp</location>
 		</link>
 		<link>
-			<name>Core/Src/allocator.cpp</name>
+			<name>src/allocator.cpp</name>
 			<type>1</type>
 			<location>RSHA_LOC/src/allocator.cpp</location>
 		</link>
 		<link>
-			<name>Core/Src/arm_spec_functionscpp.cpp</name>
+			<name>src/arm_spec_functionscpp.cpp</name>
 			<type>1</type>
 			<location>RSHA_LOC/src/arm_spec_functionscpp.cpp</location>
 		</link>
 	</linkedResources>
+	<variableList>
+		<variable>
+			<name>RSHA_LOC</name>
+			<value>$%7BPARENT-3-WORKSPACE_LOC%7D</value>
+		</variable>
+	</variableList>
 </projectDescription>
