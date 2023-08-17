@@ -152,5 +152,6 @@ Windows
 ## Examples
 
 [STM32H750 Demo](https://github.com/borisRadonic/RTSHA/tree/master/Examples/STM32H750/DemoRTSH)
+[ZYNQ-7020 Demo](https://github.com/borisRadonic/RTSHA/tree/master/Examples/Xilinx/ZYBOZ7)
 
 

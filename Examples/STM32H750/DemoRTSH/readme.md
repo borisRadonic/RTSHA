@@ -66,7 +66,7 @@ Based on the results obtained from the system's profiling, here are the performa
     rtsha_malloc: 2226 cycles
     rtsha_free: 1752 cycles
 
-This represents the time taken for memory allocation and deallocation for smaller fixed-size pages, specifically designed for handling memory chunks less than 32 bytes.
+This represents the time taken for memory allocation and deallocation for smaller fixed-size pages, specifically designed for handling memory chunks less than 512 bytes.
 
 *Power2 Page:*
 

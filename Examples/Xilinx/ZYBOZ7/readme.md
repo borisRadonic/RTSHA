@@ -121,7 +121,9 @@ Based on the results obtained from the system's profiling, here are the performa
 Measured Performance for Release Version:
 
 *Power2 Page:*
+
 rtsha_malloc: 963 to 3931 Cycles
+
 rtsha_free: 726 to 1470 Cycles
 
 This represents the time taken for memory allocation and deallocation in a flexible page system that can handle a range of block sizes in power-of-two increments,
@@ -130,10 +132,12 @@ Depending on the application's requirements, developers can utilize these metric
 which type of page to use for different allocation needs.
 
 *Small Fix Page:*
+
 rtsha_malloc: 450 to 560 Cycles
+
 rtsha_free: 330 to 400 Cycles
 
-This represents the time taken for memory allocation and deallocation for smaller fixed-size pages, specifically designed for handling memory chunks less than 32 bytes.
+This represents the time taken for memory allocation and deallocation for smaller fixed-size pages, specifically designed for handling memory chunks less than 512 bytes.
 
 ## Potential Improvements
 
