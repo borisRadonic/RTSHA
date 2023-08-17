@@ -61,9 +61,9 @@ Implications
 
 By breaking down the memory into specific segments, the system can achieve:
 
-    **Isolation:** Preventing one part of the system (like the RTSHA heap) from inadvertently affecting another.
-    **Optimization:** Ensuring that each CPU has its dedicated memory, reducing contention.
-    **Flexibility:** Reserved segments mean that future adaptations (like integrating a second CPU core) become easier.
+**Isolation:** Preventing one part of the system (like the RTSHA heap) from inadvertently affecting another.
+**Optimization:** Ensuring that each CPU has its dedicated memory, reducing contention.
+**Flexibility:** Reserved segments mean that future adaptations (like integrating a second CPU core) become easier.
 
 Such granularity and deliberate segmentation are crucial in embedded and real-time systems where efficient memory management can make a significant difference in performance and reliability.
 
@@ -87,9 +87,9 @@ The example demonstrates adding pages of types RTSHA_PAGE_TYPE_32, RTSHA_PAGE_TY
 
 ## Usage
 
-    Ensure that you have the required hardware platform and setup.
-    Deploy the code.
-    Monitor the log outputs to see the memory management in action and the performance metrics.
+1. Ensure that you have the required hardware platform and setup.
+2. Deploy the code.
+3. Monitor the log outputs to see the memory management in action and the performance metrics.
 
 Memory can be allocated and deallocated using rtsha_malloc and rtsha_free, respectively.
 Additional functions like rtsha_memset and rtsha_memcpy allow for common safety memory operations.
@@ -120,18 +120,18 @@ Based on the results obtained from the system's profiling, here are the performa
 
 Measured Performance for Release Version:
 
-    *Power2 Page:*
-        rtsha_malloc: 963 to 3563 Cycles
-        rtsha_free: 726 to 1470 Cycles
+*Power2 Page:*
+rtsha_malloc: 963 to 3931 Cycles
+rtsha_free: 726 to 1470 Cycles
 
 This represents the time taken for memory allocation and deallocation in a flexible page system that can handle a range of block sizes in power-of-two increments,
 up to a specified maximum. These metrics are crucial for understanding the efficiency of the RTSHA heap system. 
 Depending on the application's requirements, developers can utilize these metrics to optimize memory operations further and make informed decisions regarding
 which type of page to use for different allocation needs.
 
-    *Small Fix Page:*
-        rtsha_malloc: 450 to 560 Cycles
-        rtsha_free: 330 to 400 Cycles
+*Small Fix Page:*
+rtsha_malloc: 450 to 560 Cycles
+rtsha_free: 330 to 400 Cycles
 
 This represents the time taken for memory allocation and deallocation for smaller fixed-size pages, specifically designed for handling memory chunks less than 32 bytes.
 
