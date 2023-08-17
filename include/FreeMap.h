@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include "MemoryBlock.h"
 #include "InternMapAllocator.h"
+#include "internal.h"
 #include "map"
 
 namespace internal
@@ -47,7 +48,13 @@ namespace internal
 		* @param key The key for the insertion. (The size of block is used as a key.)
 		* @param block The associated value for the key. (Address of the block in memory.)
 		*/
-		void insert(const uint64_t key, size_t block);
+		rtsha_attr_inline void insert(const uint64_t key, size_t block)
+		{
+			if ((_ptrMap != nullptr))
+			{
+				_ptrMap->insert(std::pair<const uint64_t, size_t>(key, block));
+			}
+		}
 
 		/**
 		* @brief Deletes a key-value pair from the map based on the given key.
@@ -56,7 +63,23 @@ namespace internal
 		* @param block The associated value for the key.
 		* @return True if the deletion was successful, otherwise false.
 		*/
-		bool del(const uint64_t key, size_t block);
+		rtsha_attr_inline bool del(const uint64_t key, size_t block)
+		{
+			if ((_ptrMap != nullptr))
+			{
+				mmap::iterator it = _ptrMap->find(key);
+				while(it != _ptrMap->end())
+				{
+					if ((it->first == key) && (it->second == block))
+					{
+						it = _ptrMap->erase(it);
+						return true;
+					}
+					it++;
+				}
+			}
+			return false;
+		}
 
 		/**
 		* @brief Finds the value associated with a given key.
@@ -64,7 +87,19 @@ namespace internal
 		* @param key The key to be looked up.
 		* @return The value associated with the key.
 		*/
-		size_t find(const uint64_t key);
+		rtsha_attr_inline size_t find(const uint64_t key)
+		{
+			if ((_ptrMap != nullptr))
+			{
+				mmap::iterator it = _ptrMap->lower_bound(key);
+				if (it != _ptrMap->end())
+				{
+					return it->second;
+				}
+			}
+			return 0U;
+		}
+
 
 		/**
 		* @brief Checks if a given key-value pair exists in the map.
@@ -73,14 +108,37 @@ namespace internal
 		* @param block The associated value for the key.
 		* @return True if the key-value pair exists, otherwise false.
 		*/
-		bool exists(const uint64_t key, size_t block);
+		rtsha_attr_inline bool exists(const uint64_t key, size_t block)
+		{
+			if ((_ptrMap != nullptr))
+			{
+				mmap::iterator it = _ptrMap->find(key);
+				if (it != _ptrMap->end())
+				{
+					if ((it->first == key) && (it->second == block))
+					{
+						return true;
+					}
+				}
+			}
+			return false;
+		}
 
 		/**
 		* @brief Retrieves the number of key-value pairs in the map.
 		*
 		* @return The size of the map.
 		*/
-		size_t size() const;
+		size_t size() const
+		{
+			if ((_ptrMap != nullptr))
+			{
+				return _ptrMap->size();
+			}
+			return 0U;
+		}
+
+
 				
 	private:
 		rtsha_page*			_page;				///< The memory page being managed by the free map.

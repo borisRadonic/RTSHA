@@ -71,7 +71,7 @@ namespace internal
         * @param n Number of items of type `T` to allocate memory for.
         * @return T* Pointer to the allocated memory, or nullptr if allocation failed.
         */
-        [[nodiscard]] T* allocate(std::size_t n)   noexcept
+        [[nodiscard]] rtsha_attr_inline T* allocate(std::size_t n)   noexcept
         {
             if (_page->map_page != nullptr)
             {
@@ -96,7 +96,7 @@ namespace internal
         *
         * @param p Pointer to the memory to be deallocated.
         */
-        void deallocate(T*p, std::size_t /*n*/) noexcept
+        rtsha_attr_inline void deallocate(T*p, std::size_t /*n*/) noexcept
         {
             if (_page->map_page != nullptr)
             {

@@ -100,7 +100,7 @@ namespace rtsha
 		/**
 		* @brief Marks the current block as allocated.
 		*/
-		inline void setAllocated()
+		rtsha_attr_inline void setAllocated()
 		{
 			_block->size = (_block->size >> 1U) << 1U;
 		}
@@ -108,7 +108,7 @@ namespace rtsha
 		/**
 		* @brief Marks the current block as free.
 		*/
-		inline void setFree()
+		rtsha_attr_inline void setFree()
 		{
 			_block->size = (_block->size | 1U);
 		}
@@ -116,7 +116,7 @@ namespace rtsha
 		/**
 		* @brief Marks the current block as the last block in the chain.
 		*/
-		inline void setLast()
+		rtsha_attr_inline void setLast()
 		{
 			_block->size = (_block->size | 2U);
 		}
@@ -124,7 +124,7 @@ namespace rtsha
 		/**
 		* @brief Clears the 'is last' status of the current block.
 		*/
-		inline void clearIsLast()
+		rtsha_attr_inline void clearIsLast()
 		{
 			_block->size &= ~(1UL << 1U);			
 		}
@@ -133,7 +133,7 @@ namespace rtsha
 		* @brief Retrieves the underlying rtsha_block pointer.
 		* @return A pointer to the associated rtsha_block.
 		*/
-		inline rtsha_block* getBlock() const
+		rtsha_attr_inline rtsha_block* getBlock() const
 		{
 			return _block;
 		}
@@ -142,7 +142,7 @@ namespace rtsha
 		*@brief Retrieves the memory address allocated for the block.
 		* @return The starting address of the allocated memory (block data).
 		*/
-		inline void* getAllocAddress() const
+		rtsha_attr_inline void* getAllocAddress() const
 		{
 			return reinterpret_cast<void*>((size_t)_block + 2U * sizeof(size_t));
 		}
@@ -151,7 +151,7 @@ namespace rtsha
 		* @brief Gets the size of the current block.
 		* @return The size of the block.
 		*/
-		inline size_t getSize() const
+		rtsha_attr_inline size_t getSize() const
 		{
 			return (_block->size >> 2U) << 2U;
 		}
@@ -160,7 +160,7 @@ namespace rtsha
 		* @brief Checks if the current MemoryBlock instance is valid.
 		* @return True if the block is valid, otherwise false.
 		*/
-		inline bool isValid() const
+		rtsha_attr_inline bool isValid() const
 		{
 			if (_block != nullptr)
 			{
@@ -178,7 +178,7 @@ namespace rtsha
 		* @brief Sets the size of the current block.
 		* @param size The new size to set for the block.
 		*/
-		inline void setSize( size_t size )
+		rtsha_attr_inline void setSize( size_t size )
 		{
 			if (size > sizeof(size_t))
 			{
@@ -206,7 +206,7 @@ namespace rtsha
 		* @brief Retrieves the address of the free block.
 		* @return The address of the free block.
 		*/
-		inline size_t getFreeBlockAddress() const
+		rtsha_attr_inline size_t getFreeBlockAddress() const
 		{
 			return ((size_t)_block + 2U * sizeof(size_t));
 		}
@@ -215,7 +215,7 @@ namespace rtsha
 		* @brief Sets the previous block for the current block.
 		* @param prev The previous MemoryBlock to set.
 		*/
-		inline void setPrev(const MemoryBlock& prev)
+		rtsha_attr_inline void setPrev(const MemoryBlock& prev)
 		{
 			if (prev.isValid())
 			{
@@ -230,7 +230,7 @@ namespace rtsha
 		/**
 		* @brief Sets the current block as the first block in a chain.
 		*/
-		inline void setAsFirst()
+		rtsha_attr_inline void setAsFirst()
 		{
 			_block->prev = NULL;			
 		}
@@ -241,7 +241,7 @@ namespace rtsha
 		* The method examines the 0th bit of the size attribute to determine the block's status.
 		* @return True if the block is free, otherwise false.
 		*/
-		inline bool isFree()
+		rtsha_attr_inline bool isFree()
 		{
 			return is_bit(_block->size, 0U);
 		}
@@ -252,7 +252,7 @@ namespace rtsha
 		* The method examines the 1st bit of the size attribute to determine the block's position.
 		* @return True if the block is the last block, otherwise false.
 		*/
-		inline bool isLast()
+		rtsha_attr_inline bool isLast()
 		{
 			return is_bit(_block->size, 1U);
 		}
@@ -262,7 +262,7 @@ namespace rtsha
 		*
 		* @return True if the block has a previous block, otherwise false.
 		*/
-		inline bool hasPrev()
+		rtsha_attr_inline bool hasPrev()
 		{
 			return (_block->prev != NULL);
 		}
@@ -272,7 +272,7 @@ namespace rtsha
 		*
 		* @return A pointer to the next rtsha_block in the chain.
 		*/
-		inline rtsha_block* getNextBlock() const
+		rtsha_attr_inline rtsha_block* getNextBlock() const
 		{
 			return reinterpret_cast<rtsha_block*>((size_t)_block + this->getSize());
 		}
@@ -282,7 +282,7 @@ namespace rtsha
 		*
 		* @return A pointer to the previous rtsha_block.
 		*/
-		inline rtsha_block* getPrev() const
+		rtsha_attr_inline rtsha_block* getPrev() const
 		{
 			return _block->prev;
 		}
@@ -290,7 +290,7 @@ namespace rtsha
 		/**
 		* @brief Prepares the current block for use by resetting its attributes in memory.
 		*/
-		inline void prepare()
+		rtsha_attr_inline void prepare()
 		{
 			_block->prev = NULL;
 			_block->size = 0;

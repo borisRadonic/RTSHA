@@ -91,8 +91,13 @@ namespace rtsha
 			MemoryBlock prev(block.getPrev());					
 			if (prev.isValid() && prev.isFree() && (prev.getSize() == block.getSize()) )
 			{
-				/*merge two blocks*/
-				mergeLeft(block);
+				/*merge two blocks*/				
+				if (ptrMap->del(static_cast<const uint64_t>(prev.getSize()), reinterpret_cast<size_t>(prev.getBlock())) )
+				{
+					/*decrease the number of free blocks*/
+					this->decFreeBlocks();
+				}
+				block.merge_left();
 				break;
 			}
 			else
@@ -108,8 +113,13 @@ namespace rtsha
 
 			if (next.isValid() && next.isFree() && (next.getSize() == block.getSize()))
 			{
-				/*merge two blocks*/
-				mergeRight(block);
+				/*merge two blocks*/				
+				if (ptrMap->del(static_cast<const uint64_t>(next.getSize()), reinterpret_cast<size_t>(next.getBlock())))
+				{
+					/*decrease the number of free blocks*/
+					this->decFreeBlocks();
+				}
+				block.merge_right();
 				break;
 			}
 			else
@@ -148,30 +158,6 @@ namespace rtsha
 				this->incFreeBlocks();
 			}
 		}
-	}
-
-	void PowerTwoMemoryPage::mergeLeft(MemoryBlock& block)
-	{
-		MemoryBlock prev(block.getPrev());
-		FreeMap* ptrMap = reinterpret_cast<FreeMap*>(this->getFreeMap());
-		if (ptrMap->del(static_cast<const uint64_t>(prev.getSize()), reinterpret_cast<size_t>(prev.getBlock())) )
-		{
-			/*decrease the number of free blocks*/
-			this->decFreeBlocks();
-		}
-		block.merge_left();
-	}
-
-	void PowerTwoMemoryPage::mergeRight(MemoryBlock& block)
-	{
-		MemoryBlock next(block.getNextBlock());
-		FreeMap* ptrMap = reinterpret_cast<FreeMap*>(this->getFreeMap());
-		if (ptrMap->del(static_cast<const uint64_t>(next.getSize()), reinterpret_cast<size_t>(next.getBlock())))
-		{
-			/*decrease the number of free blocks*/
-			this->decFreeBlocks();
-		}
-		block.merge_right();
 	}
 
 	void PowerTwoMemoryPage::createInitialFreeBlocks()

@@ -35,34 +35,11 @@
 
 #include "platform_config.h"
 
-/*
- * Uncomment one of the following two lines, depending on the target,
- * if ps7/psu init source files are added in the source directory for
- * compiling example outside of SDK.
- */
-/*#include "ps7_init.h"*/
-/*#include "psu_init.h"*/
 
-#ifdef STDOUT_IS_16550
- #include "xuartns550_l.h"
-
- #define UART_BAUD 9600
-#endif
-
-void
-enable_caches()
+void enable_caches()
 {
-#ifdef __PPC__
-    Xil_ICacheEnableRegion(CACHEABLE_REGION_MASK);
-    Xil_DCacheEnableRegion(CACHEABLE_REGION_MASK);
-#elif __MICROBLAZE__
-#ifdef XPAR_MICROBLAZE_USE_ICACHE
-    Xil_ICacheEnable();
-#endif
-#ifdef XPAR_MICROBLAZE_USE_DCACHE
-    Xil_DCacheEnable();
-#endif
-#endif
+	Xil_ICacheEnable();
+	Xil_DCacheEnable();
 }
 
 void

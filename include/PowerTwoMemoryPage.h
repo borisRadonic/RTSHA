@@ -83,25 +83,5 @@ namespace rtsha
 		*/
 		void splitBlockPowerTwo(MemoryBlock& block, size_t end_size);
 
-		/**
-		* @brief Merges the specified block with its left neighbor.
-		*
-		* This function is typically used when freeing a block of memory to see if
-		* it can be coalesced with its left neighbor to create a larger block.
-		*
-		* @param block The block to be merged with its left neighbor.
-		*/
-		void mergeLeft(MemoryBlock& block);
-
-		/**
-		* @brief Merges the specified block with its right neighbor.
-		*
-		* This function is typically used when freeing a block of memory to see if
-		* it can be coalesced with its right neighbor to create a larger block.
-		*
-		* @param block The block to be merged with its right neighbor.
-		*/
-		void mergeRight(MemoryBlock& block);
-		
 	};
 }

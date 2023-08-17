@@ -54,6 +54,14 @@ The use of 'Small Fixed Memory Pages' in combination with 'Power Two Memory Page
 #define MAX_BIG_PAGES			2U
 #define MAX_PAGES				(MAX_SMALL_PAGES+MAX_BIG_PAGES)
 
+#if (__MSC_VER >= 1930 )
+#define rtsha_attr_inline inline __forceinline
+#else
+#define rtsha_attr_inline inline 
+#endif
+
+
+
 #if defined _WIN64 || defined _ARM64
 #define RTSHA_BLOCK_HEADER_SIZE  (2 * sizeof(size_t))
 #define MIN_BLOCK_SIZE_FOR_SPLIT	56U /*todo*/

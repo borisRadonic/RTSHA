@@ -65,7 +65,7 @@ namespace internal
         * @param n Number of objects to allocate memory for.
         * @return Pointer to the allocated block of memory.
         */
-        [[nodiscard]] T* allocate(std::size_t n)  noexcept
+        [[nodiscard]] rtsha_attr_inline T* allocate(std::size_t n)  noexcept
         {
             /*max. 1 block*/
             if (n != 1U)
@@ -92,7 +92,7 @@ namespace internal
         * It is called from 'forward_list' every time when 'pop' method is called
         * 
         */
-        void deallocate(T* /*p*/, std::size_t /*n*/) noexcept
+        rtsha_attr_inline void deallocate(T* /*p*/, std::size_t /*n*/) noexcept
         {
         }
 

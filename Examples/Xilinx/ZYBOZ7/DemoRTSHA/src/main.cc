@@ -54,12 +54,12 @@ void onHeapError( uint32_t errorCode )
 
 SemaphoreHandle_t xSemaphore;
 
-void HeapLock()
+inline void HeapLock()
 {
 	xSemaphoreTake(xSemaphore, portMAX_DELAY);
 }
 
-void HeapUnLock()
+inline void HeapUnLock()
 {
 	xSemaphoreGive(xSemaphore);
 }
@@ -70,6 +70,7 @@ int main()
 
 
 	 init_platform();
+
 
 	_heap = NULL;
 
@@ -212,15 +213,20 @@ void prvTestThread(void *pvParam)
 	uint32_t val = 0U;
 	uint32_t val32m = 0U;
 	uint32_t val32f = 0U;
-	uint32_t total_cycles_malloc, total_cycles_free;
+	uint32_t total_cycles_malloc, total_cycles_free, maxm, maxf;
 
-	XTime tStart, tEnd;
+	XTime tStart, tEnd,  sec0, sec1;
 
+	maxm = 0U;
+	maxf = 0U;
 	while(1)
 	{
-		vTaskDelay(pdMS_TO_TICKS(1000U));
-
 		total_cycles_malloc = 0U;
+
+		XTime_GetTime(&sec0);
+		vTaskDelay(pdMS_TO_TICKS(1000U));
+		XTime_GetTime(&sec1);
+
 		 XTime_GetTime(&tStart);
 		memory1 = rtsha_malloc(2000U);
 		XTime_GetTime(&tEnd);
@@ -243,6 +249,12 @@ void prvTestThread(void *pvParam)
 		{
 			total_cycles_malloc = val;
 		}
+
+		if( total_cycles_malloc > maxm )
+		{
+			maxm = total_cycles_malloc;
+		}
+
 
 		 XTime_GetTime(&tStart);
 		rtsha_free(memory1);
@@ -268,6 +280,11 @@ void prvTestThread(void *pvParam)
 			total_cycles_free = val;
 		}
 
+		if( total_cycles_free > maxf )
+		{
+			maxf = total_cycles_free;
+		}
+
 
 		/*The small RTSHA_PAGE_TYPE_32 will be used automatically*/
 		XTime_GetTime(&tStart);
@@ -283,7 +300,7 @@ void prvTestThread(void *pvParam)
 
 		if( memory1 != NULL )
 		{
-			sprintf(  (char*) data, (const char*) "Power2 Page rtsha_malloc: %u cycles, rtsha_free: %u cycles\n\r", (int) total_cycles_malloc, total_cycles_free);
+			sprintf(  (char*) data, (const char*) "Power2 Page rtsha_malloc: %u cycles, rtsha_free: %u cycles MaxM=%u MaxF=%u\n\r", (int) total_cycles_malloc, total_cycles_free, maxm, maxf);
 		}
 		else
 		{

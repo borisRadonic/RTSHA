@@ -41,14 +41,40 @@ namespace internal
 		*
 		* @param address The memory address to be added to the free list.
 		*/
-		void push(const size_t address);
+		rtsha_attr_inline void push(const size_t address)
+		{
+			ptrLlist->emplace_front(address);
+		}
 
 		/**
 		*@brief Pops and retrieves a memory address from the free list.
 		*
 		* @return The memory address retrieved from the free list.
 		*/
-		size_t pop();
+		rtsha_attr_inline size_t pop()
+		{
+			flist::iterator ptr = ptrLlist->begin();
+			if (ptr != ptrLlist->end())
+			{
+				size_t address = ptrLlist->front();
+				ptrLlist->pop_front();
+				return address;
+			}
+			return 0U;
+		}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	private:
 		rtsha_page* _page;									///< The memory page being managed by the free list.
