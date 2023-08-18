@@ -148,7 +148,7 @@ namespace internal
 
 #ifdef __arm__ //ARM architecture
 
-    inline uint32_t ExpandToPowerOf2(uint32_t Value)
+    rtsha_attr_inline uint32_t ExpandToPowerOf2(uint32_t Value)
     {
     	unsigned long leading_zeros = __builtin_clz(Value);
         return (1U << (32U - leading_zeros));

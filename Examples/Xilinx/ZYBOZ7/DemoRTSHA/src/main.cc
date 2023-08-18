@@ -53,6 +53,7 @@ void onHeapError( uint32_t errorCode )
 }
 
 SemaphoreHandle_t xSemaphore;
+SemaphoreHandle_t xSemUart;
 
 inline void HeapLock()
 {
@@ -67,7 +68,6 @@ inline void HeapUnLock()
 
 int main()
 {
-
 
 	 init_platform();
 
@@ -153,6 +153,9 @@ int main()
 	  }
 
 	  xSemaphore = xSemaphoreCreateMutex();
+	  xSemUart = xSemaphoreCreateMutex();
+
+
 
 	  if( xSemaphore == NULL )
 	  {
@@ -293,12 +296,14 @@ void prvTestThread(void *pvParam)
 		val32m = tEnd- tStart;
 
 
-		 XTime_GetTime(&tStart);
+		XTime_GetTime(&tStart);
 		rtsha_free(memory32);
 		XTime_GetTime(&tEnd);
 		val32f = tEnd- tStart; ;
 
-		if( memory1 != NULL )
+
+
+		if( (memory1 != NULL) && (memory2 != NULL) && (memory3 != NULL) )
 		{
 			sprintf(  (char*) data, (const char*) "Power2 Page rtsha_malloc: %u cycles, rtsha_free: %u cycles MaxM=%u MaxF=%u\n\r", (int) total_cycles_malloc, total_cycles_free, maxm, maxf);
 		}
@@ -307,6 +312,7 @@ void prvTestThread(void *pvParam)
 			sprintf(  (char*) data, (const char*) "Power2 Page rtsha_malloc: error\n\r");
 		}
 
+		xSemaphoreTake(xSemUart, portMAX_DELAY);
 		xil_printf(data);
 
 		if( memory32 != NULL)
@@ -319,17 +325,31 @@ void prvTestThread(void *pvParam)
 		}
 
 		xil_printf(data);
+		xSemaphoreGive(xSemUart);
 	}
 }
 
 void prvUartreceiveThread(void *pvParam)
 {
 	unsigned int count = 0;
+	std::list<int> lst;
+	XTime tStart, tEnd;
 	while(1)
 	{
 		vTaskDelay(pdMS_TO_TICKS(3000U));
 		count++;
-		//xil_printf("Task 1 counter value: %u \n", count);
+		XTime_GetTime(&tStart);
+		lst.push_back(count);
+		XTime_GetTime(&tEnd);
+
+		if( count > 100 )
+		{
+			lst.erase(lst.begin(), lst.end());
+			count = 0;
+		}
+		xSemaphoreTake(xSemUart, portMAX_DELAY);
+		xil_printf("push_back takes %u cycles\n\r", (uint32_t) (tEnd- tStart) );
+		xSemaphoreGive(xSemUart);
 	}
 }
 

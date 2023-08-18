@@ -6,7 +6,7 @@
 
 namespace internal
 {
-#if not defined USE_STL_LIST
+#if !defined USE_STL_LIST
 	template<typename T>
 	class alignas(sizeof(size_t)) FreeLinkedList
 	{
@@ -136,8 +136,9 @@ namespace internal
 #ifdef USE_STL_LIST
 		
 		InternListAllocator<std::size_t>* _lallocator;		///< Internal list allocator for storin 'list' memory blocks in 'free blocks' space
-#endif
+#else
 		flist* ptrLlist;									///< Pointer to the list structure used internally.
+#endif
 
 #ifdef USE_STL_LIST
 	private:

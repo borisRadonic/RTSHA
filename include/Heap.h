@@ -27,7 +27,7 @@ namespace internal
 		/**
 	* \brief Standard constructor.
 	*/
-		HeapInternal()
+		HeapInternal():_big_page_used(false)
 		{
 			for (size_t i = 0; i < _pages.size(); i++)
 			{
@@ -160,6 +160,13 @@ namespace internal
 		* It's set to `RTSHA_OK` by default, indicating no errors.
 		*/
 		uint32_t	_last_heap_error = RTSHA_OK;
+
+		/**
+		* @brief Indicates that heap uses 'big memory' page
+		*
+		* It's set to `RTSHA_OK` by default, indicating no errors.
+		*/
+		bool _big_page_used;
 
 
 		/**

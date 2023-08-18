@@ -69,19 +69,5 @@ namespace rtsha
 		*/
 		void createInitialFreeBlocks();
 
-	protected:
-
-		/**
-		* @brief Splits a memory block into two blocks based on the specified size.
-		*
-		* This function is used for power-of-two allocators where blocks can be
-		* efficiently split in half multiple times. After splitting, the original block
-		* is resized to 'end_size', and the remainder of the same size becomes a new block.
-		*
-		* @param block The block to be split.
-		 * @param end_size The desired size of the block after splitting.
-		*/
-		void splitBlockPowerTwo(MemoryBlock& block, size_t end_size);
-
 	};
 }

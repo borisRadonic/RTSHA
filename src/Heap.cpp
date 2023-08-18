@@ -230,7 +230,8 @@ namespace rtsha
 			if (page->end_position <= (page->position + 64U))
 			{
 				return false;
-			}			
+			}
+			_big_page_used = true;
 			init_big_block_page(page, a_size, max_objects);
 		}
 		else if (rtsha_page_size_type::PageTypePowerTwo == size_type)
@@ -347,11 +348,14 @@ namespace rtsha
 
 	rtsha_page* Heap::get_big_memorypage() const
 	{
-		for (const auto& page : _pages)
+		if (_big_page_used)
 		{
-			if ((page != nullptr) && (page->flags == static_cast<uint32_t>(rtsha_page_size_type::PageTypeBig)))
+			for (const auto& page : _pages)
 			{
-				return page;
+				if ((page != nullptr) && (page->flags == static_cast<uint32_t>(rtsha_page_size_type::PageTypeBig)))
+				{
+					return page;
+				}
 			}
 		}
 		return nullptr;
@@ -383,7 +387,7 @@ namespace rtsha
 			/*and size2 as control block*/
 			a_size += sizeof(size_t);
 
-			if (get_big_memorypage() != nullptr)
+			if (_big_page_used && (get_big_memorypage() != nullptr) )
 			{
 				rtsha_page_size_type ideal_page = get_ideal_page(a_size);
 				if (ideal_page != rtsha_page_size_type::PageTypeNotDefined)

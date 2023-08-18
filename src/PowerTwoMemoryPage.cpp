@@ -35,7 +35,7 @@ namespace rtsha
 					return ret;
 				}
 
-				if (block.isValid() && (orig_size >= size))
+				if (orig_size >= size) 
 				{					
 					/*delete used block from the map of free blocks*/
 					const uint64_t k = static_cast<const uint64_t>(orig_size);
@@ -44,9 +44,21 @@ namespace rtsha
 						/*decrease the number of free blocks*/
 						this->decFreeBlocks();
 					}
-					if (block.isValid() && (orig_size > size))
+					if (orig_size > size)
 					{
-						this->splitBlockPowerTwo(block, size);
+						while (orig_size > size)
+						{
+							block.splitt_22();
+							orig_size = block.getSize();
+
+							if (block.hasPrev())
+							{
+								MemoryBlock prev(block.getPrev());
+								ptrMap->insert(static_cast<const uint64_t>(prev.getSize()), reinterpret_cast<size_t>(prev.getBlock()));
+								this->incFreeBlocks();
+							}
+						}
+						//this->splitBlockPowerTwo(block, size);
 					}
 
 					/*set block as allocated*/
@@ -139,25 +151,6 @@ namespace rtsha
 		}		
 		
 		this->unlock();
-	}
-
-	void PowerTwoMemoryPage::splitBlockPowerTwo(MemoryBlock& block, size_t end_size)
-	{
-		/*create initial free blocks*/
-		size_t data_size = block.getSize();
-		FreeMap* ptrMap = reinterpret_cast<FreeMap*>(this->getFreeMap());
-		while (data_size > end_size)
-		{
-			block.splitt_22();
-			data_size = block.getSize();
-			
-			if (block.hasPrev())
-			{
-				MemoryBlock prev(block.getPrev());
-				ptrMap->insert(static_cast<const uint64_t>(prev.getSize()), reinterpret_cast<size_t>(prev.getBlock()));
-				this->incFreeBlocks();
-			}
-		}
 	}
 
 	void PowerTwoMemoryPage::createInitialFreeBlocks()
