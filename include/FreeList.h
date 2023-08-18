@@ -6,6 +6,7 @@
 
 namespace internal
 {
+#if not defined USE_STL_LIST
 	template<typename T>
 	class alignas(sizeof(size_t)) FreeLinkedList
 	{
@@ -58,7 +59,7 @@ namespace internal
 	private:
 		rtsha_page* _page;									///< The memory page being managed by the free list.
 	};
-
+#endif
 
 	using namespace std;
 	

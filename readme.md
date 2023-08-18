@@ -85,7 +85,8 @@ This algorithm is an approach to memory management that is often used in specifi
 
 The memory is divided into pages of chunks(blocks) of a fixed size (32, 64, 128, 256 and 512 bytes).
 When an allocation request comes in, it can simply be given one of these blocks. This means that the allocator doesn't have to search through the heap to find a block of the right size, which can improve performance.
-The free blocks memory is used as 'free list' storage.
+The free blocks memory is used as 'free list' storage. The list is implemented using a standard linked list.
+However, by enabling the precompiler option USE_STL_LIST, the STL version of the forward list can also be utilized. There isn't a significant performance difference between the two implementations.
 
 Deallocations are also straightforward, as the block is added back to the list of available chunks. There's no need to merge adjacent free blocks, as there is with some other allocation strategies, which can also improve performance.
 
