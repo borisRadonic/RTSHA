@@ -120,7 +120,7 @@ Based on the results obtained from the system's profiling, here are the performa
 
 Measured Performance for Release Version:
 
-## Performance with using using 'lock' (SemaphoreTake) and 'unlock' (SemaphoreGive)
+## Performance with using 'lock/unlock'
 
 *Power2 Page:*
 
@@ -132,6 +132,7 @@ This represents the time taken for memory allocation and deallocation in a flexi
 up to a specified maximum. These metrics are crucial for understanding the efficiency of the RTSHA heap system. 
 Depending on the application's requirements, developers can utilize these metrics to optimize memory operations further and make informed decisions regarding
 
+
 *Small Fix Page:*
 
 rtsha_malloc: 450 to 560 Cycles
@@ -140,6 +141,7 @@ rtsha_free: 330 to 400 Cycles
 
 This represents the time taken for memory allocation and deallocation for smaller fixed-size pages, specifically designed for handling memory chunks less than 512 bytes.
 
+## Performance without 'locking/unlocking'
 
 *Power2 Page:*
 
