@@ -219,6 +219,16 @@ namespace rtsha
 		}
 
 		/**
+		* @brief Gets the free list array pointer of the page.
+		*
+		* @return A pointer to the free list array.
+		*/
+		inline void* getFreeListArray() const
+		{
+			return reinterpret_cast<void*>(_page->ptr_list_map);
+		}
+
+		/**
 		* @brief Gets the free map pointer of the page.
 		*
 		* @return A pointer to the free map.

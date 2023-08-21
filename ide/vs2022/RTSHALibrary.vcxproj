@@ -25,7 +25,9 @@
     <ClInclude Include="..\..\include\BigMemoryPage.h" />
     <ClInclude Include="..\..\include\errors.h" />
     <ClInclude Include="..\..\include\FastPlusAllocator.h" />
+    <ClInclude Include="..\..\include\FreeLinkedList.h" />
     <ClInclude Include="..\..\include\FreeList.h" />
+    <ClInclude Include="..\..\include\FreeListArray.h" />
     <ClInclude Include="..\..\include\FreeMap.h" />
     <ClInclude Include="..\..\include\Heap.h" />
     <ClInclude Include="..\..\include\HeapCallbacks.h" />
@@ -42,6 +44,7 @@
     <ClCompile Include="..\..\src\arm_spec_functionscpp.cpp" />
     <ClCompile Include="..\..\src\BigMemoryPage.cpp" />
     <ClCompile Include="..\..\src\FreeList.cpp" />
+    <ClCompile Include="..\..\src\FreeListArray.cpp" />
     <ClCompile Include="..\..\src\FreeMap.cpp" />
     <ClCompile Include="..\..\src\Heap.cpp" />
     <ClCompile Include="..\..\src\MemoryBlock.cpp" />

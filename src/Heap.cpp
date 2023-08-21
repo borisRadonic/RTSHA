@@ -5,6 +5,8 @@
 #include "SmallFixMemoryPage.h"
 #include "PowerTwoMemoryPage.h"
 #include "HeapCallbacks.h"
+#include "FreeListArray.h"
+
 #ifdef __arm__ //ARM architecture
 #include "arm_spec_functions.h"
 #endif
@@ -24,9 +26,6 @@ namespace internal
 	void HeapInternal::init_power_two_page(rtsha_page* page, size_t a_size, size_t max_objects, size_t min_block_size, size_t max_block_size)
 	{
 		/*we need additional space for out map data... we can not store data in free blocks... to dangerous...not safe...*/
-
-
-
 
 #ifdef __arm__ //ARM architecture
 		if( min_block_size > 0U )
@@ -63,34 +62,17 @@ namespace internal
 		if (max_objects == 0U)
 		{
 			//todo: platform 32 and 64 bit
-			page->max_blocks = ((a_size - sizeof(rtsha_page)) - 2U * INTERNAL_MAP_STORAGE_SIZE - sizeof(rtsha_page)) / (INTERNAL_MAP_STORAGE_SIZE + 512U + sizeof(rtsha_block));
+			page->max_blocks = ((a_size - sizeof(rtsha_page)) / sizeof(rtsha_block));
 		}
 		else
 		{
 			page->max_blocks = max_objects;
 		}
 
-		//todo: platform 32 and 64 bit
-		page->start_map_data = (page->end_position - page->max_blocks * (INTERNAL_MAP_STORAGE_SIZE * 2U)); /*fixed blocks 64 bytes on 32 bit platform*/
-
-
-		page->map_page = reinterpret_cast<rtsha_page*>(page->start_map_data);
-
-		page->map_page->flags = static_cast<uint32_t>(rtsha_page_size_type::PageType64);
-		page->map_page->free_blocks = 0U;
-
-		page->map_page->end_position = page->end_position;
-
-		page->end_position = page->start_map_data;
-
-		page->map_page->last_block = NULL;
-		page->map_page->start_map_data = 0U;
-		page->map_page->map_page = nullptr;
-		page->map_page->position = page->start_map_data + sizeof(rtsha_page);
-		page->map_page->start_position = page->start_map_data;
-
-		page->map_page->ptr_list_map = reinterpret_cast<size_t> (reinterpret_cast<void*>(createFreeList(page->map_page)));
-		page->ptr_list_map = reinterpret_cast<size_t> (reinterpret_cast<void*>(createFreeMap(page)));
+		page->start_map_data = 0U;
+		page->map_page = nullptr;
+		page->ptr_list_map = reinterpret_cast<size_t> (reinterpret_cast<void*>(createFreeListArray(page, a_size)));
+		page->free_blocks = 0U;
 
 		PowerTwoMemoryPage mem_page(page);
 		mem_page.createInitialFreeBlocks();
@@ -154,6 +136,18 @@ namespace internal
 		if (ptrMap != nullptr)
 		{
 			return new (ptrMap) FreeMap(page);
+		}
+		return nullptr;
+	}
+
+
+	FreeListArray* HeapInternal::createFreeListArray(rtsha_page* page, size_t page_size)
+	{
+		/*create objects on stack in reserved memory using new in place*/
+		void* ptrListArray = _storage_free_list_array.get_next_ptr();
+		if (ptrListArray != nullptr)
+		{
+			return new (ptrListArray) FreeListArray(page, page->min_block_size, page_size);
 		}
 		return nullptr;
 	}

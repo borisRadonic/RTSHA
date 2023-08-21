@@ -290,7 +290,7 @@ TEST(TestCaseMyMalloc, TestMyMallocPerformancePowerTwo)
 		{
 			break;
 		}
-		memset(memory7, 7, size7);
+		heap.memset(memory7, 7, size7);
 
 		EXPECT_TRUE(page.checkBlock((size_t)memory1));
 		EXPECT_TRUE(page.checkBlock((size_t)memory2));

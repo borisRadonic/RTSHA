@@ -3,6 +3,7 @@
 #include "MemoryPage.h"
 #include "errors.h"
 #include "FreeList.h"
+#include "FreeListArray.h"
 #include "FreeMap.h"
 #include <array>
 
@@ -46,7 +47,7 @@ namespace internal
 
 		/**
 		* \brief This function creates a 'Free List Object' that will be used for the management of the 'free blocks'
-		* Free List object is simple 'forward_list' used wit custom memory allocator
+		* Free List object is simple 'forward_list' or 'free linked list' used wit custom memory allocator
 		*  The object is created in the predifined place on the stack using 'new placement' operator.
 		*
 		* This function is not intended to be used by users of RTSHA library!
@@ -73,6 +74,21 @@ namespace internal
 		*\return On success, a pointer to 'FreeList' object.If the function fails, it returns a null pointer.
 		*/
 		FreeMap* createFreeMap(rtsha_page* page);
+
+		/**
+		* \brief This function creates a 'Free List Arry Object' that will be used for the management of the Power2 Page 'free blocks'
+		* 
+		* Free List Array object is simple array of 'linked Lists' 
+		*  The object is created in the predifined place on the stack using 'new placement' operator.
+		*
+		* This function is not intended to be used by users of RTSHA library!
+		*
+		* \param page Pointer to page object's memory.
+		*
+		*
+		* \return On success, a pointer to 'FreeList' object. If the function fails, it returns a null pointer.
+		*/
+		FreeListArray* createFreeListArray(rtsha_page* page, size_t page_size);
 
 
 	protected:
@@ -177,6 +193,13 @@ namespace internal
 		 */
 		PREALLOC_MEMORY<FreeList, (MAX_SMALL_PAGES + MAX_BIG_PAGES)>	_storage_free_lists = 0U;
 
+		/**
+		 * @brief Reserved storage on the stack for `FreeListArray` objects.
+		 *
+		 * These area is reserver for objects that will be created with placement new operator, and this storage
+		 * ensures there's space for them on the stack.
+		 */
+		PREALLOC_MEMORY<FreeListArray, MAX_POWER_TWO_PAGES>	_storage_free_list_array = 0U;
 
 		/**
 		* @brief Reserved storage on the stack for `FreeMap` objects.

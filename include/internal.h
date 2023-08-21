@@ -52,7 +52,11 @@ The use of 'Small Fixed Memory Pages' in combination with 'Power Two Memory Page
 
 #define MAX_SMALL_PAGES			32U
 #define MAX_BIG_PAGES			2U
-#define MAX_PAGES				(MAX_SMALL_PAGES+MAX_BIG_PAGES)
+#define MAX_POWER_TWO_PAGES		2U
+
+#define MAX_PAGES				(MAX_SMALL_PAGES+MAX_BIG_PAGES+MAX_POWER_TWO_PAGES)
+
+#define MAX_BINS 27U
 
 #if (__MSC_VER >= 1930 )
 #define rtsha_attr_inline inline __forceinline

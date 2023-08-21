@@ -1,5 +1,5 @@
 #include "PowerTwoMemoryPage.h"
-#include "FreeMap.h"
+#include "FreeListArray.h"
 #include "internal.h"
 #include "errors.h"
 
@@ -18,14 +18,14 @@ namespace rtsha
 
 		this->lock();
 
-		FreeMap* ptrMap = reinterpret_cast<FreeMap*>(this->getFreeMap());
-		if ((this->getFreeBlocks() > 0U) || (ptrMap->size() > 0U))
+		FreeListArray* ptrFreeListArray = reinterpret_cast<FreeListArray*>(this->getFreeListArray());
+
+		if ((this->getFreeBlocks() > 0U))
 		{
-			size_t address = ptrMap->find(static_cast<const uint64_t>(size));
+			size_t address = ptrFreeListArray->pop(size);
 			if (address != 0U)
 			{
-				MemoryBlock block(reinterpret_cast<rtsha_block*>((void*)address));
-				size_t orig_size = block.getSize();
+				MemoryBlock block(reinterpret_cast<rtsha_block*>((void*)address));				
 
 				if (!block.isValid())
 				{
@@ -35,30 +35,28 @@ namespace rtsha
 					return ret;
 				}
 
+				size_t orig_size = block.getSize();
 				if (orig_size >= size) 
 				{					
-					/*delete used block from the map of free blocks*/
-					const uint64_t k = static_cast<const uint64_t>(orig_size);
-					if (ptrMap->del(k, reinterpret_cast<size_t>(block.getBlock())))
-					{
-						/*decrease the number of free blocks*/
-						this->decFreeBlocks();
-					}
+					/*decrease the number of free blocks*/
+					this->decFreeBlocks();					
 					if (orig_size > size)
 					{
 						while (orig_size > size)
 						{
 							block.splitt_22();
 							orig_size = block.getSize();
+							assert(block.isValid());
 
 							if (block.hasPrev())
 							{
 								MemoryBlock prev(block.getPrev());
-								ptrMap->insert(static_cast<const uint64_t>(prev.getSize()), reinterpret_cast<size_t>(prev.getBlock()));
+								assert(prev.isValid());
+								this->setFreeBlockAllocatorsAddress(prev.getFreeBlockAddress());
+								ptrFreeListArray->push( reinterpret_cast<size_t>(prev.getBlock()), prev.getSize());
 								this->incFreeBlocks();
 							}
 						}
-						//this->splitBlockPowerTwo(block, size);
 					}
 
 					/*set block as allocated*/
@@ -83,7 +81,7 @@ namespace rtsha
 
 	void PowerTwoMemoryPage::free_block(MemoryBlock& block)
 	{
-		FreeMap* ptrMap = reinterpret_cast<FreeMap*>(this->getFreeMap());
+		FreeListArray* ptrFreeListArray = reinterpret_cast<FreeListArray*>(this->getFreeListArray());
 
 		this->lock();
 
@@ -92,7 +90,8 @@ namespace rtsha
 
 		if (this->isLastPageBlock(block))
 		{
-			ptrMap->insert(static_cast<const uint64_t>(block.getSize()), reinterpret_cast<size_t>(block.getBlock()));
+			this->setFreeBlockAllocatorsAddress(block.getFreeBlockAddress());
+			ptrFreeListArray->push( reinterpret_cast<size_t>(block.getBlock()), block.getSize() );
 			this->incFreeBlocks();
 			this->unlock();
 			return;
@@ -103,8 +102,8 @@ namespace rtsha
 			MemoryBlock prev(block.getPrev());					
 			if (prev.isValid() && prev.isFree() && (prev.getSize() == block.getSize()) )
 			{
-				/*merge two blocks*/				
-				if (ptrMap->del(static_cast<const uint64_t>(prev.getSize()), reinterpret_cast<size_t>(prev.getBlock())) )
+				/*merge two blocks*/
+				if( ptrFreeListArray->delete_address(reinterpret_cast<size_t>(prev.getAllocAddress()), prev.getBlock(), prev.getSize()) )
 				{
 					/*decrease the number of free blocks*/
 					this->decFreeBlocks();
@@ -120,13 +119,13 @@ namespace rtsha
 				
 		/*merging loop right*/
 		while (!block.isLast() && !this->isLastPageBlock(block) && (this->getFreeBlocks() > 0U))
-		{			
+		{		
 			MemoryBlock next(block.getNextBlock());
 
 			if (next.isValid() && next.isFree() && (next.getSize() == block.getSize()))
 			{
-				/*merge two blocks*/				
-				if (ptrMap->del(static_cast<const uint64_t>(next.getSize()), reinterpret_cast<size_t>(next.getBlock())))
+				/*merge two blocks*/	
+				if (ptrFreeListArray->delete_address(reinterpret_cast<size_t>(next.getAllocAddress()), next.getBlock(), next.getSize()))
 				{
 					/*decrease the number of free blocks*/
 					this->decFreeBlocks();
@@ -141,7 +140,8 @@ namespace rtsha
 		}
 		if (block.isValid())
 		{
-			ptrMap->insert(static_cast<const uint64_t>(block.getSize()), reinterpret_cast<size_t>(block.getBlock()));
+			this->setFreeBlockAllocatorsAddress(block.getFreeBlockAddress());
+			ptrFreeListArray->push(reinterpret_cast<size_t>(block.getBlock()), block.getSize());			
 			this->incFreeBlocks();
 		}
 		else
@@ -161,7 +161,7 @@ namespace rtsha
 		size_t val = 1U << last_lbit;
 		size_t rest = data_size;
 		rtsha_block* prev = nullptr;
-		FreeMap* ptrMap = reinterpret_cast<FreeMap*>(this->getFreeMap());
+		FreeListArray* ptrFreeListArray = reinterpret_cast<FreeListArray*>(this->getFreeListArray());
 
 		bool first(false);
 		bool condition = (rest > this->getMinBlockSize()) && (this->getPosition() < this->getEndPosition());
@@ -187,7 +187,9 @@ namespace rtsha
 				rest = rest - val;
 				prev = block.getBlock();
 				block.setFree();
-				ptrMap->insert((const uint64_t)block.getSize(), (size_t)block.getBlock());
+
+				this->setFreeBlockAllocatorsAddress(block.getFreeBlockAddress());
+				ptrFreeListArray->push((size_t)block.getBlock(), block.getSize());
 				this->setLastBlock(block);
 				this->incFreeBlocks();
 
