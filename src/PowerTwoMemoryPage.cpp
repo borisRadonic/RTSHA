@@ -7,7 +7,7 @@ namespace rtsha
 {
 	using namespace internal;
 
-	void* PowerTwoMemoryPage::allocate_block(size_t size)
+	void* PowerTwoMemoryPage::allocate_block(const size_t& size)
 	{
 		void* ret = NULL;
 

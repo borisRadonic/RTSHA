@@ -6,7 +6,7 @@
 
 namespace rtsha
 {
-	void* MemoryPage::allocate_block_at_current_pos(size_t size)
+	void* MemoryPage::allocate_block_at_current_pos(const size_t& size)
 	{
 		if (this->fitOnPage(size))
 		{

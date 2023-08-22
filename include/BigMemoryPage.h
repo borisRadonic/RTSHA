@@ -42,7 +42,7 @@ namespace rtsha
 		*
 		* \return On success, a pointer to the memory block allocated by the function.
 		*/
-		virtual void* allocate_block(size_t size) final;
+		virtual void* allocate_block(const size_t& size) final;
 
 		/**
 		* @brief Frees the specified memory block.

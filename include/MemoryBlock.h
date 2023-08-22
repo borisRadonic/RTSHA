@@ -77,7 +77,7 @@ namespace rtsha
 		 * @param new_size The size of the original block after the split.
 		 * @param last Indicates if the new block should be the last in the chain.
 		 */
-		void splitt(size_t new_size, bool last);
+		void splitt(const size_t& new_size, bool last);
 
 		/**
 		*@brief Splits the current block into two blocks of the same size such that the old block is on the right side.

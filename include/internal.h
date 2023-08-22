@@ -8,7 +8,6 @@
 #  include <immintrin.h>
 #  include <intrin.h>
 #else
-
 #endif
 
 
@@ -33,14 +32,18 @@ However, fixed chunk size allocation is not a good fit for all scenarios. It wor
 Small Fix Memory Page is also used internaly by "Power Two Memory Page" and "Big Memory Page" algorithms.
 
 2. Power Two Memory Pages
-This is a more complex system, which only allows blocks of sizes that are powers of two. This makes merging free blocks back together easier and reduces fragmentation. A specialised binary search tree data structures (red-black tree) for fast storage and retrieval of ordered information are stored at the end of the page using fixed size Small Fix Memory Page.
+This is a more complex system, which only allows blocks of sizes that are powers of two. This makes merging free blocks back together easier and reduces fragmentation. A specialised search algorithm is used for fast storage and retrieval of ordered information which are stored in space of 'freed blocks'.
 This is a fairly efficient method of allocating memory, particularly useful for systems where memory fragmentation is an important concern. The algorithm divides memory into partitions to try to minimize fragmentation and the 'Best Fit' algorithm searches the page to find the smallest block that is large enough to satisfy the allocation.
 Furthermore, this system is resistant to breakdowns due to its algorithmic approach to allocating and deallocating memory. The coalescing operation helps ensure that large contiguous blocks of memory can be reformed after they are freed, reducing the likelihood of fragmentation over time.
 Coalescing relies on having free blocks of the same size available, which is not always the case, and so this system does not completely eliminate fragmentation but rather aims to minimize it.
 
 
 3. Big Memory Pages
-"Similar to the 'Power Two Memory Page', this algorithm employs the 'Best Fit' algorithm, in conjunction with a 'Red-Black' balanced tree, which offers worst-case guarantees for insertion, deletion, and search times. The only distinction between the 'Power Two Memory Page' and this system is that the memory need not be divided into power-of-two blocks; variable block sizes are permitted. It promptly merges or coalesces memory blocks larger than 512 bytes after they are released.
+
+Note: This algorithm is primarily designed for test purposes, especially for systems with constrained memory. When compared to the "Small Fixed Memory Pages" and "Power Two Memory Pages" algorithms, this approach may exhibit relatively slower (inperformant) behaviors.
+The "Big Memory Pages" algorithm employs the "Best Fit" strategy, which is complemented by a "Red-Black" balanced tree. The Red-Black tree ensures worst-case guarantees for insertion, deletion, and search times, making it predictable in performance. A key distinction between this system and the "Power Two Memory Page" is in how they handle memory blocks. Unlike the latter, "Big Memory Pages" does not restrict memory to be partitioned exclusively into power-of-two sizes. Instead, variable block sizes are allowed, providing more flexibility. Additionally, once memory blocks greater than 512 bytes are released, they are promptly merged or coalesced, optimizing the memory usage.
+Despite its features, it's essential to understand the specific use-cases and limitations of this algorithm and to choose the most suitable one based on the system's requirements and constraints.
+
 The use of 'Small Fixed Memory Pages' in combination with 'Power Two Memory Pages' is recommended for all real time systems.
 */
 

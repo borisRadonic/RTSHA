@@ -8,7 +8,7 @@ namespace rtsha
 {
 	using namespace internal;
 
-	void* SmallFixMemoryPage::allocate_block(size_t size)
+	void* SmallFixMemoryPage::allocate_block(const size_t& size)
 	{
 		void* ret = nullptr;
 

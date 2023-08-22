@@ -9,9 +9,9 @@ namespace rtsha
 {
 	using namespace internal;
 
-	void* BigMemoryPage::allocate_block(size_t size)
+	void* BigMemoryPage::allocate_block(const size_t& size)
 	{
-		void* ret = NULL;
+		void* ret(nullptr);
 		if ((0U == size) || (nullptr == _page))
 		{
 			return nullptr;

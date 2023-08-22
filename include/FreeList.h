@@ -41,7 +41,7 @@ namespace internal
 		*
 		* @param address The memory address to be added to the free list.
 		*/
-		rtsha_attr_inline void push(const size_t address)
+		rtsha_attr_inline void push(const size_t& address)
 		{
 			ptrLlist->push(address);
 		}
@@ -56,7 +56,7 @@ namespace internal
 			return ptrLlist->pop();
 		}
 
-		rtsha_attr_inline bool delete_address(const size_t address, void* block)
+		rtsha_attr_inline bool delete_address(const size_t& address, void* block)
 		{
 			return  (ptrLlist->delete_address(address, block));
 		}

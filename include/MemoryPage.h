@@ -112,7 +112,7 @@ namespace rtsha
 		 * @param size Size of the block to allocate.
 		 * @return A pointer to the allocated block.
 		 */
-		virtual void* allocate_block(size_t size) = 0;
+		virtual void* allocate_block(const size_t& size) = 0;
 		
 		/**
 		 * @brief Pure virtual function to free a block of memory.
@@ -125,7 +125,7 @@ namespace rtsha
 		 * @param size Size of the block to allocate.
 		 * @return A pointer to the allocated block.
 		 */
-		void* allocate_block_at_current_pos(size_t size);
+		void* allocate_block_at_current_pos(const size_t& size);
 
 		/**
 		* @brief Increments the count of free blocks.
@@ -193,7 +193,7 @@ namespace rtsha
 		*
 		* @param address The address to set.
 		*/
-		inline void setFreeBlockAllocatorsAddress(size_t address)
+		inline void setFreeBlockAllocatorsAddress(const size_t& address)
 		{
 			_page->lastFreeBlockAddress = address;
 		}
@@ -298,7 +298,7 @@ namespace rtsha
 		 *
 		 * @param val The value to increment the position by.
 		 */
-		inline void incPosition(size_t val)
+		inline void incPosition(const size_t& val)
 		{
 			if (_page != nullptr)
 			{
@@ -311,7 +311,7 @@ namespace rtsha
 		*
 		* @param val The value to decrement the position by.
 		*/
-		inline void decPosition(size_t val)
+		inline void decPosition(const size_t& val)
 		{
 			if (_page != nullptr)
 			{
@@ -359,7 +359,7 @@ namespace rtsha
 		* @param size The size of the block to check.
 		* @return True if the block fits, false otherwise.
 		*/
-		inline bool fitOnPage(size_t size) const
+		inline bool fitOnPage(const size_t& size) const
 		{
 			if ((_page->position + size) < (_page->end_position))
 			{

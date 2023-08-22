@@ -4,7 +4,7 @@
 
 namespace rtsha
 {
-	void MemoryBlock::splitt(size_t new_size, bool last)
+	void MemoryBlock::splitt(const size_t& new_size, bool last)
 	{		
 		size_t osize = this->getSize();
 		size_t* pNewBlock = reinterpret_cast<size_t*>((size_t)_block + new_size);
@@ -44,7 +44,7 @@ namespace rtsha
 		size_t* pNewBlock = reinterpret_cast<size_t*>((size_t)_block + nsize);
 		*pNewBlock = 0U; /*clear size*/
 
-		rtsha_block* pNewNextRight = reinterpret_cast<rtsha_block*>(pNewBlock);
+		rtsha_block* pNewNextRight = new (reinterpret_cast<void*>(pNewBlock)) rtsha_block();
 		MemoryBlock nextRight(pNewNextRight);
 		if (!last)
 		{
@@ -61,7 +61,6 @@ namespace rtsha
 		}
 		else
 		{
-			//assert(false);
 			nextRight.setLast();
 			clearIsLast();
 		}
@@ -84,7 +83,8 @@ namespace rtsha
 
 				if (!last)
 				{
-					rtsha_block* pRight = reinterpret_cast<rtsha_block*>((void*)((size_t)_block + tsize));				
+					rtsha_block* pRight = reinterpret_cast<rtsha_block*>((void*)((size_t)_block + tsize));
+					
 					MemoryBlock right(pRight);
 					if( right.isValid() && right.hasPrev() && (right.getPrev() == this->getBlock()) )
 					{
