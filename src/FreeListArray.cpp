@@ -7,11 +7,14 @@ namespace internal
 		:_page(page)
 	{	
 		assert(min_block_size >= MIN_BLOCK_SIZE);
-		assert(page_size <= MAX_BLOCK_SIZE);
 		assert(page_size > min_block_size);
-
-		min_bin = std::bit_width(min_block_size);
-		max_bin = std::bit_width(page_size);
+#ifdef __arm__ //ARM architecture
+				min_bin = rsha_bit_width(min_block_size);
+				max_bin = rsha_bit_width(page_size);
+#else
+				min_bin = std::bit_width(min_block_size);
+				max_bin = std::bit_width(page_size);
+#endif
 		
 		assert((max_bin - min_bin) < MAX_BINS);
 

@@ -3,13 +3,15 @@
 #include "MemoryBlock.h"
 #include "FreeLinkedList.h"
 #include "MemoryPage.h"
+
+#ifndef __arm__ //ARM architecture
 #include <bit>
+#endif
 
 namespace internal
 {
 	#define MIN_BLOCK_SIZE  32U
-	#define MAX_BLOCK_SIZE 0x4000000U
-	
+
 	/**
 	 * @class FreeListArray
 	 * @brief Manages memory allocation of free blocks using a free list.
@@ -47,8 +49,16 @@ namespace internal
 		{
 			if ((data > _page->start_position) && (data < _page->end_position))
 			{
-				int32_t index = std::bit_width(size) - min_bin - 1;
+
+
+#ifdef __arm__ //ARM architecture
+				int32_t index = rsha_bit_width(size) - min_bin;
+#else
+				int32_t index = std::bit_width(size) - min_bin;
+#endif
+				
 				assert(index >= 0);
+
 				if (index >= 0)
 				{
 					arrPtrLists[index]->push(data);
@@ -64,13 +74,17 @@ namespace internal
 		rtsha_attr_inline size_t pop(size_t size)
 		{
 			size_t ret(0U);
+			#ifdef __arm__ //ARM architecture
+			size_t log2_size = rsha_bit_width(size);
+			#else
 			size_t log2_size = std::bit_width(size);
-			assert(log2_size > min_bin);
-			if (log2_size > min_bin)
-			{				
+			#endif
+			assert(log2_size >= min_bin);
+			if (log2_size >= min_bin)
+			{
 				for (size_t n = log2_size; n <= max_bin; n++)
 				{
-					int32_t index = n - min_bin - 1;
+					int32_t index = n - min_bin;
 					assert(index >= 0);
 					if (index >= 0)
 					{
@@ -106,16 +120,21 @@ namespace internal
 		{
 			if ((address > _page->start_position) && (address < _page->end_position))
 			{
+				#ifdef __arm__ //ARM architecture
+				size_t log2_size = rsha_bit_width(size);
+				#else
 				size_t log2_size = std::bit_width(size);
+				#endif
+
 				if (log2_size >= min_bin)
 				{					
 					for (size_t n = log2_size; n <= max_bin; n++)
 					{
-						int32_t index = n - min_bin - 1;
+						int32_t index = n - min_bin;
 						assert(index >= 0);
 						if (index >= 0)
 						{
-							if (arrPtrLists[n - min_bin - 1]->delete_address(address, block))
+							if (arrPtrLists[index]->delete_address(address, block))
 							{
 								return true;
 							}

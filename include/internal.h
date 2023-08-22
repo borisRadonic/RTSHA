@@ -67,6 +67,10 @@ The use of 'Small Fixed Memory Pages' in combination with 'Power Two Memory Page
 #define rtsha_attr_inline inline 
 #endif
 
+#ifdef __arm__ //ARM architecture
+#include <limits>
+#endif
+
 
 
 #if defined _WIN64 || defined _ARM64
@@ -154,6 +158,18 @@ namespace internal
 
 
 #ifdef __arm__ //ARM architecture
+
+    template <typename T>
+       int rsha_bit_width(T x)
+       {
+           if (x == 0) {
+               return 0;
+           }
+           int bits = std::numeric_limits<T>::digits; // Maximum number of bits
+           int leading_zeros = __builtin_clz(static_cast<unsigned int>(x)); // GCC/Clang builtin function
+           return bits - leading_zeros;
+       }
+
 
     rtsha_attr_inline uint32_t ExpandToPowerOf2(uint32_t Value)
     {

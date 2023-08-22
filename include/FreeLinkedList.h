@@ -28,8 +28,9 @@ namespace internal
 		struct alignas(sizeof(size_t)) Node
 		{
 			size_t data;
-			Node* prev;
 			Node* next;
+			Node* prev;
+
 
 			/**
 			* @brief Constructs a new Node.
@@ -169,8 +170,8 @@ namespace internal
 		}
 		
 	private:
-		rtsha_page* _page;			///< The memory page being managed by the free list.
 		Node* head;					///< @brief Pointer to the head of the list.
+		rtsha_page* _page;			///< The memory page being managed by the free list.
 		size_t count = 0U;			///< @brief Number of nodes in the list.
 	};
 }

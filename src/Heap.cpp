@@ -420,6 +420,10 @@ namespace rtsha
 				if (page->flags == static_cast<uint32_t>(rtsha_page_size_type::PageTypePowerTwo))
 				{
 					PowerTwoMemoryPage memory_page(page);
+					if( a_size < page->min_block_size)
+					{
+						page->callbacks->ptrErrorFunction(RTSHA_BlockSizeNotAllowed);
+					}
 					ret = memory_page.allocate_block(a_size);
 				}
 				else

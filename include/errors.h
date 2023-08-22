@@ -40,5 +40,8 @@
 /** @brief Error code indicating an invalid number of free blocks. */
 #define RTSHA_InvalidNumberOfFreeBlocks		(258U)
 
+/** @brief Error code indicating that the block i too small or too big for selected page. */
+#define RTSHA_BlockSizeNotAllowed		(512U)
+
 /** @} */ // end of RTSHA_ERRORS group
 

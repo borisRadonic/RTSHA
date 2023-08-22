@@ -111,7 +111,7 @@
 								</option>
 								<inputType id="xilinx.gnu.armv7.c.compiler.input.1743050683" name="C source files" superClass="xilinx.gnu.armv7.c.compiler.input"/>
 							</tool>
-							<tool id="xilinx.gnu.armv7.cxx.toolchain.compiler.release.1820516951" name="ARM v7 g++ compiler" superClass="xilinx.gnu.armv7.cxx.toolchain.compiler.release">
+							<tool command="arm-none-eabi-g++ -std=c++2a" id="xilinx.gnu.armv7.cxx.toolchain.compiler.release.1820516951" name="ARM v7 g++ compiler" superClass="xilinx.gnu.armv7.cxx.toolchain.compiler.release">
 								<option defaultValue="gnu.c.optimization.level.more" id="xilinx.gnu.compiler.option.optimization.level.1635346409" name="Optimization Level" superClass="xilinx.gnu.compiler.option.optimization.level" value="gnu.c.optimization.level.most" valueType="enumerated"/>
 								<option id="xilinx.gnu.compiler.option.debugging.level.1297503381" name="Debug Level" superClass="xilinx.gnu.compiler.option.debugging.level" value="gnu.c.debugging.level.none" valueType="enumerated"/>
 								<option id="xilinx.gnu.compiler.inferred.swplatform.includes.145403029" name="Software Platform Include Path" superClass="xilinx.gnu.compiler.inferred.swplatform.includes"/>

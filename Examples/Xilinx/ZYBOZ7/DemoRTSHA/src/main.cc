@@ -144,7 +144,7 @@ int main()
 
 
 		  /*252M Power2 page for blocks between 1K and 16MB, maximum 8192 blocks*/
-		  heapOk = rtsha_add_page( &callbacks, RTSHA_PAGE_TYPE_POWER_TWO, 0xF618000, 8192U, 512U, 0xFA0000);
+		  heapOk = rtsha_add_page( &callbacks, RTSHA_PAGE_TYPE_POWER_TWO, 0xF618000, 8192U, 1024, 0xFA0000);
 	  }
 
 	  if( !heapOk )
@@ -190,7 +190,7 @@ int main()
 
 
 	   /*overloaded new operator will use RTSHA heap functions
-	   /*and standard list allocator will use automatically small 32 bytes 'RTSHA' page (RTSHA_PAGE_TYPE_32)*/
+	   and standard list allocator will use automatically small 32 bytes 'RTSHA' page (RTSHA_PAGE_TYPE_32)*/
 	   std::list<double> lstDbl;
 	   lstDbl.push_back(3.14159265358979323846); //Pi
 	   lstDbl.push_back(2.71828182845904523536); //Euler's number

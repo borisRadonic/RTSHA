@@ -11,6 +11,7 @@
 #include "InternMapAllocator.h"
 #include "errors.h"
 #include "BigMemoryPage.h"
+#include "PowerTwoMemoryPage.h"
 #include "time.h"
 
 using namespace std;
@@ -200,6 +201,31 @@ TEST(TestCaseClassHeap, TestHeapCreatePowerTwoPage)
 }
 
 
+TEST(TestCaseMyMalloc, TestMyMallocPerformancePowerTwo1)
+{
+	size_t size = 0x1F4000*10;
+	void* heapMemory = malloc(size); //allocate 20MB for heap
+	EXPECT_TRUE(heapMemory != NULL);
+
+	Heap heap;
+	EXPECT_TRUE(heap.init(heapMemory, size));
+
+	EXPECT_TRUE(heap.add_page(NULL, rtsha_page_size_type::PageTypePowerTwo, size, 8192U, 1024, 0xFA0000));
+
+	rtsha_page* p2 = heap.select_page(rtsha_page_size_type::PageTypePowerTwo, 1024, true);
+
+
+	PowerTwoMemoryPage page(p2);
+
+	size_t size1 = max(1024, std::rand() % 1024);
+	void* memory1 = heap.malloc(size1);
+	if (memory1 == nullptr)
+	{
+
+	}
+
+
+}
 
 TEST(TestCaseMyMalloc, TestMyMallocPerformancePowerTwo)
 {
@@ -210,11 +236,12 @@ TEST(TestCaseMyMalloc, TestMyMallocPerformancePowerTwo)
 	Heap heap;
 	EXPECT_TRUE(heap.init(heapMemory, size));
 
+
 	EXPECT_TRUE(heap.add_page(NULL, rtsha_page_size_type::PageTypePowerTwo, size, 0U, 32U, 2048U));
 
-	rtsha_page* page_big = heap.select_page(rtsha_page_size_type::PageTypePowerTwo, 64, true);
+	rtsha_page* p2 = heap.select_page(rtsha_page_size_type::PageTypePowerTwo, 64, true);
 
-	BigMemoryPage page(page_big);
+	PowerTwoMemoryPage page(p2);
 
 
 	for (int i = 0; i < 100000; i++)
