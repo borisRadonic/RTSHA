@@ -1,10 +1,37 @@
+/******************************************************************************
+The MIT License(MIT)
+
+Real Time Safety Heap Allocator (RTSHA)
+https://github.com/borisRadonic/RTSHA
+
+Copyright(c) 2023 Boris Radonic
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files(the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions :
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+******************************************************************************/
+
 #include "MemoryBlock.h"
 #include <cstdio>
 #include <iostream>
 
 namespace rtsha
 {
-	void MemoryBlock::splitt(const size_t& new_size, bool last)
+	void MemoryBlock::splitt(const size_t& new_size, bool last) noexcept
 	{		
 		size_t osize = this->getSize();
 		size_t* pNewBlock = reinterpret_cast<size_t*>((size_t)_block + new_size);
@@ -35,7 +62,7 @@ namespace rtsha
 		this->setSize(new_size);
 	}
 
-	void MemoryBlock::splitt_22()
+	void MemoryBlock::splitt_22() noexcept
 	{
 		bool last = this->isLast();
 		size_t osize = this->getSize();
@@ -68,7 +95,7 @@ namespace rtsha
 		this->_block = pNewNextRight;
 	}
 
-	void MemoryBlock::merge_left()
+	void MemoryBlock::merge_left() noexcept
 	{
 		bool last = this->isLast();
 		if (this->hasPrev() && this->isFree() )
@@ -105,7 +132,7 @@ namespace rtsha
 		}
 	}
 
-	void MemoryBlock::merge_right()
+	void MemoryBlock::merge_right() noexcept
 	{
 		if (!this->isLast())
 		{

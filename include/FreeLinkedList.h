@@ -1,3 +1,30 @@
+/******************************************************************************
+The MIT License(MIT)
+
+Real Time Safety Heap Allocator (RTSHA)
+https://github.com/borisRadonic/RTSHA
+
+Copyright(c) 2023 Boris Radonic
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files(the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions :
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+******************************************************************************/
+
 #pragma once
 #include <stdint.h>
 #include "internal.h"
@@ -38,7 +65,7 @@ namespace internal
 			* @param head Pointer to the next node.
 			* @param prev Pointer to the previous node.
 			*/
-			explicit Node(const size_t& data, Node* head, Node* prev = nullptr) : data(data), next(head), prev(prev)
+			explicit Node(const size_t& data, Node* head, Node* prev = nullptr)  noexcept : data(data), next(head), prev(prev)
 			{
 			};
 		};
@@ -49,12 +76,12 @@ namespace internal
 		* @brief Constructs a FreeLinkedList with the given memory page.
 		* @param page The rtsha_page that this FreeLinkedList should manage.
 		*/
-		explicit FreeLinkedList(rtsha_page* page) : head(NULL), _page(page), count(0U)
+		explicit FreeLinkedList(rtsha_page* page)  noexcept : head(NULL), _page(page), count(0U)
 		{
 		}
 
 		/// @brief Destructor for the FreeLinkedList.
-		~FreeLinkedList()
+		~FreeLinkedList() noexcept
 		{
 		}
 
@@ -62,16 +89,14 @@ namespace internal
 		* @brief Adds a new node with the given memory block address to the head of the list.
 		* @param data The memory block address to be added.
 		*/
-		rtsha_attr_inline void push(const size_t& data)
+		rtsha_attr_inline void push(const size_t& data) noexcept
 		{
 			Node* newNode = new (reinterpret_cast<void*>(_page->lastFreeBlockAddress)) Node(data, head, nullptr);
-			
 			if (head)
 			{
 				head->prev = newNode;
 			}
 			head = newNode;
-
 			count++;
 		}
 
@@ -79,7 +104,7 @@ namespace internal
 		* @brief Checks if the list is empty.
 		* @return Returns true if the list is empty, otherwise false.
 		*/
-		rtsha_attr_inline bool is_empty() const
+		rtsha_attr_inline bool is_empty() const noexcept
 		{
 			if (head == nullptr)
 			{
@@ -97,7 +122,7 @@ namespace internal
 		* @brief Removes and retrieves a memory block address from the head of the list.
 		* @return The memory block address retrieved from the list.
 		*/
-		rtsha_attr_inline size_t pop()
+		rtsha_attr_inline size_t pop() noexcept
 		{
 			size_t ret(0U);
 			if (!is_empty() && head != NULL)
@@ -127,7 +152,7 @@ namespace internal
 		* @param block Pointer to the memory block associated with the address.
 		* @return Returns true if the node was found and removed, otherwise false.
 		*/
-		rtsha_attr_inline bool delete_address(const size_t& address, void* block)
+		rtsha_attr_inline bool delete_address(const size_t& address, void* block) noexcept
 		{
 			if (head == nullptr)
 			{

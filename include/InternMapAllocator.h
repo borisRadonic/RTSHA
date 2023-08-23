@@ -1,3 +1,30 @@
+/******************************************************************************
+The MIT License(MIT)
+
+Real Time Safety Heap Allocator (RTSHA)
+https://github.com/borisRadonic/RTSHA
+
+Copyright(c) 2023 Boris Radonic
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files(the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions :
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+******************************************************************************/
+
 #pragma once
 #include "SmallFixMemoryPage.h"
 #include <cstdlib>
@@ -128,7 +155,7 @@ namespace internal
         * @param n Number of items of type `T` in the memory block.
         * @param alloc Flag indicating whether the operation is an allocation (true) or deallocation (false).
         */
-        void report(T* p, std::size_t n, bool alloc = true) const
+        void report(T* p, std::size_t n, bool alloc = true) noexcept const
         {
             std::cout << (alloc ? "MAlloc: " : "MDealloc: ") << sizeof(T) * n
                 << " bytes at " << std::hex << std::showbase
@@ -145,7 +172,7 @@ namespace internal
     * @return true Always returns true, indicating allocators are stateless.
     */
     template<class T, class U>
-    bool operator==(const InternMapAllocator <T>&, const InternMapAllocator <U>&) { return true; }
+    bool operator==(const InternMapAllocator <T>&, const InternMapAllocator <U>&) noexcept { return true; }
 
     /**
     * @brief Inequality operator for InternMapAllocator.
@@ -155,6 +182,6 @@ namespace internal
     * @return false Always returns false, indicating allocators are stateless.
     */
     template<class T, class U>
-    bool operator!=(const InternMapAllocator <T>&, const InternMapAllocator <U>&) { return false; }
+    bool operator!=(const InternMapAllocator <T>&, const InternMapAllocator <U>&) noexcept { return false; }
 
 }

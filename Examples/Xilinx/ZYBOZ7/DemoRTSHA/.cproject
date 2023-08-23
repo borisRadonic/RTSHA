@@ -43,6 +43,10 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/DemoRTSHA/../../../../Include}&quot;"/>
 									<listOptionValue builtIn="false" value="../../include"/>
 								</option>
+								<option id="xilinx.gnu.compiler.symbols.defined.745630054" name="Defined symbols (-D)" superClass="xilinx.gnu.compiler.symbols.defined" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="RTSHA_USE_CACHE=1"/>
+									<listOptionValue builtIn="false" value="XIL_ZYNQ_CACHE=1"/>
+								</option>
 								<inputType id="xilinx.gnu.armv7.cxx.compiler.input.686576199" name="C++ source files" superClass="xilinx.gnu.armv7.cxx.compiler.input"/>
 							</tool>
 							<tool id="xilinx.gnu.armv7.toolchain.archiver.532177058" name="ARM v7 archiver" superClass="xilinx.gnu.armv7.toolchain.archiver"/>
@@ -122,6 +126,10 @@
 									<listOptionValue builtIn="false" value="../../Include"/>
 									<listOptionValue builtIn="false" value="../Include"/>
 									<listOptionValue builtIn="false" value="../../../../../include"/>
+								</option>
+								<option id="xilinx.gnu.compiler.symbols.defined.1666710269" name="Defined symbols (-D)" superClass="xilinx.gnu.compiler.symbols.defined" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="RTSHA_USE_CACHE=1"/>
+									<listOptionValue builtIn="false" value="XIL_ZYNQ_CACHE=1"/>
 								</option>
 								<inputType id="xilinx.gnu.armv7.cxx.compiler.input.1335291458" name="C++ source files" superClass="xilinx.gnu.armv7.cxx.compiler.input"/>
 							</tool>

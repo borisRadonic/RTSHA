@@ -25,6 +25,7 @@
     <ClInclude Include="..\..\include\BigMemoryPage.h" />
     <ClInclude Include="..\..\include\errors.h" />
     <ClInclude Include="..\..\include\FastPlusAllocator.h" />
+    <ClInclude Include="..\..\include\ForwardListAllocator.h" />
     <ClInclude Include="..\..\include\FreeLinkedList.h" />
     <ClInclude Include="..\..\include\FreeList.h" />
     <ClInclude Include="..\..\include\FreeListArray.h" />
@@ -32,7 +33,6 @@
     <ClInclude Include="..\..\include\Heap.h" />
     <ClInclude Include="..\..\include\HeapCallbacks.h" />
     <ClInclude Include="..\..\include\internal.h" />
-    <ClInclude Include="..\..\include\InternListAllocator.h" />
     <ClInclude Include="..\..\include\InternMapAllocator.h" />
     <ClInclude Include="..\..\include\MemoryBlock.h" />
     <ClInclude Include="..\..\include\MemoryPage.h" />

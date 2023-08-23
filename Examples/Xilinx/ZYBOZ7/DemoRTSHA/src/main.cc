@@ -71,7 +71,6 @@ int main()
 
 	 init_platform();
 
-
 	_heap = NULL;
 
 	HeapCallbacksStruct callbacks;

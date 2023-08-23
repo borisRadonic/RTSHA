@@ -1,3 +1,30 @@
+/******************************************************************************
+The MIT License(MIT)
+
+Real Time Safety Heap Allocator (RTSHA)
+https://github.com/borisRadonic/RTSHA
+
+Copyright(c) 2023 Boris Radonic
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files(the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions :
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+******************************************************************************/
+
 #pragma once
 #include "internal.h"
 #include <stdint.h>
@@ -96,7 +123,7 @@ namespace rtsha
 		}
 
 		/// @brief Virtual destructor.
-		virtual ~MemoryPage()
+		virtual ~MemoryPage()  noexcept
 		{
 		}
 
@@ -105,7 +132,7 @@ namespace rtsha
 		 * @param address The address to check.
 		 * @return True if the block exists, otherwise false.
 		 */
-		bool checkBlock(size_t address);
+		bool checkBlock(size_t address) noexcept;
 
 		/**
 		 * @brief Pure virtual function to allocate a block of memory.
@@ -125,7 +152,7 @@ namespace rtsha
 		 * @param size Size of the block to allocate.
 		 * @return A pointer to the allocated block.
 		 */
-		void* allocate_block_at_current_pos(const size_t& size);
+		void* allocate_block_at_current_pos(const size_t& size)  noexcept;
 
 		/**
 		* @brief Increments the count of free blocks.
@@ -133,7 +160,7 @@ namespace rtsha
 		* If the _page is not null, this function increments the free_blocks count
 		* associated with the _page. Typically called when a block is freed.
 		*/
-		inline void incFreeBlocks()
+		inline void incFreeBlocks()  noexcept
 		{
 			if (_page != nullptr)
 			{
@@ -149,7 +176,7 @@ namespace rtsha
 		* This method is used in conjunction with multithreading support to ensure
 		* that modifications to the page are synchronized.
 		*/
-		inline void lock()
+		inline void lock()  noexcept
 		{
 			#ifdef MULTITHREADING_SUPPORT
 			if ((nullptr != this->_page->callbacks) && (nullptr != this->_page->callbacks->ptrLockFunction))
@@ -164,7 +191,7 @@ namespace rtsha
 		*
 		* This method complements the `lock` method by releasing the lock on the page.
 		*/
-		inline void unlock()
+		inline void unlock()  noexcept
 		{
 			#ifdef MULTITHREADING_SUPPORT
 			if ((nullptr != this->_page->callbacks) && (nullptr != this->_page->callbacks->ptrUnLockFunction))
@@ -179,7 +206,7 @@ namespace rtsha
 		*
 		* @param error The error code to report.
 		*/
-		inline void reportError(uint32_t error)
+		inline void reportError(uint32_t error)  noexcept
 		{
 			if ((nullptr != this->_page->callbacks) && (nullptr != this->_page->callbacks->ptrErrorFunction))
 			{
@@ -193,7 +220,7 @@ namespace rtsha
 		*
 		* @param address The address to set.
 		*/
-		inline void setFreeBlockAllocatorsAddress(const size_t& address)
+		inline void setFreeBlockAllocatorsAddress(const size_t& address)  noexcept
 		{
 			_page->lastFreeBlockAddress = address;
 		}
@@ -203,7 +230,7 @@ namespace rtsha
 		*
 		* @return The type of the page.
 		*/
-		inline rtsha_page_size_type getPageType() const
+		inline rtsha_page_size_type getPageType() const  noexcept
 		{
 			return (rtsha_page_size_type) _page->flags;
 		}
@@ -213,7 +240,7 @@ namespace rtsha
 		*
 		* @return A pointer to the free list.
 		*/
-		inline void* getFreeList() const
+		inline void* getFreeList() const  noexcept
 		{
 			return reinterpret_cast<void*>(_page->ptr_list_map);
 		}
@@ -223,7 +250,7 @@ namespace rtsha
 		*
 		* @return A pointer to the free list array.
 		*/
-		inline void* getFreeListArray() const
+		inline void* getFreeListArray() const  noexcept
 		{
 			return reinterpret_cast<void*>(_page->ptr_list_map);
 		}
@@ -233,7 +260,7 @@ namespace rtsha
 		*
 		* @return A pointer to the free map.
 		*/
-		inline void* getFreeMap() const
+		inline void* getFreeMap() const  noexcept
 		{
 			return reinterpret_cast<void*>(_page->ptr_list_map);
 		}
@@ -243,7 +270,7 @@ namespace rtsha
 		*
 		* @return The number of free blocks.
 		*/
-		inline size_t getFreeBlocks() const
+		inline size_t getFreeBlocks() const  noexcept
 		{
 			if (_page != nullptr)
 			{
@@ -257,7 +284,7 @@ namespace rtsha
 		*
 		* @return The number of free blocks.
 		*/
-		inline size_t getMinBlockSize() const
+		inline size_t getMinBlockSize() const  noexcept
 		{
 			if (_page != nullptr)
 			{
@@ -271,9 +298,9 @@ namespace rtsha
 		*
 		* @return The current position.
 		*/
-		inline address_t getPosition() const
+		inline address_t getPosition() const  noexcept
 		{
-			if (_page != nullptr)
+			if (_page != nullptr) 
 			{
 				return _page->position;
 			}
@@ -285,7 +312,7 @@ namespace rtsha
 		*
 		* @param pos The position to set.
 		*/
-		inline void setPosition(address_t pos)
+		inline void setPosition(address_t pos)  noexcept
 		{
 			if (_page != nullptr)
 			{
@@ -298,7 +325,7 @@ namespace rtsha
 		 *
 		 * @param val The value to increment the position by.
 		 */
-		inline void incPosition(const size_t& val)
+		inline void incPosition(const size_t& val)  noexcept
 		{
 			if (_page != nullptr)
 			{
@@ -311,7 +338,7 @@ namespace rtsha
 		*
 		* @param val The value to decrement the position by.
 		*/
-		inline void decPosition(const size_t& val)
+		inline void decPosition(const size_t& val)  noexcept
 		{
 			if (_page != nullptr)
 			{
@@ -325,7 +352,7 @@ namespace rtsha
 		/**
 		* @brief Decreases the number of free blocks in the page.
 		*/
-		inline void decFreeBlocks()
+		inline void decFreeBlocks()  noexcept
 		{
 			if ( (_page != nullptr) && (_page->free_blocks > 0U) )
 			{
@@ -338,7 +365,7 @@ namespace rtsha
 		*
 		* @return The end position.
 		*/
-		inline address_t getEndPosition() const
+		inline address_t getEndPosition() const  noexcept
 		{
 			return _page->end_position;
 		}
@@ -348,7 +375,7 @@ namespace rtsha
 		*
 		* @return The start position.
 		*/
-		inline address_t getStartPosition() const
+		inline address_t getStartPosition() const  noexcept
 		{
 			return _page->start_position;
 		}
@@ -359,7 +386,7 @@ namespace rtsha
 		* @param size The size of the block to check.
 		* @return True if the block fits, false otherwise.
 		*/
-		inline bool fitOnPage(const size_t& size) const
+		inline bool fitOnPage(const size_t& size) const  noexcept
 		{
 			if ((_page->position + size) < (_page->end_position))
 			{
@@ -383,7 +410,7 @@ namespace rtsha
 		*
 		* @return True if the page has a last block, false otherwise.
 		*/
-		inline bool hasLastBlock() const
+		inline bool hasLastBlock() const  noexcept
 		{
 			return (_page->last_block != nullptr);
 		}
@@ -394,7 +421,7 @@ namespace rtsha
 		* @param block The block to check.
 		* @return True if it's the last block, false otherwise.
 		*/
-		inline bool isLastPageBlock(MemoryBlock& block) const
+		inline bool isLastPageBlock(MemoryBlock& block) const  noexcept
 		{
 			if (this->getPosition() == ((size_t)block.getBlock() + block.getSize()))
 			{
@@ -408,7 +435,7 @@ namespace rtsha
 		*
 		* @return A pointer to the last block.
 		*/
-		inline rtsha_block* getLastBlock() const
+		inline rtsha_block* getLastBlock() const  noexcept
 		{
 			return _page->last_block;
 		}
@@ -418,7 +445,7 @@ namespace rtsha
 		*
 		* @param block The block to set as the last block.
 		*/
-		inline void setLastBlock(const MemoryBlock& block)
+		inline void setLastBlock(const MemoryBlock& block)  noexcept
 		{
 			_page->last_block = block.getBlock();
 		}

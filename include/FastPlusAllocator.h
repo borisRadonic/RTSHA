@@ -1,3 +1,30 @@
+/******************************************************************************
+The MIT License(MIT)
+
+Real Time Safety Heap Allocator (RTSHA)
+https://github.com/borisRadonic/RTSHA
+
+Copyright(c) 2023 Boris Radonic
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files(the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions :
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+******************************************************************************/
+
 #pragma once
 #include <cstdlib>
 #include <new>
@@ -52,18 +79,19 @@ namespace rtsha
         * @throws std::bad_alloc If memory allocation fails.
         * @throws std::bad_array_new_length If the allocation size exceeds system limits.
         */
-        [[nodiscard]] T* allocate(std::size_t n)
+        [[nodiscard]] T* allocate(std::size_t n)  noexcept
         {
             if (n > std::numeric_limits<std::size_t>::max() / sizeof(T))
-                throw std::bad_array_new_length();
+            {
+                return nullptr;
+            }
 
             if (auto p = static_cast<T*>(rtsha_malloc(n * sizeof(T))))
             {
                 //report(p, n);
                 return p;
             }
-
-            throw std::bad_alloc();
+            return nullptr;
         }
 
         /**

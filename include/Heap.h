@@ -1,3 +1,30 @@
+/******************************************************************************
+The MIT License(MIT)
+
+Real Time Safety Heap Allocator (RTSHA)
+https://github.com/borisRadonic/RTSHA
+
+Copyright(c) 2023 Boris Radonic
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files(the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions :
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+******************************************************************************/
+
 #pragma once
 #include <stdint.h>
 #include "MemoryPage.h"
@@ -28,7 +55,7 @@ namespace internal
 		/**
 	* \brief Standard constructor.
 	*/
-		HeapInternal():_big_page_used(false)
+		HeapInternal() noexcept :_big_page_used(false)
 		{
 			for (size_t i = 0; i < _pages.size(); i++)
 			{
@@ -39,7 +66,7 @@ namespace internal
 		/**
 		* \brief Standard destructor.
 		*/
-		~HeapInternal()
+		~HeapInternal() noexcept
 		{
 
 		}
@@ -57,7 +84,7 @@ namespace internal
 		*
 		* \return On success, a pointer to 'FreeList' object. If the function fails, it returns a null pointer.
 		*/
-		FreeList* createFreeList(rtsha_page* page);
+		FreeList* createFreeList(rtsha_page* page) noexcept;
 
 		/**
 		\brief This function creates a 'Free Map Object' that will be used for the management of the 'free blocks'
@@ -73,7 +100,7 @@ namespace internal
 		*
 		*\return On success, a pointer to 'FreeList' object.If the function fails, it returns a null pointer.
 		*/
-		FreeMap* createFreeMap(rtsha_page* page);
+		FreeMap* createFreeMap(rtsha_page* page) noexcept;
 
 		/**
 		* \brief This function creates a 'Free List Arry Object' that will be used for the management of the Power2 Page 'free blocks'
@@ -88,7 +115,7 @@ namespace internal
 		*
 		* \return On success, a pointer to 'FreeList' object. If the function fails, it returns a null pointer.
 		*/
-		FreeListArray* createFreeListArray(rtsha_page* page, size_t page_size);
+		FreeListArray* createFreeListArray(rtsha_page* page, size_t page_size) noexcept;
 
 
 	protected:
@@ -99,7 +126,7 @@ namespace internal
 		* @param page Pointer to the `rtsha_page` structure to be initialized.
 		* @param a_size Size of each fixed-sized memory block in the page.
 		*/
-		void init_small_fix_page(rtsha_page* page, size_t a_size);
+		void init_small_fix_page(rtsha_page* page, size_t a_size) noexcept;
 
 		/**
 		* @brief Initialize a page for handling power-of-two sized memory blocks.
@@ -114,7 +141,7 @@ namespace internal
 		* @param min_block_size Minimum size (inclusive) for memory blocks in this page.
 		* @param max_block_size Maximum size (inclusive) for memory blocks in this page.
 		 */
-		void init_power_two_page(rtsha_page* page, size_t a_size, size_t max_objects, size_t min_block_size, size_t max_block_size);
+		void init_power_two_page(rtsha_page* page, size_t a_size, size_t max_objects, size_t min_block_size, size_t max_block_size) noexcept;
 
 		/**
 		 * @brief Initialize a page for handling large memory blocks.
@@ -127,7 +154,7 @@ namespace internal
 		 * @param a_size Total size of the memory that the page will manage.
 		 * @param max_objects Maximum number of large memory blocks that the page can handle.
 		 */
-		void init_big_block_page(rtsha_page* page, size_t a_size, size_t max_objects);
+		void init_big_block_page(rtsha_page* page, size_t a_size, size_t max_objects) noexcept;
 
 	protected:
 
@@ -228,13 +255,13 @@ namespace rtsha
 		/**
 		* \brief Standard constructor.
 		*/
-		Heap();
+		Heap() noexcept;
 
 
 		/**
 		* \brief Standard destructor.
 		*/
-		~Heap();
+		~Heap() noexcept;
 
 
 		/**
@@ -245,7 +272,7 @@ namespace rtsha
 		* \param size The size of heap memory.
 		* \return Returns true when the heap has been sucessfuly created.
 		*/
-		bool init(void* start, size_t size);
+		bool init(void* start, size_t size) noexcept;
 
 
 		/**
@@ -270,28 +297,28 @@ namespace rtsha
 		*
 		* \return Returns true when the page has been sucessfuly created.
 		*/
-		bool add_page(HeapCallbacksStruct* callbacks, rtsha_page_size_type size_type, size_t size, size_t max_objects = 0U, size_t min_block_size = 0U, size_t max_block_size = 0U);
+		bool add_page(HeapCallbacksStruct* callbacks, rtsha_page_size_type size_type, size_t size, size_t max_objects = 0U, size_t min_block_size = 0U, size_t max_block_size = 0U) noexcept;
 
 		/**
 		* \brief This function reurns deww space of the heap.
 		*
 		* \return Returns the number of free bytes on the heap.
 		*/
-		size_t get_free_space() const;
+		size_t get_free_space() const noexcept;
 
 		/**
 		* \brief This function returns first Big Memory Page page on the heap.
 		*
 		* \return Returns pointer to rtsha_page structure.
 		*/
-		rtsha_page* get_big_memorypage() const;
+		rtsha_page* get_big_memorypage() const noexcept;
 
 		/**
 		* \brief This function returns the page of allocated block.
 		*
 		* \return Returns pointer to rtsha_page structure or null pointer if fails.
 		*/
-		rtsha_page* get_block_page(address_t block_address);
+		rtsha_page* get_block_page(address_t block_address) noexcept;
 
 
 		/**
@@ -308,7 +335,7 @@ namespace rtsha
 		* The type of this pointer is always void*, which can be cast to the desired type of data pointer in order to be dereferenceable.
 		* If the function failed to allocate the requested block of memory, a null pointer is returned.
 		*/
-		void* malloc(size_t size);
+		void* malloc(size_t size) noexcept;
 
 		/**
 		* \brief This function deallocates memory block.
@@ -319,7 +346,7 @@ namespace rtsha
 		* \param ptr Pointer to a previously allocated memory block. If ptr does not point to a valid block of memory allocated with rtsha_malloc, rtsha_calloc or rtsha_realloc,
 		* function does nothing.
 		*/
-		void free(void* ptr);
+		void free(void* ptr) noexcept;
 
 		/**
 		* \brief This function allocates the block of memory on the heap and initializes it to zero.
@@ -333,7 +360,7 @@ namespace rtsha
 		* \return On success, a pointer to the memory block allocated by the function or null pointer if allocation fails.
 		*
 		*/
-		void* calloc(size_t nitems, size_t size);
+		void* calloc(size_t nitems, size_t size) noexcept;
 
 		/**
 		* \brief This function reallocates the block of memory on the heap.
@@ -354,7 +381,7 @@ namespace rtsha
 		* \return On success, a pointer to the memory block allocated by the function or null pointer if allocation fails.
 		*
 		*/
-		void* realloc(void* ptr, size_t size);
+		void* realloc(void* ptr, size_t size) noexcept;
 
 		/**
 		* \brief This function copies the values of num bytes from the location pointed to by source directly to the memory block pointed to by destination.
@@ -373,7 +400,7 @@ namespace rtsha
 		* \return On success, a pointer to the destination memory, or null pointer if the function fails.
 		*
 		*/
-		void* memcpy(void* _Dst, void const* _Src, size_t _Size);
+		void* memcpy(void* _Dst, void const* _Src, size_t _Size) noexcept;
 
 		/**
 		* \brief This function sets values of num bytes from the location pointed to by _Dst to the specified value.
@@ -391,7 +418,7 @@ namespace rtsha
 		* \return On success, a pointer todestination memory or null pointer if the function fails.
 		*
 		*/
-		void* memset(void* _Dst, int _Val, size_t _Size);
+		void* memset(void* _Dst, int _Val, size_t _Size) noexcept;
 
 
 		/**
@@ -403,7 +430,7 @@ namespace rtsha
 		*
 		* \return Returns rtsha_page_size_type.
 		*/
-		rtsha_page_size_type get_ideal_page(size_t size) const;
+		rtsha_page_size_type get_ideal_page(size_t size) const noexcept;
 
 		/**
 		* \brief This function gets  page from the list of heap pages.
@@ -418,7 +445,7 @@ namespace rtsha
 		*
 		* \return On success, a pointer to memory page or null pointer if the function fails.
 		*/
-		rtsha_page* select_page(rtsha_page_size_type ideal_page, size_t size, bool no_big = false) const;
+		rtsha_page* select_page(rtsha_page_size_type ideal_page, size_t size, bool no_big = false) const noexcept;
 
 	};
 }

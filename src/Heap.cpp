@@ -1,3 +1,30 @@
+/******************************************************************************
+The MIT License(MIT)
+
+Real Time Safety Heap Allocator (RTSHA)
+https://github.com/borisRadonic/RTSHA
+
+Copyright(c) 2023 Boris Radonic
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files(the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions :
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+******************************************************************************/
+
 #include "Heap.h"
 #include "FreeList.h"
 #include "FreeMap.h"
@@ -13,7 +40,7 @@
 
 namespace internal
 {
-	void HeapInternal::init_small_fix_page(rtsha_page* page, size_t a_size)
+	void HeapInternal::init_small_fix_page(rtsha_page* page, size_t a_size) noexcept
 	{
 		page->start_map_data = 0U;
 		page->map_page = nullptr;
@@ -23,7 +50,7 @@ namespace internal
 		page->next = reinterpret_cast<rtsha_page*>(_heap_current_position);
 	}
 
-	void HeapInternal::init_power_two_page(rtsha_page* page, size_t a_size, size_t max_objects, size_t min_block_size, size_t max_block_size)
+	void HeapInternal::init_power_two_page(rtsha_page* page, size_t a_size, size_t max_objects, size_t min_block_size, size_t max_block_size) noexcept
 	{
 		/*we need additional space for out map data... we can not store data in free blocks... to dangerous...not safe...*/
 
@@ -81,7 +108,7 @@ namespace internal
 		page->next = reinterpret_cast<rtsha_page*>(_heap_current_position);
 	}
 
-	void HeapInternal::init_big_block_page(rtsha_page* page, size_t a_size, size_t max_objects)
+	void HeapInternal::init_big_block_page(rtsha_page* page, size_t a_size, size_t max_objects) noexcept
 	{
 		/*we need additional space for out map data... we can not store data in free blocks... to dangerous...not safe...*/
 		if (max_objects == 0U)
@@ -119,54 +146,42 @@ namespace internal
 		mem_page.createInitialFreeBlocks();
 	}
 
-	FreeList* HeapInternal::createFreeList(rtsha_page* page)
+	FreeList* HeapInternal::createFreeList(rtsha_page* page) noexcept
 	{
 		/*create objects on stack in reserved memory using new in place*/
 		void* ptrList = _storage_free_lists.get_next_ptr();
-		if (ptrList != nullptr)
-		{
-			return new (ptrList) FreeList(page);
-		}
-		return nullptr;
+		RTSHA_EXPECTS(ptrList);
+		return new (ptrList) FreeList(page);
 	}
 
-	FreeMap* HeapInternal::createFreeMap(rtsha_page* page)
+	FreeMap* HeapInternal::createFreeMap(rtsha_page* page) noexcept
 	{
 		void* ptrMap = _storage_free_maps.get_next_ptr();
-		if (ptrMap != nullptr)
-		{
-			return new (ptrMap) FreeMap(page);
-		}
-		return nullptr;
+		RTSHA_EXPECTS(ptrMap);
+		return new (ptrMap) FreeMap(page);
 	}
 
 
-	FreeListArray* HeapInternal::createFreeListArray(rtsha_page* page, size_t page_size)
+	FreeListArray* HeapInternal::createFreeListArray(rtsha_page* page, size_t page_size) noexcept
 	{
 		/*create objects on stack in reserved memory using new in place*/
 		void* ptrListArray = _storage_free_list_array.get_next_ptr();
-		if (ptrListArray != nullptr)
-		{
-			return new (ptrListArray) FreeListArray(page, page->min_block_size, page_size);
-		}
-		return nullptr;
+		RTSHA_EXPECTS(ptrListArray);
+		return new (ptrListArray) FreeListArray(page, page->min_block_size, page_size);
 	}
 }
 
 namespace rtsha
 {
-
-	
-	Heap::Heap():HeapInternal()
+	Heap::Heap() noexcept :HeapInternal()
 	{		
 	}
 
-	Heap::~Heap()
+	Heap::~Heap() noexcept
 	{
-
 	}
 
-	bool Heap::init(void* start, size_t size)
+	bool Heap::init(void* start, size_t size) noexcept
 	{
 		address_t a_start = rtsha_align( reinterpret_cast<address_t>(start), RTSHA_ALIGMENT);
 		size_t a_size = rtsha_align(size, RTSHA_ALIGMENT);
@@ -192,7 +207,7 @@ namespace rtsha
 		return true;
 	}
 
-	bool Heap::add_page(HeapCallbacksStruct* callbacks, rtsha_page_size_type size_type, size_t size, size_t max_objects, size_t min_block_size, size_t max_block_size)
+	bool Heap::add_page(HeapCallbacksStruct* callbacks, rtsha_page_size_type size_type, size_t size, size_t max_objects, size_t min_block_size, size_t max_block_size) noexcept
 	{
 		size_t a_size = rtsha_align(size, RTSHA_ALIGMENT);
 		if (_heap_top < (_heap_current_position + (a_size - sizeof(rtsha_page))))
@@ -245,7 +260,7 @@ namespace rtsha
 		return true;
 	}
 	
-	size_t Heap::get_free_space() const
+	size_t Heap::get_free_space() const noexcept
 	{
 		if (_heap_current_position >= _heap_top)
 		{
@@ -254,7 +269,7 @@ namespace rtsha
 		return (static_cast<size_t>(_heap_top - _heap_current_position));
 	}
 
-	rtsha_page_size_type Heap::get_ideal_page(size_t size) const
+	rtsha_page_size_type Heap::get_ideal_page(size_t size) const noexcept
 	{
 		if (size > (size_t)rtsha_page_size_type::PageType512)
 		{
@@ -291,7 +306,7 @@ namespace rtsha
 		}
 	}
 
-	rtsha_page* Heap::select_page(rtsha_page_size_type ideal_page, size_t size, bool no_big) const
+	rtsha_page* Heap::select_page(rtsha_page_size_type ideal_page, size_t size, bool no_big) const noexcept
 	{
 		if (rtsha_page_size_type::PageTypeNotDefined != ideal_page)
 		{
@@ -340,7 +355,7 @@ namespace rtsha
 		return NULL;
 	}
 
-	rtsha_page* Heap::get_big_memorypage() const
+	rtsha_page* Heap::get_big_memorypage() const noexcept
 	{
 		if (_big_page_used)
 		{
@@ -355,7 +370,7 @@ namespace rtsha
 		return nullptr;
 	}
 
-	rtsha_page* Heap::get_block_page(address_t block_address)
+	rtsha_page* Heap::get_block_page(address_t block_address) noexcept
 	{
 		for (const auto& page : _pages)
 		{
@@ -370,7 +385,7 @@ namespace rtsha
 		return nullptr;
 	}
 
-	void* Heap::malloc(size_t size)
+	void* Heap::malloc(size_t size) noexcept
 	{
 		void* ret = NULL;
 		if (size > 0U)
@@ -437,7 +452,7 @@ namespace rtsha
 		return ret;
 	}
 
-	void Heap::free(void* ptr)
+	void Heap::free(void* ptr) noexcept
 	{
 		if (ptr != nullptr)
 		{
@@ -471,12 +486,12 @@ namespace rtsha
 		}
 	}
 
-	void* Heap::calloc(size_t nitems, size_t size)
+	void* Heap::calloc(size_t nitems, size_t size) noexcept
 	{
 		return malloc(nitems * size);
 	}
 
-	void* Heap::realloc(void* ptr, size_t size)
+	void* Heap::realloc(void* ptr, size_t size) noexcept
 	{
 		void* new_memory;
 		size_t* ptr_old;
@@ -538,7 +553,7 @@ namespace rtsha
 	}
 	
 
-	void* Heap::memcpy(void* _Dst, void const* _Src, size_t _Size)
+	void* Heap::memcpy(void* _Dst, void const* _Src, size_t _Size) noexcept
 	{
 		if ((_Src != nullptr) && (_Dst != nullptr) && (_Size > 0U))
 		{
@@ -582,7 +597,7 @@ namespace rtsha
 	}
 		
 
-	void* Heap::memset(void* _Dst, int _Val, size_t _Size)
+	void* Heap::memset(void* _Dst, int _Val, size_t _Size) noexcept
 	{
 		if ((_Dst != nullptr) && (_Size > 0U))
 		{

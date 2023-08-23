@@ -1,15 +1,47 @@
+/******************************************************************************
+The MIT License(MIT)
+
+Real Time Safety Heap Allocator (RTSHA)
+https://github.com/borisRadonic/RTSHA
+
+Copyright(c) 2023 Boris Radonic
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files(the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions :
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+******************************************************************************/
+
 #pragma once
 
 #include <assert.h>
 #include <cstring>
 #include "stdint.h"
+#include <cstdlib >
 
 #ifdef _MSC_VER
 #  include <immintrin.h>
 #  include <intrin.h>
 #else
+	#ifdef RTSHA_USE_CACHE
+		#ifdef XIL_ZYNQ_CACHE
+			#include "xil_cache.h"
+		#endif
+	#endif
 #endif
-
 
 
 /**
@@ -71,6 +103,23 @@ The use of 'Small Fixed Memory Pages' in combination with 'Power Two Memory Page
 #include <limits>
 #endif
 
+
+#ifdef _MSC_VER
+#define RTSHA_ASSUME(cond) __assume(cond)
+#define RTSHA_LIKELY(x) (!!(x))
+#elif defined(__GNUC__)
+#define RTSHA_ASSUME(cond) ((cond) ? static_cast<void>(0) : __builtin_unreachable())
+#define RTSHA_LIKELY(x) __builtin_expect(!!(x), 1)
+#else
+#define RTSHA_ASSUME(cond) static_cast<void>((cond) ? 0 : 0)
+#define RTSHA_LIKELY(x) __builtin_expect(!!(x), 1)
+#endif
+
+
+#define RTSH_CONTRACT_CHECK(cond)                                                             \
+    (RTSHA_LIKELY(cond) ? static_cast<void>(0U) : std::abort())
+
+#define RTSHA_EXPECTS(cond) RTSH_CONTRACT_CHECK(cond)
 
 
 #if defined _WIN64 || defined _ARM64
@@ -144,11 +193,12 @@ The use of 'Small Fixed Memory Pages' in combination with 'Power Two Memory Page
 
 namespace internal
 {
+
     using address_t = uintptr_t;
 
 #if defined(WIN64) // The _BitScanReverse64 intrinsic is only available for 64 bit builds because it depends on x64
 
-    inline uint64_t ExpandToPowerOf2(uint64_t Value)
+    rtsha_attr_inline uint64_t ExpandToPowerOf2(uint64_t Value)
     {
         unsigned long Index;
         _BitScanReverse64(&Index, Value - 1);
@@ -160,16 +210,15 @@ namespace internal
 #ifdef __arm__ //ARM architecture
 
     template <typename T>
-       int rsha_bit_width(T x)
-       {
-           if (x == 0) {
-               return 0;
-           }
-           int bits = std::numeric_limits<T>::digits; // Maximum number of bits
-           int leading_zeros = __builtin_clz(static_cast<unsigned int>(x)); // GCC/Clang builtin function
-           return bits - leading_zeros;
-       }
-
+    rtsha_attr_inline int rsha_bit_width(T x)
+    {
+        if (x == 0) {
+            return 0;
+        }
+        int bits = std::numeric_limits<T>::digits; // Maximum number of bits
+        int leading_zeros = __builtin_clz(static_cast<unsigned int>(x)); // GCC/Clang builtin function
+        return bits - leading_zeros;
+    }
 
     rtsha_attr_inline uint32_t ExpandToPowerOf2(uint32_t Value)
     {
@@ -178,7 +227,7 @@ namespace internal
     }
 
 #else
-    inline uint32_t ExpandToPowerOf2(uint32_t Value)
+    rtsha_attr_inline uint32_t ExpandToPowerOf2(uint32_t Value)
     {
         unsigned long Index;
         _BitScanReverse(&Index, Value - 1);
@@ -204,7 +253,7 @@ namespace internal
         /**
         * @brief Default constructor.
         */
-        PREALLOC_MEMORY()
+        PREALLOC_MEMORY() noexcept
         {
         }
 
@@ -213,7 +262,7 @@ namespace internal
         *
         * @param init Value used to initialize the memory.
         */
-        PREALLOC_MEMORY(uint8_t init)
+        rtsha_attr_inline PREALLOC_MEMORY(uint8_t init) noexcept
         {
             std::memset(_memory, init, sizeof(_memory));
         }
@@ -225,7 +274,7 @@ namespace internal
         *
         * @return Void pointer to the beginning of the memory block.
         */
-        inline void* get_ptr()
+        rtsha_attr_inline void* get_ptr() noexcept
         {
             return (void*)_memory;
         }
@@ -237,7 +286,7 @@ namespace internal
         *
         * @return Void pointer to the next available memory block, or nullptr if no block is available.
         */
-        inline void* get_next_ptr()
+        rtsha_attr_inline void* get_next_ptr() noexcept
         {
             if (_count < n)
             {
@@ -260,7 +309,7 @@ namespace internal
      * @param ptr Pointer to be aligned.
      * @return An aligned uintptr_t.
      */
-    static inline uintptr_t rtsha_align(uintptr_t ptr, size_t aligment)
+    static rtsha_attr_inline uintptr_t rtsha_align(uintptr_t ptr, size_t aligment) noexcept
     {
         uintptr_t mask = aligment - 1U;
 

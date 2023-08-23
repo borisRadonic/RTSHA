@@ -1,3 +1,30 @@
+/******************************************************************************
+The MIT License(MIT)
+
+Real Time Safety Heap Allocator (RTSHA)
+https://github.com/borisRadonic/RTSHA
+
+Copyright(c) 2023 Boris Radonic
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files(the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions :
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+******************************************************************************/
+
 #pragma once
 #include <stdint.h>
 #include "MemoryBlock.h"
@@ -35,10 +62,10 @@ namespace internal
 		*
 		* @param page The rtsha_page that this FreeMap will manage.
 		*/
-		explicit FreeMap(rtsha_page* page);
+		explicit FreeMap(rtsha_page* page) noexcept;
 
 		/// @brief Destructor for the FreeMap.
-		~FreeMap()
+		~FreeMap() noexcept
 		{
 		}
 
@@ -48,7 +75,7 @@ namespace internal
 		* @param key The key for the insertion. (The size of block is used as a key.)
 		* @param block The associated value for the key. (Address of the block in memory.)
 		*/
-		rtsha_attr_inline void insert(const uint64_t key, size_t block)
+		rtsha_attr_inline void insert(const uint64_t key, size_t block) noexcept
 		{
 			if ((_ptrMap != nullptr))
 			{
@@ -63,7 +90,7 @@ namespace internal
 		* @param block The associated value for the key.
 		* @return True if the deletion was successful, otherwise false.
 		*/
-		rtsha_attr_inline bool del(const uint64_t key, size_t block)
+		rtsha_attr_inline bool del(const uint64_t key, size_t block) noexcept
 		{
 			if ((_ptrMap != nullptr))
 			{
@@ -87,7 +114,7 @@ namespace internal
 		* @param key The key to be looked up.
 		* @return The value associated with the key.
 		*/
-		rtsha_attr_inline size_t find(const uint64_t key)
+		rtsha_attr_inline size_t find(const uint64_t key) noexcept
 		{
 			if ((_ptrMap != nullptr))
 			{
@@ -108,7 +135,7 @@ namespace internal
 		* @param block The associated value for the key.
 		* @return True if the key-value pair exists, otherwise false.
 		*/
-		rtsha_attr_inline bool exists(const uint64_t key, size_t block)
+		rtsha_attr_inline bool exists(const uint64_t key, size_t block)  noexcept
 		{
 			if ((_ptrMap != nullptr))
 			{
@@ -129,7 +156,7 @@ namespace internal
 		*
 		* @return The size of the map.
 		*/
-		size_t size() const
+		rtsha_attr_inline size_t size() const noexcept
 		{
 			if ((_ptrMap != nullptr))
 			{

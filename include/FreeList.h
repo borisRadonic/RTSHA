@@ -1,7 +1,33 @@
+/******************************************************************************
+The MIT License(MIT)
+
+Real Time Safety Heap Allocator (RTSHA)
+https://github.com/borisRadonic/RTSHA
+
+Copyright(c) 2023 Boris Radonic
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files(the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions :
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+******************************************************************************/
+
 #pragma once
 #include <stdint.h>
 #include "MemoryBlock.h"
-#include "InternListAllocator.h"
 #include "FreeLinkedList.h"
 
 namespace internal
@@ -29,10 +55,10 @@ namespace internal
 		 * @brief Constructs a FreeList with the given memory page.
 		* @param page The rtsha_page that this FreeList should manage.
 		*/
-		explicit FreeList(rtsha_page* page);
+		explicit FreeList(rtsha_page* page) noexcept;
 	
 		/// @brief Destructor for the FreeList.
-		~FreeList()
+		~FreeList() noexcept
 		{
 		}
 		
@@ -41,7 +67,7 @@ namespace internal
 		*
 		* @param address The memory address to be added to the free list.
 		*/
-		rtsha_attr_inline void push(const size_t& address)
+		rtsha_attr_inline void push(const size_t& address) noexcept
 		{
 			ptrLlist->push(address);
 		}
@@ -51,12 +77,12 @@ namespace internal
 		*
 		* @return The memory address retrieved from the free list.
 		*/
-		rtsha_attr_inline size_t pop()
+		rtsha_attr_inline size_t pop() noexcept
 		{			
 			return ptrLlist->pop();
 		}
 
-		rtsha_attr_inline bool delete_address(const size_t& address, void* block)
+		rtsha_attr_inline bool delete_address(const size_t& address, void* block) noexcept
 		{
 			return  (ptrLlist->delete_address(address, block));
 		}
