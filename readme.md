@@ -37,11 +37,11 @@ While each of these memory management implementations has its advantages, they a
  These factors are essential for developing reliable, predictable, and secure systems in safety-critical environments.
 
 
-📜 ## Table of Contents
+## Table of Contents 📜
 
 1. [About RTSHA](#about-rtsha)🌌
-2. [RTSHA Algorithms] 🧠
-3. [Modern C++ and STL] 📚
+2. [RTSHA Algorithms](#rtsha-algorithms)🧠
+3. [Modern C++ and STL](#Modern-C++-and-STL)📚
 4. [Project Status](#project-status)🏗
 5. [Building](#building)🛠
 6. [Documentation](#documentation)📖
@@ -81,7 +81,7 @@ While each of these memory management implementations has its advantages, they a
 
 There are several different algorithms that can be used for heap allocation supported by RTSHA:
 
-### Small Fix Memory Pages
+**Small Fix Memory Pages**
 
 This algorithm is an approach to memory management that is often used in specific situations where objects of a certain size are frequently allocated and deallocated. By using of uses 'Fixed chunk size' algorithm greatly simplies the memory allocation process and reduce fragmentation.
 
@@ -115,7 +115,7 @@ Despite its features, it's essential to understand the specific use-cases and li
 
 The use of 'Small Fixed Memory Pages' in combination with 'Power Two Memory Pages' is recommended for all real time systems.
 
-##Modern C++ and STL 📚
+## Modern C++ and STL 📚
 
 Writing a correct and efficient memory allocator is a non-trivial task.
 STL provides many algorithms for sorting, searching, manipulating and processing data. These algorithms can be useful for managing metadata about memory blocks, such as free and used blocks. 
@@ -137,7 +137,7 @@ This project is currently a work in progress. The release of the initial version
 
 Building
 
-Windows
+Windows:
 
 	Open ide/vs2022/RTSHALibrary.sln in Visual Studio 2022 and build.
 
