@@ -1,4 +1,5 @@
-# Real Time Safety Heap Allocator (RTSHA)
+# Real Time Safety Heap Allocator (RTSHA) 🚀
+
 
 > [!WARNING] 
 > This project is currently a work in progress. The release of the initial version is tentatively scheduled for December. Please consider this before using the code.
@@ -36,17 +37,18 @@ While each of these memory management implementations has its advantages, they a
  These factors are essential for developing reliable, predictable, and secure systems in safety-critical environments.
 
 
-## Table of Contents
+📜 ## Table of Contents
 
-1. [About RTSHA](#about-rtsha)
-2. [Project Status](#project-status)
-3. [Configuration](#configuration)
-4. [Building](#building)
-5. [Documentation](#documentation)
-6. [Examples](#examples)
+1. [About RTSHA](#about-rtsha)🌌
+2. [RTSHA Algorithms] 🧠
+3. [Modern C++ and STL] 📚
+4. [Project Status](#project-status)🏗
+5. [Building](#building)🛠
+6. [Documentation](#documentation)📖
+7. [Examples](#examples)💡
 
 
-## About RTSHA
+## About RTSHA 🌌
 
 ### The main requirements for RTSHA
 
@@ -75,7 +77,7 @@ While each of these memory management implementations has its advantages, they a
 **Compatibility**: The allocator should be compatible with the system it is designed for and work well with other components of the system. 
 
 
-**RTSHA Algorithms**
+## RTSHA Algorithms🧠
 
 There are several different algorithms that can be used for heap allocation supported by RTSHA:
 
@@ -113,7 +115,7 @@ Despite its features, it's essential to understand the specific use-cases and li
 
 The use of 'Small Fixed Memory Pages' in combination with 'Power Two Memory Pages' is recommended for all real time systems.
 
-**Modern C++ and STL**
+##Modern C++ and STL 📚
 
 Writing a correct and efficient memory allocator is a non-trivial task.
 STL provides many algorithms for sorting, searching, manipulating and processing data. These algorithms can be useful for managing metadata about memory blocks, such as free and used blocks. 
@@ -126,15 +128,12 @@ Using existing algorithms and data structures from the C++ Standard Template Lib
 - Compatibility: STL components are designed to work together seamlessly, and using them can help ensure compatibility with other C++ code and libraries.
 
 
-## Project Status
+## Project Status 🏗
 
 This project is currently a work in progress. The release of the initial version is tentatively scheduled for December. Please consider this before using the code.
 
 
-## Configuration
-
-
-## Building
+## Building 🛠
 
 Building
 
@@ -144,12 +143,12 @@ Windows
 
 
 
-## Documentation
+## Documentation 📖
 
 [View RTSH Documentation in PDF](https://github.com/borisRadonic/RTSHA/blob/master/docs/RTSHA%20Documentation.pdf)
 
 
-## Examples
+## Examples 💡
 
 [STM32H750 Demo](https://github.com/borisRadonic/RTSHA/tree/master/Examples/STM32H750/DemoRTSH)
 [ZYNQ-7020 Demo](https://github.com/borisRadonic/RTSHA/tree/master/Examples/Xilinx/ZYBOZ7)
