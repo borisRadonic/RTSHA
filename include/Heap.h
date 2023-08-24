@@ -280,7 +280,7 @@ namespace rtsha
 		*
 		* This function takes a singleton instance of the heap.
 		*
-		* \param callbacks The HeapCallbacksStruct with callbac functions when used. NULL if 'callback' functions are not used. The callback functions for 'lock' and 'unlock' must be specified when used in multithreding enviroment.
+		* \param callbacks The HeapCallbacksStruct with callbac functions when used. nullptr if 'callback' functions are not used. The callback functions for 'lock' and 'unlock' must be specified when used in multithreding enviroment.
 		*
 		* \param size The size of the page.
 		*

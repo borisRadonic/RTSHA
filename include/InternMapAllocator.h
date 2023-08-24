@@ -113,7 +113,7 @@ namespace internal
                     }
                 }
             }
-            return NULL;
+            return nullptr;
         }
 
         /**

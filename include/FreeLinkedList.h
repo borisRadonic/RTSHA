@@ -76,7 +76,7 @@ namespace internal
 		* @brief Constructs a FreeLinkedList with the given memory page.
 		* @param page The rtsha_page that this FreeLinkedList should manage.
 		*/
-		explicit FreeLinkedList(rtsha_page* page)  noexcept : head(NULL), _page(page), count(0U)
+		explicit FreeLinkedList(rtsha_page* page)  noexcept : head(nullptr), _page(page), count(0U)
 		{
 		}
 
@@ -105,7 +105,7 @@ namespace internal
 		* @return Returns true if the list is empty, otherwise false.
 		*/
 		rtsha_attr_inline bool is_empty() const noexcept
-		{
+		{			
 			if (head == nullptr)
 			{
 				assert(count == 0);
@@ -125,7 +125,7 @@ namespace internal
 		rtsha_attr_inline size_t pop() noexcept
 		{
 			size_t ret(0U);
-			if (!is_empty() && head != NULL)
+			if( !is_empty() )
 			{
 				Node* temp = head;
 				ret = temp->data;
@@ -136,7 +136,7 @@ namespace internal
 
 				if (count == 0U)
 				{
-					head = NULL;
+					head = nullptr;
 				}
 			}
 			else
@@ -170,6 +170,9 @@ namespace internal
 				head = head->next;
 
 				temp->data = 0U;
+				temp->next = nullptr;
+				temp->prev = nullptr;
+
 
 				if (count)
 					count--;

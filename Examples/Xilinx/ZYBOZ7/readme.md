@@ -124,8 +124,8 @@ Measured Performance for Release Version:
 
 *Power2 Page:*
 
-rtsha_malloc: 535 - 2064 Cycles
-rtsha_free:   508 - 1126 Cycles
+rtsha_malloc: 535 - 2145 Cycles
+rtsha_free:   508 - 1453 Cycles
 
 This represents the time taken for memory allocation and deallocation in a flexible page system that can handle a range of block sizes in power-of-two increments,
 up to a specified maximum. These metrics are crucial for understanding the efficiency of the RTSHA heap system. 

@@ -130,7 +130,7 @@ namespace internal
 
 		page->end_position = page->start_map_data;
 
-		page->map_page->last_block = NULL;
+		page->map_page->last_block = nullptr;
 		page->map_page->start_map_data = 0U;
 		page->map_page->map_page = nullptr;
 		page->map_page->position = page->start_map_data + sizeof(rtsha_page);
@@ -227,7 +227,7 @@ namespace rtsha
 
 		page->free_blocks = 0U;
 		
-		page->last_block = NULL;
+		page->last_block = nullptr;
 
 		/*set page blocks current possition*/
 		page->position = _heap_current_position + sizeof(rtsha_page);
@@ -352,7 +352,7 @@ namespace rtsha
 				}
 			}
 		}
-		return NULL;
+		return nullptr;
 	}
 
 	rtsha_page* Heap::get_big_memorypage() const noexcept
@@ -387,7 +387,7 @@ namespace rtsha
 
 	void* Heap::malloc(size_t size) noexcept
 	{
-		void* ret = NULL;
+		void* ret = nullptr;
 		if (size > 0U)
 		{
 			size_t a_size(size);
@@ -402,7 +402,7 @@ namespace rtsha
 				if (ideal_page != rtsha_page_size_type::PageTypeNotDefined)
 				{
 					rtsha_page* page = select_page(ideal_page, a_size);
-					if (NULL == page)
+					if (nullptr == page)
 					{
 						_last_heap_error = RTSHA_NoFreePage;
 						return ret;
@@ -426,7 +426,7 @@ namespace rtsha
 			{
 				a_size = ExpandToPowerOf2(a_size);
 				rtsha_page* page = select_page(rtsha_page_size_type::PageTypeNotDefined, a_size, true);
-				if (NULL == page)
+				if (nullptr == page)
 				{
 					_last_heap_error = RTSHA_NoFreePage;
 					return ret;
@@ -507,7 +507,7 @@ namespace rtsha
 		if (size == 0U)
 		{
 			this->free(ptr);
-			return NULL;
+			return nullptr;
 		}
 
 		size_t address = (size_t)ptr;
@@ -525,7 +525,7 @@ namespace rtsha
 		new_memory = this->malloc(size);
 		ptr_new = (size_t*)new_memory;
 
-		if (NULL != new_memory)
+		if (nullptr != new_memory)
 		{
 			if (block.getSize() > a_size)
 			{

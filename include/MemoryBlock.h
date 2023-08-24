@@ -45,7 +45,7 @@ namespace rtsha
 		/// @brief Default constructor for the block, initializing it to default values.
 		rtsha_block()
 			:size(0U)
-			,prev(NULL)
+			,prev(nullptr)
 		{
 		}
 
@@ -249,7 +249,7 @@ namespace rtsha
 			}
 			else
 			{
-				_block->prev = NULL;
+				_block->prev = nullptr;
 			}
 		}
 
@@ -258,7 +258,7 @@ namespace rtsha
 		*/
 		rtsha_attr_inline void setAsFirst() noexcept
 		{
-			_block->prev = NULL;			
+			_block->prev = nullptr;
 		}
 
 		/**
@@ -290,7 +290,7 @@ namespace rtsha
 		*/
 		rtsha_attr_inline bool hasPrev() noexcept
 		{
-			return (_block->prev != NULL);
+			return (_block->prev != nullptr);
 		}
 
 		/**
@@ -318,7 +318,7 @@ namespace rtsha
 		*/
 		rtsha_attr_inline void prepare() noexcept
 		{
-			_block->prev = NULL;
+			_block->prev = nullptr;
 			_block->size = 0;
 		}
 		

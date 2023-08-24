@@ -47,7 +47,7 @@ namespace internal
 
 		for (uint32_t i = 0U; i < MAX_BINS; i++)
 		{
-			arrPtrLists[i] = NULL;
+			arrPtrLists[i] = nullptr;
 		}
 		for (uint32_t i = min_bin; i <= max_bin; i++)
 		{									

@@ -36,7 +36,7 @@ namespace rtsha
 
 	void* PowerTwoMemoryPage::allocate_block(const size_t& size) noexcept
 	{
-		void* ret = NULL;
+		void* ret = nullptr;
 
 		RTSHA_EXPECTS(_page);
 		if (0U == size)
@@ -96,7 +96,7 @@ namespace rtsha
 						assert(false);
 						this->reportError(RTSHA_InvalidBlock);
 						this->unlock();
-						return NULL;
+						return nullptr;
 					}
 				}
 			}

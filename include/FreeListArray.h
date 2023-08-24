@@ -66,6 +66,7 @@ namespace internal
 		~FreeListArray() noexcept
 		{
 		}
+				
 
 		/**
 		* @brief Pushes a memory address onto the appropriate free list.
@@ -74,21 +75,14 @@ namespace internal
 		*/
 		rtsha_attr_inline void push(const size_t data, size_t size) noexcept
 		{
-			if ((data > _page->start_position) && (data < _page->end_position))
+			if (isInPage(data))
 			{
-
-
-#ifdef __arm__ //ARM architecture
-				int32_t index = rsha_bit_width(size) - min_bin;
-#else
-				int32_t index = std::bit_width(size) - min_bin;
-#endif
-				
+				int32_t index = getlog2size(size) - min_bin;
 				assert(index >= 0);
-
 				if (index >= 0)
 				{
 					arrPtrLists[index]->push(data);
+					nonEmptyBinsBitmap.set(index);
 				}
 			}
 		}
@@ -101,11 +95,7 @@ namespace internal
 		rtsha_attr_inline size_t pop(size_t size) noexcept
 		{
 			size_t ret(0U);
-			#ifdef __arm__ //ARM architecture
-			size_t log2_size = rsha_bit_width(size);
-			#else
-			size_t log2_size = std::bit_width(size);
-			#endif
+			size_t log2_size = getlog2size(size);
 			assert(log2_size >= min_bin);
 			if (log2_size >= min_bin)
 			{
@@ -115,11 +105,18 @@ namespace internal
 					assert(index >= 0);
 					if (index >= 0)
 					{
-						if (false == arrPtrLists[index]->is_empty())
+						// Use the bitmap to quickly check for non-empty bins
+						if (nonEmptyBinsBitmap[index])
 						{
-							ret = arrPtrLists[index]->pop();
-							if (ret > 0U)
+							if (false == arrPtrLists[index]->is_empty())
 							{
+								ret = arrPtrLists[index]->pop();
+
+								// If bin is now empty, update the bitmap
+								if (arrPtrLists[index]->is_empty())
+								{
+									nonEmptyBinsBitmap.reset(index);
+								}
 								if ((ret > _page->start_position) && (ret < _page->end_position))
 								{
 									return ret;
@@ -145,13 +142,10 @@ namespace internal
 		 */
 		rtsha_attr_inline bool delete_address(const size_t& address, void* block, const size_t& size) noexcept
 		{
-			if ((address > _page->start_position) && (address < _page->end_position))
-			{
-				#ifdef __arm__ //ARM architecture
-				size_t log2_size = rsha_bit_width(size);
-				#else
-				size_t log2_size = std::bit_width(size);
-				#endif
+			if (isInPage(address))
+			{				
+				size_t log2_size = getlog2size(size);
+				assert(log2_size >= min_bin);
 
 				if (log2_size >= min_bin)
 				{					
@@ -173,6 +167,24 @@ namespace internal
 		}
 
 	private:
+
+		rtsha_attr_inline bool isInPage(const size_t address) const noexcept
+		{
+			return ((address > _page->start_position) && (address < _page->end_position));
+		}
+
+
+		rtsha_attr_inline size_t getlog2size(const size_t size) const noexcept
+		{
+#ifdef __arm__ //ARM architecture
+			return rsha_bit_width(size);
+#else
+			return std::bit_width(size);
+#endif
+		}
+
+
+		std::bitset<MAX_BINS> nonEmptyBinsBitmap;
 
 		size_t min_bin;						///< @brief The minimum bin size (in log2 scale).
 

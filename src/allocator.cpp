@@ -30,7 +30,7 @@ SOFTWARE.
 
 using namespace rtsha;
 
-Heap* _heap = NULL;
+Heap* _heap = nullptr;
 
 PREALLOC_MEMORY<Heap> _heap_obj;
 	
@@ -59,7 +59,7 @@ void* rtsha_malloc(size_t size)
 	{
 		return _heap->malloc(size);
 	}
-	return NULL;
+	return nullptr;
 }
 	
 void rtsha_free(void* ptr)
@@ -76,7 +76,7 @@ void* rtsha_calloc(size_t nitems, size_t size)
 	{
 		return _heap->calloc(nitems, size);
 	}
-	return NULL;
+	return nullptr;
 }
 	
 void* rtsha_realloc(void* ptr, size_t size)
@@ -85,7 +85,7 @@ void* rtsha_realloc(void* ptr, size_t size)
 	{
 		return _heap->realloc(ptr, size);
 	}
-	return NULL;
+	return nullptr;
 }
 
 void* rtsha_memcpy(void* _Dst, void const* _Src, size_t _Size)
@@ -94,7 +94,7 @@ void* rtsha_memcpy(void* _Dst, void const* _Src, size_t _Size)
 	{
 		return _heap->memcpy(_Dst, _Src, _Size);
 	}
-	return NULL;
+	return nullptr;
 }
 
 void* rtsha_memset(void* _Dst, int _Val, size_t _Size)
@@ -103,5 +103,5 @@ void* rtsha_memset(void* _Dst, int _Val, size_t _Size)
 	{
 		return _heap->memset(_Dst, _Val, _Size);
 	}
-	return NULL;
+	return nullptr;
 }

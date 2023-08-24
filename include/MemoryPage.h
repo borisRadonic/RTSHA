@@ -84,7 +84,7 @@ namespace rtsha
 		address_t					position				= 0U;	///< Current position or address within the page.
 		size_t						free_blocks				= 0U;	///< Number of free blocks within the page.
 		
-		rtsha_block*				last_block				= NULL;	///< Pointer to the last block within the page.
+		rtsha_block*				last_block				= nullptr;	///< Pointer to the last block within the page.
 
 		address_t					lastFreeBlockAddress	= 0U;	///< Address of the last free block within the page.
 
@@ -97,9 +97,9 @@ namespace rtsha
 		size_t						min_block_size			= 0U;	///< Minimum block size for the page (used with Power Two pages).
 		size_t						max_block_size			= 0U;	///< Maximum block size for the page (used with PowerTwo pages).
 
-		HeapCallbacksStruct*		callbacks				= NULL;	///< Callback functions associated with the page.
+		HeapCallbacksStruct*		callbacks				= nullptr;	///< Callback functions associated with the page.
 
-		rtsha_page*					next					= NULL; ///< Pointer to the next page similar structure.
+		rtsha_page*					next					= nullptr; ///< Pointer to the next page similar structure.
 	};
 
 	/*! \class MemoryPage
