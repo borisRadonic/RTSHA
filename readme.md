@@ -7,18 +7,9 @@
 Good programming practices for real time emmbedded applications includes the rule that all values must allocated on the stack if possible. There are some situations where is this not possible like when the size of the value is unknown or the vectors are growing in size over time.
 In those situations memory from the heap must be dinamically usig heap allocator functions like **malloc**() and **free**().
 
-There are various implementations of heap allocation algorithms used on different platforms. Some notable examples include:
-  - Dlmalloc: Doug Lea's Memory Allocator.
-  - Phkmalloc: Originally developed by Poul-Henning Kamp for FreeBSD in 1995-1996, later adapted by several operating systems.
-  - ptmalloc: A memory-efficient implementation derived from Dlmalloc, commonly used on Unix systems.
-  - jemalloc: A SMP-scalable allocator primarily used in FreeBSD's libc.
-  - Google Chrome's PartitionAlloc: An optimized memory allocator focused on space efficiency, allocation latency, and security.
-  - glibc heap allocator: Derived from ptmalloc and commonly used in the GNU C Library.
-  ...
+There are various heap allocation algorithms used across platforms, such as Dlmalloc, Phkmalloc, ptmalloc, jemalloc, Google Chrome's PartitionAlloc, and the glibc heap allocator. While each has its benefits, they aren't tailored for hard real-time environments prioritizing speed, determinism, minimal fragmentation, and memory safety.
 
-While each of these memory management implementations has its advantages, they are not specifically designed for use in hard real-time environments, where speed, determinism, elimination of fragmentation, and memory safety are the primary goals.
-
-**Real Time Safety Heap Allocator** can be sused on bare metal platforms or together with small RT OS for several reasons:
+**Real Time Safety Heap Allocator** is an ultra-fast memory management system suitable for bare metal platforms or in conjunction with small RT OS for several reasons:
 
   1. **Memory Management**: Heap algorithms are responsible for managing dynamic memory allocation and deallocation in a system.
      On platforms, where the operating system is absent or minimal, managing memory becomes crucial.
@@ -151,6 +142,7 @@ Windows:
 ## Examples 💡
 
 [STM32H750 Demo](https://github.com/borisRadonic/RTSHA/tree/master/Examples/STM32H750/DemoRTSH)
+
 [ZYNQ-7020 Demo](https://github.com/borisRadonic/RTSHA/tree/master/Examples/Xilinx/ZYBOZ7)
 
 
