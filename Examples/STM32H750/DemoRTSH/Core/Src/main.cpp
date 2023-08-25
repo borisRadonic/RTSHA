@@ -232,7 +232,7 @@ int main(void)
 	  heapOk = heapOk | rtsha_add_page( &callbacks, RTSHA_PAGE_TYPE_64, 16384U);
 
 	  /*160K Power2 page with max block of 1024 bytes*/
-	  heapOk = rtsha_add_page( &callbacks, RTSHA_PAGE_TYPE_POWER_TWO, 163840U, 256U, 128U, 1024U);
+	  heapOk = rtsha_add_page( &callbacks, RTSHA_PAGE_TYPE_POWER_TWO, 163840U, 256U, 128U, 4096U);
 
 
   }
@@ -289,12 +289,12 @@ int main(void)
   {
 	  total_cycles_malloc = 0U;
 	  start_cycles = DWT_GetCycles();
-	  memory1 = rtsha_malloc(100U);
+	  memory1 = rtsha_malloc(1000U);
 	  end_cycles = DWT_GetCycles();
 	  total_cycles_malloc = end_cycles - start_cycles;
 
 	  start_cycles = DWT_GetCycles();
-	  memory2 = rtsha_malloc(100U);
+	  memory2 = rtsha_malloc(1000U);
 	  end_cycles = DWT_GetCycles();
 	  val =  end_cycles - start_cycles;
 	  if( val > total_cycles_malloc )
@@ -303,7 +303,7 @@ int main(void)
 	  }
 
 	  start_cycles = DWT_GetCycles();
-	  memory3 = rtsha_malloc(100U);
+	  memory3 = rtsha_malloc(1500U);
 	  end_cycles = DWT_GetCycles();
 	  val =  end_cycles - start_cycles;
 	  if( val > total_cycles_malloc )
@@ -318,7 +318,7 @@ int main(void)
 	  total_cycles_free = end_cycles - start_cycles;
 
 	  start_cycles = DWT_GetCycles();
-	  rtsha_free(memory1);
+	  rtsha_free(memory2);
 	  end_cycles = DWT_GetCycles();
 	  val =  end_cycles - start_cycles;
 	  if( val > total_cycles_free )
@@ -327,7 +327,7 @@ int main(void)
 	  }
 
 	  start_cycles = DWT_GetCycles();
-	  rtsha_free(memory1);
+	  rtsha_free(memory3);
 	  end_cycles = DWT_GetCycles();
 	  val =  end_cycles - start_cycles;
 	  if( val > total_cycles_free )
@@ -351,7 +351,7 @@ int main(void)
 
 	  if( counter == 10000U)
 	  {
-		  if( memory1 != NULL )
+		  if( (memory1 != NULL) && (memory2 != NULL) && (memory3 != NULL) )
 		  {
 			  sprintf(  (char*) data, (const char*) "Power2 Page rtsha_malloc: %u cycles, rtsha_free: %u cycles\n\r", (int) total_cycles_malloc, total_cycles_free);
 		  }

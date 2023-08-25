@@ -63,15 +63,15 @@ Based on the results obtained from the system's profiling, here are the performa
 
 *Small Fix Page:*
 
-    rtsha_malloc: 2226 cycles
-    rtsha_free: 1752 cycles
+    rtsha_malloc: 204 cycles
+    rtsha_free: 193 cycles
 
 This represents the time taken for memory allocation and deallocation for smaller fixed-size pages, specifically designed for handling memory chunks less than 512 bytes.
 
 *Power2 Page:*
 
-    rtsha_malloc: 5810 cycles
-    rtsha_free: 3545 cycles
+    rtsha_malloc: 873 cycles
+    rtsha_free: 636 cycles
 
 This represents the time taken for memory allocation and deallocation in a flexible page system that can handle a range of block sizes in power-of-two increments,
 up to a specified maximum. These metrics are crucial for understanding the efficiency of the RTSHA heap system. 
