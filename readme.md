@@ -2,7 +2,7 @@
 
 
 > [!WARNING] 
-> This project is currently a work in progress. The release of the initial version is tentatively scheduled for December. Please consider this before using the code.
+>  This is the beta version. Please consider this before using the code
 
 Good programming practices for real time emmbedded applications includes the rule that all values must allocated on the stack if possible. There are some situations where is this not possible like when the size of the value is unknown or the vectors are growing in size over time.
 In those situations memory from the heap must be dinamically usig heap allocator functions like **malloc**() and **free**().
