@@ -1,9 +1,6 @@
 # Real Time Safety Heap Allocator (RTSHA) 🚀
 
 
-> [!WARNING] 
->  This is the beta version. Please consider this before using the code
-
 
 ![](https://github.com/borisRadonic/RTSHA/blob/master/pic.png)
 
@@ -58,6 +55,7 @@ There are various heap allocation algorithms used across platforms, such as Dlma
 **Functional Safety**; The allocator must adhere to the principles of functional safety. It should consistently perform its intended function during normal and abnormal conditions. Its design must consider and mitigate possible failure modes, errors, and faults.
 * When we talk about 'functional safety'in RTSHA, we are not referring to 'security'. "Functional safety" refers to the aspect of a system's design that ensures it operates correctly in response to its inputs and failures, minimizing risk of physical harm,  while "security" refers to the measures taken to protect a system from unauthorized access, disruption, or damage. *
 
+![](https://github.com/borisRadonic/RTSHA/blob/master/safety.png)
 
 **Error Detection and Handling**: The allocator should have mechanisms to detect and handle memory allocation errors or failures. This can include robust error reporting, and fallback or recovery strategies in case of allocation failures.
 
